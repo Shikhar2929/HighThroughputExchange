@@ -6,11 +6,12 @@ class MatchingEngine {
         MatchingEngine() : orderID(0) {}
         double getHighestBid();
         double getLowestAsk();
-        long long insertBid(std::string name, double price, double volume); 
+        long long bidLimitOrder(std::string name, double price, double volume);
+        long long askLimitOrder(std::string name, double price, double volume);
         void display();
     private: 
-        std::map<double, std::list<Order>> bids;
-        std::map<double, std::list<Order>> asks;
+        std::map<double, std::deque<Order>> bids;
+        std::map<double, std::deque<Order>> asks;
         std::unordered_map<long long, Order> orderMap;
         long long orderID = 0;
 };
