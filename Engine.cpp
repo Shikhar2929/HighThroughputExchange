@@ -1,51 +1,85 @@
 #include "Engine.h"
 
-double MatchingEngine::processBid(deque<Order>& orders, Order& aggressor) {
-    while (volume && orders.size()) {
-        Order& order = deque.front();
+void MatchingEngine::processBid(std::deque<Order>& orders, Order& aggressor) {
+    while (aggressor.volume && orders.size()) {
+        Order& order = orders.front();
         if (order.volume > aggressor.volume) {
             //MISSING SEND TRADE
-            order.volume -= volume;
+            order.volume -= aggressor.volume;
             aggressor.volume = 0; 
+            aggressor.status = FILLED;
         }
         else {
             // MISSING SEND TRADE INFO
             aggressor.volume -= order.volume;
             order.volume = 0;
             order.status = FILLED;
+            orders.pop_front();
+        }
+    }
+}
+void MatchingEngine::processAsk(std::deque<Order>& orders, Order& aggressor) {
+    while (aggressor.volume && orders.size()) {
+        Order& order = orders.front();
+        if (order.volume > aggressor.volume) {
+            //MISSING SEND TRADE
+            order.volume -= aggressor.volume;
+            aggressor.volume = 0; 
+            aggressor.status = FILLED;
+        }
+        else {
+            // MISSING SEND TRADE INFO
+            aggressor.volume -= order.volume;
+            order.volume = 0;
+            order.status = FILLED;
+            orders.pop_front();
         }
     }
 }
 
 long long MatchingEngine::bidLimitOrder(std::string name, Order order) {
-    while (volume && asks.rbegin()->first <= price) {
-        deque<Order>& orders = asks.rbegin()->second;
-        order.volume = processBid(orders, order);
-        if (!orders.size()) {
-            asks.remove(asks.rbegin());
+    while (order.volume && asks.size() && asks.begin()->first <= order.price) {
+        std::deque<Order>& orderList = asks.begin()->second;
+        processBid(orderList, order);
+        if (!orderList.size()) {
+            asks.erase(asks.begin());
         }
     }
-    if (volume) {
-        bids[price].push_back(order);
+    if (order.volume) {
+        order.status = ACTIVE;
+        bids[order.price].push_back(order);
+        return ++orderID;
     }
-    return ++orderID;
+    return 0;
 }
 
-long long MatchingEngine::askLimitOrder(std::string name, double price, double volume) {
-    while (volume && bid.begin()->first >= price) {
-        deque<Order>& orders = asks.rbegin()->second;
-        volume = processBid(orders, volume);
-        if (!orders.size()) {
-            asks.remove(asks.rbegin());
+long long MatchingEngine::askLimitOrder(std::string name, Order order) {
+    while (order.volume && bids.size() && bids.rbegin()->first >= order.price) {
+        std::deque<Order>& orderList = bids.rbegin()->second;
+        processAsk(orderList, order);
+        if (!orderList.size()) {
+            bids.erase(std::prev(bids.end()));
         }
     }
-    if (volume) {
-        asks[price].push_back({name, price, volume, BID, ACTIVE });
+    if (order.volume) {
+        order.status = ACTIVE;
+        asks[order.price].push_back(order);
+        return ++orderID;
     }
-    return ++orderID;
+    return 0;
 }
-long long MatchingEngine::ask
-
+double MatchingEngine::getHighestBid() {
+        if (bids.empty()) {
+            return 0.0;
+        }
+        return bids.rbegin()->first;
+}
+double MatchingEngine:: getLowestAsk() {
+        if (asks.empty()) {
+            return 0.0;
+        }
+        return asks.begin()->first;
+    }
 void MatchingEngine::display() {
     std::cout << "BID ---- \n";
     for (const auto& [price, listBid] : bids) {
