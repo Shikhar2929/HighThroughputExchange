@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        #messages {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #fff;
+            height: 200px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+<h1>WebSocket Test</h1>
+<button id="connectButton">Connect</button>
+<button id="sendButton" disabled>Send Message</button>
+<div id="messages"></div>
+<input type="text" id="messageInput" placeholder="Type a message..." disabled />
+
+<script>
+    let socket;
+    const messagesDiv = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+    const connectButton = document.getElementById('connectButton');
+    const sendButton = document.getElementById('sendButton');
+
+    connectButton.onclick = () => {
+        // Adjust the URL to match your WebSocket endpoint
+        socket = new WebSocket('ws://localhost:8080/ws');
+
+        socket.onopen = () => {
+            console.log('Connected to WebSocket');
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            messagesDiv.innerHTML += '<div>Connected to WebSocket server!</div>';
+        };
+
+        socket.onmessage = (event) => {
+            console.log('Message from server:', event.data);
+            messagesDiv.innerHTML += `<div>Server: ${event.data}</div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
+        };
+
+        socket.onclose = () => {
+            console.log('Disconnected from WebSocket');
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            messagesDiv.innerHTML += '<div>Disconnected from WebSocket server!</div>';
+        };
+    };
+
+    sendButton.onclick = () => {
+        const message = messageInput.value;
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(message);
+            messagesDiv.innerHTML += `<div>You: ${message}</div>`;
+            messageInput.value = '';
+        }
+    };
+</script>
+</body>
+</html>
