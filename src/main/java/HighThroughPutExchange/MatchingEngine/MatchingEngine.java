@@ -1,10 +1,6 @@
 package HighThroughPutExchange.MatchingEngine;
 
-import java.util.HashMap;
-import java.util.TreeMap;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 
 public class MatchingEngine {
@@ -12,6 +8,8 @@ public class MatchingEngine {
     private TreeMap<Double, Deque<Order>> bids = new TreeMap<>();
     private TreeMap<Double, Deque<Order>> asks = new TreeMap<>();
     private Map<String, Map<Long, Order>> userOrders = new HashMap<>(); // UserName, OrderId, Order
+    private Map<Double, Double> bidVolumes = new TreeMap<>(); // Price Level, Quantity
+    private Map<Double, Double> askVolumes = new TreeMap<>(); // Price Level, Quantity
     private long orderID = 0;
 
     public double getHighestBid() {
@@ -26,6 +24,13 @@ public class MatchingEngine {
         }
         return asks.firstKey();
     }
+    private void updateVolume(Map<Double, Double> volumeMap, double price, double delta) {
+        volumeMap.put(price, volumeMap.getOrDefault(price, 0.0) + delta);
+        if (volumeMap.get(price) <= 0) {
+            volumeMap.remove(price);
+        }
+    }
+
     private void processBid(Deque<Order> orders, Order aggressor) {
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
@@ -33,11 +38,15 @@ public class MatchingEngine {
                 orders.poll();
             }
             else if (order.volume > aggressor.volume) {
+                double volumeTraded = aggressor.volume;
+                updateVolume(askVolumes, order.price, -volumeTraded);
                 // MISSING SEND TRADE
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
             } else {
+                double volumeTraded = order.volume;
+                updateVolume(askVolumes, order.price, -volumeTraded);
                 // MISSING SEND TRADE INFO
                 aggressor.volume = aggressor.volume - order.volume;
                 order.volume = 0;
@@ -50,11 +59,15 @@ public class MatchingEngine {
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
             if (order.volume > aggressor.volume) {
+                double volumeTraded = aggressor.volume;
+                updateVolume(bidVolumes, order.price, -volumeTraded);
                 // MISSING SEND TRADE
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
             } else {
+                double volumeTraded = order.volume;
+                updateVolume(bidVolumes, order.price, -volumeTraded);
                 // MISSING SEND TRADE INFO
                 aggressor.volume = aggressor.volume - order.volume;
                 order.volume = 0;
@@ -74,6 +87,7 @@ public class MatchingEngine {
         if (order.volume > 0) {
             order.status = Status.ACTIVE;
             bids.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
+            updateVolume(bidVolumes, order.price, order.volume);
             orderID++;
             if (userOrders.containsKey(order.name)) {
                 userOrders.get(order.name).put(orderID, order);
@@ -98,6 +112,7 @@ public class MatchingEngine {
             order.status = Status.ACTIVE;
             asks.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             orderID++;
+            updateVolume(askVolumes, order.price, order.volume);
             if (userOrders.containsKey(order.name)) {
                 userOrders.get(order.name).put(orderID, order);
             }
@@ -115,6 +130,21 @@ public class MatchingEngine {
     protected Map<Double, Deque<Order>> getAsks() {
         return asks;
     }
+    public List<PriceLevel> getBidPriceLevels() {
+        List<PriceLevel> priceLevels = new ArrayList<>();
+        for (Map.Entry<Double, Double> entry : bidVolumes.entrySet()) {
+            priceLevels.add(new PriceLevel(entry.getKey(), entry.getValue()));
+        }
+        return priceLevels;
+    }
+    public List<PriceLevel> getAskPriceLevels() {
+        List<PriceLevel> priceLevels = new ArrayList<>();
+        for (Map.Entry<Double, Double> entry : askVolumes.entrySet()) {
+            priceLevels.add(new PriceLevel(entry.getKey(), entry.getValue()));
+        }
+        return priceLevels;
+    }
+
     public void display() {
         System.out.println("BID ---- ");
         for (Map.Entry<Double, Deque<Order>> entry : bids.entrySet()) {
@@ -135,10 +165,13 @@ public class MatchingEngine {
         Map<Long, Order> orders = userOrders.get(userId);
         if (orders != null) {
             if (orders.containsKey(orderId) && orders.get(orderId).status == Status.ACTIVE) {
+                Order order = orders.get(orderId);
+                updateVolume(bidVolumes, order.price, -order.volume);
                 orders.get(orderId).status = Status.CANCELLED;
                 return true;
             }
         }
         return false;
     }
+
 }
