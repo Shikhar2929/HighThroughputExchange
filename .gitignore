@@ -2,3 +2,5 @@
 *.exe
 *.o
 .idea
+*.iml
+*.index
