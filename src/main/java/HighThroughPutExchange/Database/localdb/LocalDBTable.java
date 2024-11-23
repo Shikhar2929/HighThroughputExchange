@@ -3,13 +3,16 @@ package HighThroughPutExchange.Database.localdb;
 import HighThroughPutExchange.Database.abstractions.AbstractDBTable;
 import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.exceptions.NotFoundException;
 
 import java.util.HashMap;
 
-public class LocalDBTable extends AbstractDBTable {
+public class LocalDBTable<T extends DBEntry> extends AbstractDBTable<T> {
 
-    private HashMap<String, DBEntry> backing;
+    private HashMap<String, T> backing;
+
+    public HashMap<String, T> getBacking() {
+        return backing;
+    }
 
     public LocalDBTable(String name) {
         this.name = name;
@@ -17,11 +20,12 @@ public class LocalDBTable extends AbstractDBTable {
     }
 
     @Override
-    public void putItem(DBEntry item) throws AlreadyExistsException {
+    public void putItem(T item) throws AlreadyExistsException {
         // todo: ask about error handling
         if (item == null) {return;}
-        if (backing.containsKey(item.getHash())) {throw new AlreadyExistsException();}
-        backing.put(item.getHash(), item);
+        if (backing.containsKey(item.hashOut())) {throw new AlreadyExistsException();}
+        if (item.hashOut() == null) {throw new AlreadyExistsException();}
+        backing.put(item.hashOut(), item);
     }
 
     @Override
@@ -30,7 +34,7 @@ public class LocalDBTable extends AbstractDBTable {
     }
 
     @Override
-    public DBEntry getItem(String key) {
+    public T getItem(String key) {
         return backing.get(key);
     }
 
