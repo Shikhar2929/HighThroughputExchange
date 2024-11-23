@@ -1,7 +1,6 @@
 package HighThroughPutExchange.Database.localdb;
 
 import HighThroughPutExchange.Database.abstractions.AbstractDBClient;
-import HighThroughPutExchange.Database.abstractions.AbstractDBTable;
 import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
 import HighThroughPutExchange.Database.exceptions.NotFoundException;
