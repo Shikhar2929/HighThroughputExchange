@@ -16,6 +16,7 @@ public class MatchingEngineTest {
     @Test
     public void testBidLimitOrder_AddsBidSuccessfully() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 1000.0);
         Order bidOrder = new Order("TraderA", 100.0, 10.0, Side.BID, Status.ACTIVE);
 
         long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
@@ -30,6 +31,7 @@ public class MatchingEngineTest {
     @Test
     public void testAskLimitOrder_AddsAskSuccessfully() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderB", 10000.0);
         Order askOrder = new Order("TraderB", 105.0, 15.0, Side.ASK, Status.ACTIVE);
 
         long orderId = engine.askLimitOrder(askOrder.name, askOrder);
@@ -44,6 +46,8 @@ public class MatchingEngineTest {
     @Test
     public void testGetHighestBid_AfterMultipleBids() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 10000.0);
+        engine.initializeUser("TraderB", 10000.0);
         engine.bidLimitOrder("TraderA", new Order("TraderA", 100.0, 10.0, Side.BID, Status.ACTIVE));
         engine.bidLimitOrder("TraderB", new Order("TraderB", 105.0, 5.0, Side.BID, Status.ACTIVE));
 
@@ -53,6 +57,8 @@ public class MatchingEngineTest {
     @Test
     public void testGetLowestAsk_AfterMultipleAsks() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 10000.0);
+        engine.initializeUser("TraderB", 10000.0);
         engine.askLimitOrder("TraderA", new Order("TraderA", 110.0, 10.0, Side.ASK, Status.ACTIVE));
         engine.askLimitOrder("TraderB", new Order("TraderB", 105.0, 5.0, Side.ASK, Status.ACTIVE));
         System.out.println(engine.getLowestAsk());
@@ -62,6 +68,9 @@ public class MatchingEngineTest {
     @Test
     public void testMatchingBidAndAskOrders() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 30000.0);
+        engine.initializeUser("TraderB", 30000.0);
+
         engine.bidLimitOrder("TraderA", new Order("TraderA", 105.0, 10.0, Side.BID, Status.ACTIVE));
         engine.askLimitOrder("TraderB", new Order("TraderB", 105.0, 10.0, Side.ASK, Status.ACTIVE));
 
@@ -73,6 +82,7 @@ public class MatchingEngineTest {
     @Test
     public void testInsertBid() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 1000.0);
         Order bidOrder = new Order("TraderA", 100.0, 10.0, Side.BID, Status.ACTIVE);
 
         long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
@@ -86,6 +96,7 @@ public class MatchingEngineTest {
     @Test
     public void testInsertAsk() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderB", 1000.0);
         Order askOrder = new Order("TraderB", 100.0, 5.0, Side.ASK, Status.ACTIVE);
 
         long orderId = engine.askLimitOrder(askOrder.name, askOrder);
@@ -99,6 +110,8 @@ public class MatchingEngineTest {
     @Test
     public void testFillOrderCompletely() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 10000.0);
+        engine.initializeUser("TraderB", 10000.0);
         Order askOrder = new Order("TraderA", 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order bidOrder = new Order("TraderB", 100.0, 5.0, Side.BID, Status.ACTIVE);
 
@@ -112,6 +125,9 @@ public class MatchingEngineTest {
     @Test
     public void testPartialFill() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 1000.0);
+        engine.initializeUser("TraderB", 1000.0);
+
         Order askOrder = new Order("TraderA", 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order bidOrder = new Order("TraderB", 100.0, 10.0, Side.BID, Status.ACTIVE);
 
@@ -127,6 +143,10 @@ public class MatchingEngineTest {
     @Test
     public void testRaceCondition() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 1000.0);
+        engine.initializeUser("TraderB", 1000.0);
+        engine.initializeUser("TraderC", 1000.0);
+
         Order ask1 = new Order("TraderA", 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order ask2 = new Order("TraderB", 100.0, 7.0, Side.ASK, Status.ACTIVE);
         Order bid = new Order("TraderC", 100.0, 6.0, Side.BID, Status.ACTIVE);
@@ -143,6 +163,9 @@ public class MatchingEngineTest {
     @Test
     public void testDifferentPricesNoMatch() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 10000.0);
+        engine.initializeUser("TraderB", 10000.0);
+
         Order bid = new Order("TraderA", 95.0, 10.0, Side.BID, Status.ACTIVE);
         Order ask = new Order("TraderB", 105.0, 5.0, Side.ASK, Status.ACTIVE);
 
@@ -157,6 +180,7 @@ public class MatchingEngineTest {
     @Test
     public void testCancelOrderValidBid() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderA", 10000.0);
         Order bid = new Order("TraderA", 100.0, 10.0, Side.BID, Status.ACTIVE);
 
         // Place and then cancel a bid order
@@ -171,6 +195,7 @@ public class MatchingEngineTest {
     @Test
     public void testCancelOrderValidAsk() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("TraderB", 10000.0);
         Order ask = new Order("TraderB", 150.0, 20.0, Side.ASK, Status.ACTIVE);
 
         // Place and then cancel an ask order
@@ -185,7 +210,7 @@ public class MatchingEngineTest {
     @Test
     public void testCancelOrderNonExistent() {
         MatchingEngine engine = new MatchingEngine();
-
+        engine.initializeUser("TraderA", 1000.0);
         // Attempt to cancel a non-existent order
         boolean cancelStatus = engine.removeOrder("TraderA", 9999); // assuming 9999 is an ID that doesn't exist
         assertFalse(cancelStatus, "Cancel should fail for a non-existent order ID");
@@ -194,6 +219,7 @@ public class MatchingEngineTest {
     void testBidPriceLevelsAfterAddingLimitOrder() {
         // Add a bid order
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader1", 1000.0);
         Order bidOrder1 = new Order("Trader1", 100.0, 5.0, Side.BID, Status.ACTIVE);
         engine.bidLimitOrder(bidOrder1.name, bidOrder1);
 
@@ -206,6 +232,7 @@ public class MatchingEngineTest {
     @Test
     public void testAskPriceLevelsAfterAddingLimitOrder() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader2", 1000.0);
         Order askOrder1 = new Order("Trader2", 105.0, 3.0, Side.ASK, Status.ACTIVE);
 
         engine.askLimitOrder(askOrder1.name, askOrder1);
@@ -219,6 +246,8 @@ public class MatchingEngineTest {
     @Test
     public void testPriceLevelsAfterPartialFill() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader1", 10000.0);
+        engine.initializeUser("Trader2", 10000.0);
         Order askOrder1 = new Order("Trader2", 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order bidOrder1 = new Order("Trader1", 100.0, 3.0, Side.BID, Status.ACTIVE);
 
@@ -237,6 +266,8 @@ public class MatchingEngineTest {
     @Test
     public void testPriceLevelsAfterFullFill() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUser("Trader2", 1000.0);
         Order askOrder1 = new Order("Trader2", 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order bidOrder1 = new Order("Trader1", 100.0, 5.0, Side.BID, Status.ACTIVE);
 
@@ -253,6 +284,9 @@ public class MatchingEngineTest {
     @Test
     public void testPriceLevelsWithMultipleOrdersAtSamePrice() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUser("Trader2", 1000.0);
+        engine.initializeUser("Trader3", 1000.0);
         Order bidOrder1 = new Order("Trader1", 100.0, 3.0, Side.BID, Status.ACTIVE);
         Order bidOrder2 = new Order("Trader2", 100.0, 2.0, Side.BID, Status.ACTIVE);
 
@@ -279,6 +313,7 @@ public class MatchingEngineTest {
     @Test
     public void testRemovingOrderUpdatesPriceLevels() {
         MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader1", 1000.0);
         Order bidOrder1 = new Order("Trader1", 100.0, 3.0, Side.BID, Status.ACTIVE);
 
         long orderId = engine.bidLimitOrder(bidOrder1.name, bidOrder1);
@@ -288,4 +323,178 @@ public class MatchingEngineTest {
         List<PriceLevel> bidLevels = engine.getBidPriceLevels();
         assertEquals(0, bidLevels.size(), "Bid price level should be removed after order cancellation");
     }
+    @Test
+    void testMarketBuyOrderFullyFilled() {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Buyer1", 100000.0);
+        engine.initializeUser("Seller1", 100000.0);
+        engine.initializeUser("Seller2", 100000.0);
+
+
+        // Setup initial asks
+        engine.askLimitOrder("Seller1", new Order("Seller1", 100.0, 200.0, Side.ASK, Status.ACTIVE));
+        engine.askLimitOrder("Seller2", new Order("Seller2", 101.0, 400.0, Side.ASK, Status.ACTIVE));
+
+        // Market Buy Order
+        double filledVolume = engine.bidMarketOrder("Buyer1", 500.0);
+
+        // Assert filled volume
+        assertEquals(500.0, filledVolume);
+
+        // Assert remaining asks
+        assertEquals(101.0, engine.getLowestAsk());
+        //assertEquals(0.0, engine.getOrder("Seller1", 1).volume);
+        //assertTrue(engine.getOrder("Seller1", 1).status == Status.FILLED);
+        assertEquals(100.0, engine.getOrder("Seller2", 2).volume);
+    }
+
+    @Test
+    void testMarketSellOrderFullyFilled() {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Buyer1", 100000.0);
+        engine.initializeUser("Buyer2", 100000.0);
+        engine.initializeUser("Seller1", 10000.0);
+        // Setup initial bids
+        engine.bidLimitOrder("Buyer1", new Order("Buyer1", 99.0, 150.0, Side.BID, Status.ACTIVE));
+        engine.bidLimitOrder("Buyer2", new Order("Buyer2", 98.0, 200.0, Side.BID, Status.ACTIVE));
+
+        // Market Sell Order
+        double filledVolume = engine.askMarketOrder("Seller1", 300.0);
+
+        // Assert filled volume
+        assertEquals(300.0, filledVolume);
+
+        // Assert remaining bids
+        assertEquals(98.0, engine.getHighestBid());
+        assertEquals(0.0, engine.getOrder("Buyer1", 1).volume);
+        assertEquals(50.0, engine.getOrder("Buyer2", 2).volume);
+    }
+
+    @Test
+    void testMarketBuyOrderPartiallyFilled() {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Seller1", 1000.0);
+        engine.initializeUser("Buyer1", 100000.0);
+
+        // Setup initial asks
+        engine.askLimitOrder("Seller1", new Order("Seller1", 100.0, 200.0, Side.ASK, Status.ACTIVE));
+
+        // Market Buy Order
+        double filledVolume = engine.bidMarketOrder("Buyer1", 500.0);
+
+        // Assert filled volume
+        assertEquals(200.0, filledVolume);
+
+        // Assert remaining order state
+        assertEquals(Double.POSITIVE_INFINITY, engine.getLowestAsk());
+        assertEquals(0.0, engine.getOrder("Seller1", 1).volume);
+        assertEquals(Status.FILLED, engine.getOrder("Seller1", 1).status);
+    }
+
+    @Test
+    void testMarketSellOrderPartiallyFilled() {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Buyer1", 30000.0);
+        engine.initializeUser("Seller1", 30000.0);
+
+        // Setup initial bids
+        engine.bidLimitOrder("Buyer1", new Order("Buyer1", 99.0, 300.0, Side.BID, Status.ACTIVE));
+
+        // Market Sell Order
+        double filledVolume = engine.askMarketOrder("Seller1", 500.0);
+
+        // Assert filled volume
+        assertEquals(300.0, filledVolume);
+
+        // Assert remaining order state
+        assertEquals(0, engine.getHighestBid());
+        assertEquals(0.0, engine.getOrder("Buyer1", 1).volume);
+        assertEquals(Status.FILLED, engine.getOrder("Buyer1", 1).status);
+    }
+
+    @Test
+    void testMarketOrderCancelledDueToNoLiquidity() {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Buyer1", 10000.0);
+        engine.initializeUser("Seller1", 10000.0);
+
+        // Market Buy Order with no asks
+        double buyFilledVolume = engine.bidMarketOrder("Buyer1", 500.0);
+
+        // Market Sell Order with no bids
+        double sellFilledVolume = engine.askMarketOrder("Seller1", 300.0);
+
+        // Assert filled volume
+        assertEquals(0.0, buyFilledVolume);
+        assertEquals(0.0, sellFilledVolume);
+    }
+    @Test
+    void testUninitializedUser() {
+        MatchingEngine engine = new MatchingEngine();
+        long orderId = engine.bidLimitOrder("Buyer1", new Order("Buyer1", 99.0, 150.0, Side.BID, Status.ACTIVE));
+        assertEquals(orderId, -1); // -1 represents invalid user
+        orderId = engine.askLimitOrder("RandomName", new Order("RandomName", 5.0, 5.0, Side.ASK, Status.ACTIVE));
+        assertEquals(orderId, -1);
+        engine.initializeUser("ActualUser", 1000.0);
+        engine.askLimitOrder("ActualUser", new Order("ActualUser", 10.0, 5.0, Side.ASK, Status.ACTIVE));
+        engine.bidLimitOrder("ActualUser", new Order("ActualUser", 8.0, 5.0, Side.BID, Status.ACTIVE));
+        double orderFilledVolume = engine.bidMarketOrder("Buyer1", 1000.0);
+        assertEquals(orderFilledVolume, 0.0);
+        orderFilledVolume = engine.bidMarketOrder("Rasdf;", 100);
+        assertEquals(orderFilledVolume, 0.0);
+        assertEquals(engine.getBidPriceLevels().size(), 1);
+        assertEquals(engine.getAskPriceLevels().size(), 1);
+    }
+    @Test
+    void testUserListLimit() {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUser("Trader2", 1000.0);
+        assertEquals(engine.getUserBalance("Trader1"), 1000.0);
+        Order bidOrder = new Order("Trader1", 100.0, 5.0, Side.BID, Status.ACTIVE);
+        long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
+        assertEquals(engine.getUserBalance("Trader1"), 500.0);
+        Order askOrder = new Order("Trader2", 99.0, 5.0, Side.ASK, Status.ACTIVE);
+        engine.askLimitOrder("Trader2", askOrder);
+        assertEquals(engine.getUserBalance("Trader1"), 500.0);
+        assertEquals(engine.getUserBalance("Trader2"), 1500.0);
+        //
+        Order askOrder2 = new Order("Trader1", 100.0, 5.0, Side.ASK, Status.ACTIVE);
+        engine.askLimitOrder("Trader1", askOrder2);
+        assertEquals(engine.getUserBalance("Trader1"), 500.0);
+        assertEquals(engine.getUserBalance("Trader2"), 1500.0);
+        Order bidOrder2 =  new Order("Trader2", 102.0, 5.0, Side.BID, Status.ACTIVE);
+        engine.bidLimitOrder("Trader2", bidOrder2);
+        assertEquals(engine.getUserBalance("Trader1"), 1000.0);
+        assertEquals(engine.getUserBalance("Trader2"), 1000.0);
+    }
+    @Test
+    void testCancelUserList() {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader1", 1000.0);
+        Order bidOrder = new Order("Trader1", 100.0, 5.0, Side.BID, Status.ACTIVE);
+        long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
+        assertEquals(engine.getUserBalance("Trader1"), 500.0);
+        engine.removeOrder("Trader1", orderId);
+        assertEquals(engine.getUserBalance("Trader1"), 1000.0);
+    }
+
+    @Test
+    void testUserListMarket() {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUser("Trader2", 500.0);
+        Order bidOrder = new Order("Trader1", 100.0, 10.0, Side.BID, Status.ACTIVE);
+        long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
+        engine.askMarketOrder("Trader2", 5);
+        assertEquals(engine.getUserBalance("Trader1"), 0.0);
+        assertEquals(engine.getUserBalance("Trader2"), 1000.0);
+        Order askOrder =  new Order("Trader1", 101.0, 10.0, Side.ASK, Status.ACTIVE);
+        orderId = engine.askLimitOrder(askOrder.name, askOrder);
+        double volume = engine.bidMarketOrder("Trader2", 10);
+        assertEquals(9.0, volume);
+        assertEquals(909, engine.getUserBalance("Trader1"));
+        assertEquals(91, engine.getUserBalance("Trader2"));
+    }
+
 }
