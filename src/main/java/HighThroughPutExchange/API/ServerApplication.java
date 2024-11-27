@@ -116,12 +116,12 @@ public class ServerApplication {
     @PostMapping("/add_user")
     public AddUserResponse addUser(@RequestBody AddUserRequest form) {
         if (!authenticateAdminRequest(form)) {
-            return new AddUserResponse(false, false, "incorrect username or password");
+            return new AddUserResponse(false, false, "incorrect username or password", "");
         }
 
         // no duplicate usernames
         if (users.containsItem(form.getUsername())) {
-            return new AddUserResponse(true, false, "username already exists");
+            return new AddUserResponse(true, false, "username already exists", "");
         }
 
         try {
@@ -129,7 +129,7 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new AddUserResponse(true, true, "user successfully created with key " + users.getItem(form.getUsername()).getApiKey());
+        return new AddUserResponse(true, true, "user successfully created", users.getItem(form.getUsername()).getApiKey());
     }
 
     @PostMapping("/admin_page")
@@ -201,12 +201,12 @@ public class ServerApplication {
         return new PrivatePageResponse(true, true, "this is a private page");
     }
 
-    @PostMapping("/bidLimitOrder")
-    public BidLimitOrderResponse bidLimitOrder(@RequestBody BidLimitOrderRequest form) {
+    @PostMapping("/limit_order")
+    public LimitOrderResponse limitOrder(@RequestBody LimitOrderRequest form) {
         if (!authenticatePrivateRequest(form)) {
-            return new BidLimitOrderResponse(false, false);
+            return new LimitOrderResponse(false, false);
         }
 
-        return new BidLimitOrderResponse(true, true);
+        return new LimitOrderResponse(true, true);
     }
 }

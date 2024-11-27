@@ -1,6 +1,6 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
-public class BidLimitOrderResponse {
+public class LimitOrderResponse {
     private boolean auth;
     private boolean success;
 
@@ -20,7 +20,7 @@ public class BidLimitOrderResponse {
         this.success = success;
     }
 
-    public BidLimitOrderResponse(boolean auth, boolean success) {
+    public LimitOrderResponse(boolean auth, boolean success) {
         this.auth = auth;
         this.success = success;
     }

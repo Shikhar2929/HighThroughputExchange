@@ -1,15 +1,25 @@
 package HighThroughPutExchange.API.api_objects.requests;
 
-public class BidLimitOrderRequest extends BasePrivateRequest {
+public class LimitOrderRequest extends BasePrivateRequest {
     private String ticker;
     private int volume;
     private float price;
+    private boolean isBid;
 
-    public BidLimitOrderRequest(String username, String sessionToken, String ticker, int volume, float price) {
+    public boolean getBid() {
+        return isBid;
+    }
+
+    public void setBid(boolean bid) {
+        isBid = bid;
+    }
+
+    public LimitOrderRequest(String username, String sessionToken, String ticker, int volume, float price, boolean isBid) {
         super(username, sessionToken);
         this.ticker = ticker;
         this.volume = volume;
         this.price = price;
+        this.isBid = isBid;
     }
 
     public String getTicker() {
