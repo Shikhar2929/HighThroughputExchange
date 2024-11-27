@@ -1,16 +1,23 @@
-package HighThroughPutExchange.API.api_objects.requests;
+package HighThroughPutExchange.API.api_objects;
 
-public class AddUserRequest extends BaseAdminRequest {
+public class AddUserRequest {
+    private String adminUsername;
+    private String adminPassword;
     private String username;
     private String name;
     private String email;
 
 
     public AddUserRequest(String adminUsername, String adminPassword, String username, String name, String email) {
-        super(adminUsername, adminPassword);
+        this.adminUsername = adminUsername;
+        this.adminPassword = adminPassword;
         this.username = username;
         this.name = name;
         this.email = email;
+    }
+
+    public String getAdminUsername() {
+        return adminUsername;
     }
 
     public String getUsername() {
@@ -19,6 +26,18 @@ public class AddUserRequest extends BaseAdminRequest {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public void setAdminUsername(String adminUsername) {
+        this.adminUsername = adminUsername;
+    }
+
+    public String getAdminPassword() {
+        return adminPassword;
+    }
+
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
     }
 
     public String getName() {

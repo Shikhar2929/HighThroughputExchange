@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API.api_objects.requests;
+package HighThroughPutExchange.API.api_objects;
 
 public class BuildupRequest {
     private String username;

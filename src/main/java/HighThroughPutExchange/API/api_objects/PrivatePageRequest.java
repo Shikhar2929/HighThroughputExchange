@@ -1,8 +1,9 @@
-package HighThroughPutExchange.API.api_objects.requests;
+package HighThroughPutExchange.API.api_objects;
 
-public class BasePrivateRequest {
-    protected String username;
-    protected String sessionToken;
+public class PrivatePageRequest {
+    private String username;
+    private String sessionToken;
+
     public String getUsername() {
         return username;
     }
@@ -19,7 +20,7 @@ public class BasePrivateRequest {
         this.sessionToken = sessionToken;
     }
 
-    public BasePrivateRequest(String username, String sessionToken) {
+    public PrivatePageRequest(String username, String sessionToken) {
         this.username = username;
         this.sessionToken = sessionToken;
     }

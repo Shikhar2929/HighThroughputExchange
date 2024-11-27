@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API.api_objects.responses;
+package HighThroughPutExchange.API.api_objects;
 
 public class BuildupResponse {
     private boolean auth;

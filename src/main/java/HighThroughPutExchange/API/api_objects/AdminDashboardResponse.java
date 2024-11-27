@@ -1,13 +1,15 @@
-package HighThroughPutExchange.API.api_objects.responses;
+package HighThroughPutExchange.API.api_objects;
 
-public class TeardownResponse {
+public class AdminDashboardResponse {
     private boolean auth;
     private boolean success;
+    private String data;
 
 
-    public TeardownResponse(boolean auth, boolean success) {
+    public AdminDashboardResponse(boolean auth, boolean success, String data) {
         this.auth = auth;
         this.success = success;
+        this.data = data;
     }
 
     public boolean getAuth() {
@@ -24,5 +26,13 @@ public class TeardownResponse {
 
     public void setSuccess(boolean success) {
         this.success = success;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
     }
 }
