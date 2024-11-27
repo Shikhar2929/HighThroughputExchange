@@ -1,6 +1,6 @@
 package HighThroughPutExchange.MatchingEngine;
 
-class PriceLevel {
+public class PriceLevel {
     double price;
     double volume;
 
