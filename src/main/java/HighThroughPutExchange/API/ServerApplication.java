@@ -1,6 +1,7 @@
 package HighThroughPutExchange.API;
 
-import HighThroughPutExchange.API.api_objects.*;
+import HighThroughPutExchange.API.api_objects.requests.*;
+import HighThroughPutExchange.API.api_objects.responses.*;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
 import HighThroughPutExchange.Database.entry.DBEntry;
@@ -19,7 +20,6 @@ import java.util.HashMap;
 
 /*
 todo
-    build token generator
     make abstract payloads for admin vs private vs public pages for streamlined authentication
     make all DBs threadsafe
         Atomicity - not guaranteed, but expose backing and mutex
@@ -51,6 +51,25 @@ public class ServerApplication {
             output.append(randomChar());
         }
         return output.toString();
+    }
+
+    private boolean authenticateAdminRequest(BaseAdminRequest req) {
+        return req.getAdminUsername().equals(adminUsername) && req.getAdminPassword().equals(adminPassword);
+    }
+
+    private boolean authenticatePrivateRequest(BasePrivateRequest req) {
+        // if username not found
+        if (!sessions.containsItem(req.getUsername())) {
+            return false;
+        }
+
+        Session s = sessions.getItem(req.getUsername());
+        // if username and api key mismatch
+        if (!s.getSessionToken().equals(req.getSessionToken())) {
+            return false;
+        }
+
+        return true;
     }
 
     public ServerApplication() {
@@ -96,33 +115,38 @@ public class ServerApplication {
 
     @PostMapping("/add_user")
     public AddUserResponse addUser(@RequestBody AddUserRequest form) {
-        if (form.getAdminUsername().equals(adminUsername) && form.getAdminPassword().equals(adminPassword)) {
-            if (users.containsItem(form.getUsername())) {
-                return new AddUserResponse(true, false, "username already exists");
-            }
-            try {
-                users.putItem(new User(form.getUsername(), form.getName(), generateKey(), form.getEmail()));
-            } catch (AlreadyExistsException e) {
-                throw new RuntimeException(e);
-            }
-            return new AddUserResponse(true, true, "user successfully created with key " + users.getItem(form.getUsername()).getApiKey());
+        if (!authenticateAdminRequest(form)) {
+            return new AddUserResponse(false, false, "incorrect username or password");
         }
-        return new AddUserResponse(false, false, "incorrect username or password");
+
+        // no duplicate usernames
+        if (users.containsItem(form.getUsername())) {
+            return new AddUserResponse(true, false, "username already exists");
+        }
+
+        try {
+            users.putItem(new User(form.getUsername(), form.getName(), generateKey(), form.getEmail()));
+        } catch (AlreadyExistsException e) {
+            throw new RuntimeException(e);
+        }
+        return new AddUserResponse(true, true, "user successfully created with key " + users.getItem(form.getUsername()).getApiKey());
     }
 
     @PostMapping("/admin_page")
     public AdminDashboardResponse adminPage(@RequestBody AdminDashboardRequest form) {
-        if (form.getAdminUsername().equals(adminUsername) && form.getAdminPassword().equals(adminPassword)) {
-                return new AdminDashboardResponse(true, false, "this is the admin dashboard");
+        if (!authenticateAdminRequest(form)) {
+            return new AdminDashboardResponse(false, false, "failed authentication");
         }
-        return new AdminDashboardResponse(false, false, "failed authentication");
+
+        return new AdminDashboardResponse(true, false, "this is the admin dashboard");
     }
 
     @PostMapping("/shutdown")
     public ShutdownResponse shutdown(@RequestBody ShutdownRequest form) {
-        if (form.getAdminUsername().equals(adminUsername) && form.getAdminPassword().equals(adminPassword)) {
+        if (!authenticateAdminRequest(form)) {
             return new ShutdownResponse(false, false);
         }
+
         try {
             dbClient.closeClient();
         } catch (Exception e) {
@@ -135,6 +159,9 @@ public class ServerApplication {
 
     @PostMapping("/buildup")
     public BuildupResponse buildup(@RequestBody BuildupRequest form) {
+        /*
+        Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as oppsed to session token.
+         */
         // if username not found
         if (!users.containsItem(form.getUsername())) {
             return new BuildupResponse(false, false, "");
@@ -158,14 +185,7 @@ public class ServerApplication {
 
     @PostMapping("/teardown")
     public TeardownResponse teardown(@RequestBody TeardownRequest form) {
-        // if username not found
-        if (!sessions.containsItem(form.getUsername())) {
-            return new TeardownResponse(false, false);
-        }
-
-        Session s = sessions.getItem(form.getUsername());
-        // if username and api key mismatch
-        if (!s.getSessionToken().equals(form.getSessionToken())) {
+        if (!authenticatePrivateRequest(form)) {
             return new TeardownResponse(false, false);
         }
 
@@ -174,15 +194,19 @@ public class ServerApplication {
 
     @PostMapping("/privatePage")
     public PrivatePageResponse privatePage(@RequestBody PrivatePageRequest form) {
-        if (!sessions.containsItem(form.getUsername())) {
-            return new PrivatePageResponse(false, false, "");
-        }
-
-        Session s = sessions.getItem(form.getUsername());
-        if (!s.getSessionToken().equals(form.getSessionToken())) {
+        if (!authenticatePrivateRequest(form)) {
             return new PrivatePageResponse(false, false, "");
         }
 
         return new PrivatePageResponse(true, true, "this is a private page");
+    }
+
+    @PostMapping("/bidLimitOrder")
+    public BidLimitOrderResponse bidLimitOrder(@RequestBody BidLimitOrderRequest form) {
+        if (!authenticatePrivateRequest(form)) {
+            return new BidLimitOrderResponse(false, false);
+        }
+
+        return new BidLimitOrderResponse(true, true);
     }
 }

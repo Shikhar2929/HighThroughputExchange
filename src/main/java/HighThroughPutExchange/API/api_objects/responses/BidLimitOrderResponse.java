@@ -1,14 +1,8 @@
-package HighThroughPutExchange.API.api_objects;
+package HighThroughPutExchange.API.api_objects.responses;
 
-public class TeardownResponse {
+public class BidLimitOrderResponse {
     private boolean auth;
     private boolean success;
-
-
-    public TeardownResponse(boolean auth, boolean success) {
-        this.auth = auth;
-        this.success = success;
-    }
 
     public boolean getAuth() {
         return auth;
@@ -23,6 +17,11 @@ public class TeardownResponse {
     }
 
     public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public BidLimitOrderResponse(boolean auth, boolean success) {
+        this.auth = auth;
         this.success = success;
     }
 }
