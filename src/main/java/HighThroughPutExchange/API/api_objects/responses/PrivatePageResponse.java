@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API.api_objects;
+package HighThroughPutExchange.API.api_objects.responses;
 
 public class PrivatePageResponse {
     private boolean auth;

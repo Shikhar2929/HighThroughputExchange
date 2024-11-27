@@ -5,3 +5,4 @@
 *.iml
 *.index
 target
+.DS_Store
