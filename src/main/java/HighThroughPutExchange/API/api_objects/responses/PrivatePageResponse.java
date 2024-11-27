@@ -1,16 +1,9 @@
-package HighThroughPutExchange.API.api_objects;
+package HighThroughPutExchange.API.api_objects.responses;
 
-public class AddUserResponse {
+public class PrivatePageResponse {
     private boolean auth;
     private boolean success;
     private String message;
-
-
-    public AddUserResponse(boolean auth, boolean success, String message) {
-        this.auth = auth;
-        this.success = success;
-        this.message = message;
-    }
 
 
     public boolean getAuth() {
@@ -34,6 +27,12 @@ public class AddUserResponse {
     }
 
     public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public PrivatePageResponse(boolean auth, boolean success, String message) {
+        this.auth = auth;
+        this.success = success;
         this.message = message;
     }
 }

@@ -1,9 +1,8 @@
-package HighThroughPutExchange.API.api_objects;
+package HighThroughPutExchange.API.api_objects.requests;
 
-public class ShutdownRequest {
-
-    private String adminUsername;
-    private String adminPassword;
+public class BaseAdminRequest {
+    protected String adminUsername;
+    protected String adminPassword;
 
     public String getAdminUsername() {
         return adminUsername;
@@ -21,7 +20,7 @@ public class ShutdownRequest {
         this.adminPassword = adminPassword;
     }
 
-    public ShutdownRequest(String adminUsername, String adminPassword) {
+    public BaseAdminRequest(String adminUsername, String adminPassword) {
         this.adminUsername = adminUsername;
         this.adminPassword = adminPassword;
     }
