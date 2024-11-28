@@ -8,13 +8,16 @@ import java.util.HashMap;
 
 public class LocalDBTable<T extends DBEntry> extends AbstractDBTable<T> {
 
+    private Class<T> type;
+
     private HashMap<String, T> backing;
 
     public HashMap<String, T> getBacking() {
         return backing;
     }
 
-    public LocalDBTable(String name) {
+    public LocalDBTable(String name, Class<T> type) {
+        this.type = type;
         this.name = name;
         backing = new HashMap<>();
     }
