@@ -8,14 +8,14 @@ URL = 'http://localhost:8080'
 # first, an admin will create a user
 form_data = {
 	'adminUsername': 'trading_club_admin',
-	'adminPassword': 'abcxyz'
+	'adminPassword': 'abcxyz',
 	'username': 'team1',
 	'name': 'National Fellas League',
 	'email': 'team_email@email.com'
 }
 req = urllib.request.Request(URL + '/add_user', data=json.dumps(form_data).encode('utf-8'), method='POST')
 req.add_header('Content-Type', 'application/json')
-resp = urllib.request.urlopen(req).read().decode('utf-8')
+resp = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 print(resp)
 
 
@@ -30,7 +30,7 @@ form_data = {
 }
 req = urllib.request.Request(URL + '/buildup', data=json.dumps(form_data).encode('utf-8'), method='POST')
 req.add_header('Content-Type', 'application/json')
-resp = urllib.request.urlopen(req).read().decode('utf-8')
+resp = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 print(resp)
 session_token = resp['sessionToken']
 
@@ -48,7 +48,7 @@ form_data = {
 }
 req = urllib.request.Request(URL + '/limit_order', data=json.dumps(form_data).encode('utf-8'), method='POST')
 req.add_header('Content-Type', 'application/json')
-resp = urllib.request.urlopen(req).read().decode('utf-8')
+resp = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 print(resp)
 
 
@@ -61,7 +61,7 @@ form_data = {
 }
 req = urllib.request.Request(URL + '/teardown', data=json.dumps(form_data).encode('utf-8'), method='POST')
 req.add_header('Content-Type', 'application/json')
-resp = urllib.request.urlopen(req).read().decode('utf-8')
+resp = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 print(resp)
 
 
@@ -74,7 +74,7 @@ form_data = {
 }
 req = urllib.request.Request(URL + '/shutdown', data=json.dumps(form_data).encode('utf-8'), method='POST')
 req.add_header('Content-Type', 'application/json')
-resp = urllib.request.urlopen(req).read().decode('utf-8')
+resp = json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 print(resp)
 
 

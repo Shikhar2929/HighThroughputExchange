@@ -189,6 +189,8 @@ public class ServerApplication {
             return new TeardownResponse(false, false);
         }
 
+        sessions.deleteItem(form.getUsername());
+
         return new TeardownResponse(true, true);
     }
 
