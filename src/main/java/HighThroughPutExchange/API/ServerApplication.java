@@ -4,11 +4,16 @@ import HighThroughPutExchange.API.api_objects.requests.*;
 import HighThroughPutExchange.API.api_objects.responses.*;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
+import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
 import HighThroughPutExchange.Database.exceptions.NotFoundException;
 import HighThroughPutExchange.Database.localdb.LocalDBClient;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
+import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.MatchingEngine.Order;
+import HighThroughPutExchange.MatchingEngine.Side;
+import HighThroughPutExchange.MatchingEngine.Status;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +22,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.HashMap;
-
 /*
 todo
     make abstract payloads for admin vs private vs public pages for streamlined authentication
@@ -38,8 +42,10 @@ public class ServerApplication {
     private LocalDBClient dbClient;
     private LocalDBTable<User> users;
     private LocalDBTable<Session> sessions;
-
+    private MatchingEngine matchingEngine;
     private static final int KEY_LENGTH = 16;
+    private final double initialBalance = 100000.0;
+    private final double stockBalance = 1000.0;
 
     private static char randomChar() {
         return (char) ((int) (Math.random() * 26 + 65));
@@ -74,9 +80,11 @@ public class ServerApplication {
 
     public ServerApplication() {
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
+        matchingEngine = new MatchingEngine();
+        matchingEngine.initializeAllTickers();
         mapping.put("users", User.class);
         mapping.put("sessions", Session.class);
-        dbClient = new LocalDBClient("data.json", mapping);
+        dbClient = new LocalDBClient("unused.json", mapping);
         try {
             users = dbClient.getTable("users");
         } catch (NotFoundException e) {
@@ -123,9 +131,13 @@ public class ServerApplication {
         if (users.containsItem(form.getUsername())) {
             return new AddUserResponse(true, false, "username already exists", "");
         }
-
         try {
             users.putItem(new User(form.getUsername(), form.getName(), generateKey(), form.getEmail()));
+            TaskQueue.addTask(() -> {
+                System.out.println("User initialized" + form.getUsername());
+                matchingEngine.initializeUser(form.getUsername(), initialBalance);
+                matchingEngine.initializeUserVolume(form.getUsername(), "AAPL", 10.0);
+            });
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
@@ -206,7 +218,15 @@ public class ServerApplication {
         if (!authenticatePrivateRequest(form)) {
             return new LimitOrderResponse(false, false);
         }
-
+        TaskQueue.addTask(() -> {
+            Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
+                    form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
+            System.out.println("Adding: " + order.toString());
+            if (form.getBid())
+                matchingEngine.bidLimitOrder(form.getUsername(), order);
+            else
+                matchingEngine.askLimitOrder(form.getUsername(), order);
+        });
         return new LimitOrderResponse(true, true);
     }
 }
