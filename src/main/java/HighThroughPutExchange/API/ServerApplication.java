@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 /*
 todo
-    fix exception handling of database classes
+    make abstract payloads for admin vs private vs public pages for streamlined authentication
     make all DBs threadsafe
         Atomicity - not guaranteed, but expose backing and mutex
         Consistency - guaranteed
@@ -81,7 +81,7 @@ public class ServerApplication {
             users = dbClient.getTable("users");
         } catch (NotFoundException e) {
             try {
-                dbClient.createTable("users", User.class);
+                dbClient.createTable("users");
                 users = dbClient.getTable("users");
             } catch (AlreadyExistsException ex) {
                 throw new RuntimeException(ex);
@@ -91,7 +91,7 @@ public class ServerApplication {
             sessions = dbClient.getTable("sessions");
         } catch (NotFoundException e) {
             try {
-                dbClient.createTable("sessions", Session.class);
+                dbClient.createTable("sessions");
                 sessions = dbClient.getTable("sessions");
             } catch (AlreadyExistsException ex) {
                 throw new RuntimeException(ex);

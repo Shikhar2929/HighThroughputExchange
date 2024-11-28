@@ -28,27 +28,30 @@ public class LocalDBClient extends AbstractDBClient {
             temp = objectMapper.readerFor(HashMap.class).readValue(file);
             LocalDBTable table;
             for (String tableName: temp.keySet()) {
-                table = new LocalDBTable<>(tableName, tableMapping.get(tableName));
+                table = new LocalDBTable<>(tableName);
                 for (String key: temp.get(tableName).get("backing").keySet()) {
-                    System.out.println(temp.get(tableName).get("backing").get(key).getClass());
                     try {
                         table.putItem(
                                 objectMapper.convertValue(
                                         temp.get(tableName).get("backing").get(key),
-                                        tableMapping.get(tableName)
+                                        tableMapping.getOrDefault(tableName, null)
                                 )
                         );
-                    } catch (Exception e) {System.out.println(e); System.out.println(key);}
+                    } catch (AlreadyExistsException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 tables.put(tableName, table);
             }
-        } catch (Exception ignored) {}
+        } catch (IOException e) {
+            tables = new HashMap<>();
+        }
     }
 
     @Override
-    public LocalDBTable<DBEntry> createTable(String tableName, Class<? extends DBEntry> c) throws AlreadyExistsException {
+    public LocalDBTable<DBEntry> createTable(String tableName) throws AlreadyExistsException {
         if (tables.containsKey(tableName)) {throw new AlreadyExistsException();}
-        LocalDBTable<DBEntry> output = new LocalDBTable(tableName, c);
+        LocalDBTable<DBEntry> output = new LocalDBTable<DBEntry>(tableName);
         tables.put(tableName, output);
         return output;
     }
