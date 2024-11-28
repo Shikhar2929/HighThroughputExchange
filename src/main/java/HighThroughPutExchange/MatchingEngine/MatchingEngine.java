@@ -1,6 +1,9 @@
 package HighThroughPutExchange.MatchingEngine;
 
 import java.util.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.IOException;
 
 
 public class MatchingEngine {
@@ -12,9 +15,11 @@ public class MatchingEngine {
     private long orderID = 0;
 
     public boolean initializeUser(String username, double balance) {
+        System.out.println("Initializing: " + username);
         return userList.initializeUser(username, balance);
     }
     public boolean initializeUserVolume(String username, String ticker, double volume) {
+        System.out.println("Initializing: " + username + " with ticker: " + ticker);
         return userList.initializeUserQuantity(username, ticker, volume);
     }
     public double getUserBalance(String username) {
@@ -33,6 +38,13 @@ public class MatchingEngine {
             return false;
         }
         orderBooks.put(ticker, new OrderBook());
+        return true;
+    }
+    public boolean initializeAllTickers() {
+        //Add FILE IO STUFF LATER
+        initializeTicker("AAPL");
+        initializeTicker("MSFT");
+        initializeTicker("GOOGL");
         return true;
     }
     public double getHighestBid(String ticker) {
@@ -62,9 +74,15 @@ public class MatchingEngine {
             return false;
         }
         if (!orderBooks.containsKey(order.ticker)) {
+            System.out.println("Bad Ticker");
             return false;
         }
-        if (!userList.validUser(user) || userList.getUserBalance(user) < order.volume * order.price) {
+        if (!userList.validUser(user)) {
+            System.out.println("Bad User");
+            return false;
+        }
+        if (userList.getUserBalance(user) < order.volume * order.price) {
+            System.out.println("Insufficient Funds");
             return false;
         }
         return true;
@@ -74,12 +92,16 @@ public class MatchingEngine {
             return false;
         }
         if (!orderBooks.containsKey(order.ticker)) {
+            System.out.println("Bad Ticker");
             return false;
         }
         if (!userList.validUser(user)) {
+            System.out.println("Bad User");
             return false;
         }
-        return userList.validQuantity(user, order.ticker, order.volume);
+        if (!userList.validQuantity(user, order.ticker, order.volume))
+            System.out.println("Insufficient Sell Funds");
+        return true;
     }
     private void processBid(Deque<Order> orders, Map<Double, Double> askVolumes, Order aggressor) {
         while (aggressor.volume > 0 && !orders.isEmpty()) {
@@ -301,12 +323,14 @@ public class MatchingEngine {
         double overallVolume = 0.0;
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
+            if (order.status == Status.CANCELLED) {
+                orders.poll();
+                continue;
+            }
             double aggressorVolume = aggressor.volume;
             if (side == Side.BID)
                 aggressorVolume = Math.min(aggressorVolume, userList.getValidVolume(aggressor.name, order.price));
-            if (order.status == Status.CANCELLED) {
-                orders.poll();
-            } else if (order.volume > aggressorVolume) {
+            if (order.volume > aggressorVolume) {
                 double volumeTraded = aggressorVolume;
                 double tradePrice = order.price;
                 if (side == Side.BID) {
