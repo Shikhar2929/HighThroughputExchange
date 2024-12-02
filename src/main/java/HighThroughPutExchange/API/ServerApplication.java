@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.HashMap;
 /*
 todo
-    make abstract payloads for admin vs private vs public pages for streamlined authentication
+    fix exception handling of database classes
     make all DBs threadsafe
         Atomicity - not guaranteed, but expose backing and mutex
         Consistency - guaranteed
@@ -84,7 +84,7 @@ public class ServerApplication {
         matchingEngine.initializeAllTickers();
         mapping.put("users", User.class);
         mapping.put("sessions", Session.class);
-        dbClient = new LocalDBClient("unused.json", mapping);
+        dbClient = new LocalDBClient("data.json", mapping);
         try {
             users = dbClient.getTable("users");
         } catch (NotFoundException e) {
@@ -200,6 +200,8 @@ public class ServerApplication {
         if (!authenticatePrivateRequest(form)) {
             return new TeardownResponse(false, false);
         }
+
+        sessions.deleteItem(form.getUsername());
 
         return new TeardownResponse(true, true);
     }
