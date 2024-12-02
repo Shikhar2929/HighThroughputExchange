@@ -16,10 +16,10 @@ public class BotTest {
         List<String> users = Arrays.asList("User1", "User2");
         String ticker = "AAPL";
         matchingEngine.initializeTicker(ticker);
-        matchingEngine.initializeUser("User1", 10000.0);
-        matchingEngine.initializeUser("User2", 10000.0);
-        matchingEngine.initializeUserVolume("User1", ticker, 100.0);
-        matchingEngine.initializeUserVolume("User2", ticker, 100.0);
+        matchingEngine.initializeUserBalance("User1", 10000.0);
+        matchingEngine.initializeUserBalance("User2", 10000.0);
+        matchingEngine.initializeUserTickerVolume("User1", ticker, 100.0);
+        matchingEngine.initializeUserTickerVolume("User2", ticker, 100.0);
 
         // spin up 10 threads
         for (int i = 0; i < 2; i++) {
@@ -29,8 +29,8 @@ public class BotTest {
                     while (true) {
                         double price = 100 + Math.random() * 50; // Random price between 100 and 150
                         double volume = 1 + Math.random() * 10; // Random volume between 1 and 10
-
-                        if (Math.random() < 0.5) {
+                        double rng = Math.random();
+                        if (rng < 0.25) {
                             String randomUser = users.get(new Random().nextInt(users.size()));
                             // Add a bid order to the queue
                             queue.add(() -> {
@@ -40,13 +40,27 @@ public class BotTest {
                                 //System.out.println("Bid Order Status: " + bidOrder.getStatus());
                             });
                         }
-                        else {
+                        else if (rng < 0.5) {
                             // Add an ask order to the queue
                             queue.add(() -> {
                                 String randomUser = users.get(new Random().nextInt(users.size()));
                                 Order askOrder = new Order(randomUser, ticker, price, volume, Side.ASK, Status.ACTIVE);
                                 System.out.println("Ask Order Added: " + askOrder);
                                 matchingEngine.askLimitOrder(randomUser, askOrder);
+                            });
+                        }
+                        else if (rng < 0.75) {
+                            queue.add(() -> {
+                                String randomUser = users.get(new Random().nextInt(users.size()));
+                                double quantity = Math.random() * 10 + 1;
+                                matchingEngine.bidMarketOrder(randomUser, ticker, quantity);
+                            });
+                        }
+                        else {
+                            queue.add(() -> {
+                                String randomUser = users.get(new Random().nextInt(users.size()));
+                                double quantity = Math.random() * 10 + 1;
+                                matchingEngine.askMarketOrder(randomUser, ticker, quantity);
                             });
                         }
 

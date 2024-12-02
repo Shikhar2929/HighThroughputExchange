@@ -16,10 +16,10 @@ public class MatchingEngineTest {
     @Test
     public void testBidLimitOrder_AddsBidSuccessfully() {
         MatchingEngine engine = new MatchingEngine();
-        engine.initializeUser("TraderA", 1000.0);
+        engine.initializeUserBalance("TraderA", 1000.0);
         String ticker = "AAPL";
         engine.initializeTicker(ticker);
-        engine.initializeUserVolume("TraderA", ticker, 10.0);
+        engine.initializeUserTickerVolume("TraderA", ticker, 10.0);
         Order bidOrder = new Order("TraderA", ticker,100.0, 10.0, Side.BID, Status.ACTIVE);
 
         long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
@@ -35,10 +35,10 @@ public class MatchingEngineTest {
     public void testAskLimitOrder_AddsAskSuccessfully() {
         MatchingEngine engine = new MatchingEngine();
 
-        engine.initializeUser("TraderB", 10000.0);
+        engine.initializeUserBalance("TraderB", 10000.0);
         String ticker = "AAPL";
         engine.initializeTicker(ticker);
-        engine.initializeUserVolume("TraderB", ticker, 105.0);
+        engine.initializeUserTickerVolume("TraderB", ticker, 105.0);
         Order askOrder = new Order("TraderB", ticker, 105.0, 15.0, Side.ASK, Status.ACTIVE);
 
         long orderId = engine.askLimitOrder(askOrder.name, askOrder);
@@ -55,8 +55,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker(ticker);
-        engine.initializeUser("TraderA", 10000.0);
-        engine.initializeUser("TraderB", 10000.0);
+        engine.initializeUserBalance("TraderA", 10000.0);
+        engine.initializeUserBalance("TraderB", 10000.0);
         engine.bidLimitOrder("TraderA", new Order("TraderA", ticker, 100.0, 10.0, Side.BID, Status.ACTIVE));
         engine.bidLimitOrder("TraderB", new Order("TraderB", ticker, 105.0, 5.0, Side.BID, Status.ACTIVE));
 
@@ -68,10 +68,10 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 10000.0);
-        engine.initializeUser("TraderB", 10000.0);
-        engine.initializeUserVolume("TraderA", ticker, 10.0);
-        engine.initializeUserVolume("TraderB", ticker, 10.0);
+        engine.initializeUserBalance("TraderA", 10000.0);
+        engine.initializeUserBalance("TraderB", 10000.0);
+        engine.initializeUserTickerVolume("TraderA", ticker, 10.0);
+        engine.initializeUserTickerVolume("TraderB", ticker, 10.0);
 
         engine.askLimitOrder("TraderA", new Order("TraderA", ticker, 110.0, 10.0, Side.ASK, Status.ACTIVE));
         engine.askLimitOrder("TraderB", new Order("TraderB", ticker, 105.0, 5.0, Side.ASK, Status.ACTIVE));
@@ -84,10 +84,10 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 30000.0);
-        engine.initializeUser("TraderB", 30000.0);
-        engine.initializeUserVolume("TraderA", ticker, 0.0);
-        engine.initializeUserVolume("TraderB", ticker, 10.0);
+        engine.initializeUserBalance("TraderA", 30000.0);
+        engine.initializeUserBalance("TraderB", 30000.0);
+        engine.initializeUserTickerVolume("TraderA", ticker, 0.0);
+        engine.initializeUserTickerVolume("TraderB", ticker, 10.0);
         engine.bidLimitOrder("TraderA", new Order("TraderA", ticker, 105.0, 10.0, Side.BID, Status.ACTIVE));
         engine.askLimitOrder("TraderB", new Order("TraderB", ticker,105.0, 10.0, Side.ASK, Status.ACTIVE));
 
@@ -101,7 +101,7 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 1000.0);
+        engine.initializeUserBalance("TraderA", 1000.0);
         Order bidOrder = new Order("TraderA", ticker, 100.0, 10.0, Side.BID, Status.ACTIVE);
 
         long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
@@ -117,8 +117,8 @@ public class MatchingEngineTest {
         String ticker = "AAPL";
         MatchingEngine engine = new MatchingEngine();
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderB", 1000.0);
-        engine.initializeUserVolume("TraderB", ticker, 10.0);
+        engine.initializeUserBalance("TraderB", 1000.0);
+        engine.initializeUserTickerVolume("TraderB", ticker, 10.0);
         Order askOrder = new Order("TraderB", ticker,100.0, 5.0, Side.ASK, Status.ACTIVE);
 
         long orderId = engine.askLimitOrder(askOrder.name, askOrder);
@@ -134,10 +134,10 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 10000.0);
-        engine.initializeUser("TraderB", 10000.0);
-        engine.initializeUserVolume("TraderA", "AAPL", 5.0);
-        engine.initializeUserVolume("TraderB", ticker, 0.0);
+        engine.initializeUserBalance("TraderA", 10000.0);
+        engine.initializeUserBalance("TraderB", 10000.0);
+        engine.initializeUserTickerVolume("TraderA", "AAPL", 5.0);
+        engine.initializeUserTickerVolume("TraderB", ticker, 0.0);
         Order askOrder = new Order("TraderA", ticker, 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order bidOrder = new Order("TraderB", ticker, 100.0, 5.0, Side.BID, Status.ACTIVE);
 
@@ -153,10 +153,10 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 1000.0);
-        engine.initializeUser("TraderB", 1000.0);
-        engine.initializeUserVolume("TraderA", ticker, 5.0);
-        engine.initializeUserVolume("TraderB", ticker, 0.0);
+        engine.initializeUserBalance("TraderA", 1000.0);
+        engine.initializeUserBalance("TraderB", 1000.0);
+        engine.initializeUserTickerVolume("TraderA", ticker, 5.0);
+        engine.initializeUserTickerVolume("TraderB", ticker, 0.0);
         Order askOrder = new Order("TraderA", ticker, 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order bidOrder = new Order("TraderB", ticker, 100.0, 10.0, Side.BID, Status.ACTIVE);
 
@@ -174,12 +174,12 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 1000.0);
-        engine.initializeUser("TraderB", 1000.0);
-        engine.initializeUser("TraderC", 1000.0);
-        engine.initializeUserVolume("TraderA", ticker, 15.0);
-        engine.initializeUserVolume("TraderB", ticker, 15.0);
-        engine.initializeUserVolume("TraderC", ticker, 15.0);
+        engine.initializeUserBalance("TraderA", 1000.0);
+        engine.initializeUserBalance("TraderB", 1000.0);
+        engine.initializeUserBalance("TraderC", 1000.0);
+        engine.initializeUserTickerVolume("TraderA", ticker, 15.0);
+        engine.initializeUserTickerVolume("TraderB", ticker, 15.0);
+        engine.initializeUserTickerVolume("TraderC", ticker, 15.0);
 
         Order ask1 = new Order("TraderA", ticker, 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order ask2 = new Order("TraderB", ticker, 100.0, 7.0, Side.ASK, Status.ACTIVE);
@@ -199,10 +199,10 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 10000.0);
-        engine.initializeUser("TraderB", 10000.0);
-        engine.initializeUserVolume("TraderA", ticker, 10.0);
-        engine.initializeUserVolume("TraderB", ticker, 10.0);
+        engine.initializeUserBalance("TraderA", 10000.0);
+        engine.initializeUserBalance("TraderB", 10000.0);
+        engine.initializeUserTickerVolume("TraderA", ticker, 10.0);
+        engine.initializeUserTickerVolume("TraderB", ticker, 10.0);
         Order bid = new Order("TraderA", ticker, 95.0, 10.0, Side.BID, Status.ACTIVE);
         Order ask = new Order("TraderB", ticker, 105.0, 5.0, Side.ASK, Status.ACTIVE);
 
@@ -219,7 +219,7 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 10000.0);
+        engine.initializeUserBalance("TraderA", 10000.0);
         Order bid = new Order("TraderA", ticker, 100.0, 10.0, Side.BID, Status.ACTIVE);
 
         // Place and then cancel a bid order
@@ -236,8 +236,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUserVolume("TraderB", "AAPL", 100.0);
-        engine.initializeUser("TraderB", 10000.0);
+        engine.initializeUserTickerVolume("TraderB", "AAPL", 100.0);
+        engine.initializeUserBalance("TraderB", 10000.0);
         Order ask = new Order("TraderB", ticker, 150.0, 20.0, Side.ASK, Status.ACTIVE);
 
         // Place and then cancel an ask order
@@ -254,7 +254,7 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("TraderA", 1000.0);
+        engine.initializeUserBalance("TraderA", 1000.0);
         // Attempt to cancel a non-existent order
         boolean cancelStatus = engine.removeOrder("TraderA", 9999); // assuming 9999 is an ID that doesn't exist
         assertFalse(cancelStatus, "Cancel should fail for a non-existent order ID");
@@ -266,7 +266,7 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
         Order bidOrder1 = new Order("Trader1", ticker, 100.0, 5.0, Side.BID, Status.ACTIVE);
         engine.bidLimitOrder(bidOrder1.name, bidOrder1);
 
@@ -281,8 +281,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader2", 1000.0);
-        engine.initializeUserVolume("Trader2", ticker, 3.0);
+        engine.initializeUserBalance("Trader2", 1000.0);
+        engine.initializeUserTickerVolume("Trader2", ticker, 3.0);
         Order askOrder1 = new Order("Trader2", ticker, 105.0, 3.0, Side.ASK, Status.ACTIVE);
 
         engine.askLimitOrder(askOrder1.name, askOrder1);
@@ -298,10 +298,10 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 10000.0);
-        engine.initializeUser("Trader2", 10000.0);
-        engine.initializeUserVolume("Trader2", "AAPL", 100.0);
-        engine.initializeUserVolume("Trader1", ticker, 0.0);
+        engine.initializeUserBalance("Trader1", 10000.0);
+        engine.initializeUserBalance("Trader2", 10000.0);
+        engine.initializeUserTickerVolume("Trader2", "AAPL", 100.0);
+        engine.initializeUserTickerVolume("Trader1", ticker, 0.0);
         Order askOrder1 = new Order("Trader2", ticker, 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order bidOrder1 = new Order("Trader1", ticker, 100.0, 3.0, Side.BID, Status.ACTIVE);
 
@@ -322,11 +322,11 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUser("Trader2", 1000.0);
-        engine.initializeUser("Trader1", 0.0);
-        engine.initializeUserVolume("Trader2", "AAPL", 100.0);
-        engine.initializeUserVolume("Trader1", "AAPL", 100.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader2", 1000.0);
+        engine.initializeUserBalance("Trader1", 0.0);
+        engine.initializeUserTickerVolume("Trader2", "AAPL", 100.0);
+        engine.initializeUserTickerVolume("Trader1", "AAPL", 100.0);
 
         Order askOrder1 = new Order("Trader2", ticker, 100.0, 5.0, Side.ASK, Status.ACTIVE);
         Order bidOrder1 = new Order("Trader1", ticker, 100.0, 5.0, Side.BID, Status.ACTIVE);
@@ -346,12 +346,12 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUser("Trader2", 1000.0);
-        engine.initializeUser("Trader3", 1000.0);
-        engine.initializeUserVolume("Trader1", "AAPL", 100.0);
-        engine.initializeUserVolume("Trader2", "AAPL", 100.0);
-        engine.initializeUserVolume("Trader3", "AAPL", 100.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader2", 1000.0);
+        engine.initializeUserBalance("Trader3", 1000.0);
+        engine.initializeUserTickerVolume("Trader1", "AAPL", 100.0);
+        engine.initializeUserTickerVolume("Trader2", "AAPL", 100.0);
+        engine.initializeUserTickerVolume("Trader3", "AAPL", 100.0);
 
         Order bidOrder1 = new Order("Trader1", ticker, 100.0, 3.0, Side.BID, Status.ACTIVE);
         Order bidOrder2 = new Order("Trader2", ticker,100.0, 2.0, Side.BID, Status.ACTIVE);
@@ -382,7 +382,7 @@ public class MatchingEngineTest {
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
 
-        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
         Order bidOrder1 = new Order("Trader1", ticker, 100.0, 3.0, Side.BID, Status.ACTIVE);
 
         long orderId = engine.bidLimitOrder(bidOrder1.name, bidOrder1);
@@ -398,13 +398,13 @@ public class MatchingEngineTest {
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
 
-        engine.initializeUser("Buyer1", 100000.0);
-        engine.initializeUser("Seller1", 100000.0);
-        engine.initializeUser("Seller2", 100000.0);
+        engine.initializeUserBalance("Buyer1", 100000.0);
+        engine.initializeUserBalance("Seller1", 100000.0);
+        engine.initializeUserBalance("Seller2", 100000.0);
 
-        engine.initializeUserVolume("Buyer1", ticker,100000.0);
-        engine.initializeUserVolume("Seller1", ticker, 100000.0);
-        engine.initializeUserVolume("Seller2", ticker, 100000.0);
+        engine.initializeUserTickerVolume("Buyer1", ticker,100000.0);
+        engine.initializeUserTickerVolume("Seller1", ticker, 100000.0);
+        engine.initializeUserTickerVolume("Seller2", ticker, 100000.0);
         // Setup initial asks
         engine.askLimitOrder("Seller1", new Order("Seller1", ticker, 100.0, 200.0, Side.ASK, Status.ACTIVE));
         engine.askLimitOrder("Seller2", new Order("Seller2", ticker, 101.0, 400.0, Side.ASK, Status.ACTIVE));
@@ -428,12 +428,12 @@ public class MatchingEngineTest {
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
 
-        engine.initializeUser("Buyer1", 100000.0);
-        engine.initializeUser("Buyer2", 100000.0);
-        engine.initializeUser("Seller1", 10000.0);
-        engine.initializeUserVolume("Buyer1", ticker, 500.0);
-        engine.initializeUserVolume("Buyer2", ticker, 500.0);
-        engine.initializeUserVolume("Seller1", ticker, 500.0);
+        engine.initializeUserBalance("Buyer1", 100000.0);
+        engine.initializeUserBalance("Buyer2", 100000.0);
+        engine.initializeUserBalance("Seller1", 10000.0);
+        engine.initializeUserTickerVolume("Buyer1", ticker, 500.0);
+        engine.initializeUserTickerVolume("Buyer2", ticker, 500.0);
+        engine.initializeUserTickerVolume("Seller1", ticker, 500.0);
 
         // Setup initial bids
         engine.bidLimitOrder("Buyer1", new Order("Buyer1", ticker, 99.0, 150.0, Side.BID, Status.ACTIVE));
@@ -456,10 +456,10 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Seller1", 1000.0);
-        engine.initializeUser("Buyer1", 100000.0);
-        engine.initializeUserVolume("Seller1", ticker, 500.0);
-        engine.initializeUserVolume("Buyer1", ticker, 0.0);
+        engine.initializeUserBalance("Seller1", 1000.0);
+        engine.initializeUserBalance("Buyer1", 100000.0);
+        engine.initializeUserTickerVolume("Seller1", ticker, 500.0);
+        engine.initializeUserTickerVolume("Buyer1", ticker, 0.0);
         // Setup initial asks
         engine.askLimitOrder("Seller1", new Order("Seller1", ticker, 100.0, 200.0, Side.ASK, Status.ACTIVE));
 
@@ -478,12 +478,12 @@ public class MatchingEngineTest {
     @Test
     void testMarketSellOrderPartiallyFilled() {
         MatchingEngine engine = new MatchingEngine();
-        engine.initializeUser("Buyer1", 30000.0);
-        engine.initializeUser("Seller1", 30000.0);
+        engine.initializeUserBalance("Buyer1", 30000.0);
+        engine.initializeUserBalance("Seller1", 30000.0);
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUserVolume("Buyer1", ticker, 0.0);
-        engine.initializeUserVolume("Seller1", ticker, 1000.0);
+        engine.initializeUserTickerVolume("Buyer1", ticker, 0.0);
+        engine.initializeUserTickerVolume("Seller1", ticker, 1000.0);
 
         // Setup initial bids
         engine.bidLimitOrder("Buyer1", new Order("Buyer1", ticker, 99.0, 300.0, Side.BID, Status.ACTIVE));
@@ -507,8 +507,8 @@ public class MatchingEngineTest {
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
 
-        engine.initializeUser("Buyer1", 10000.0);
-        engine.initializeUser("Seller1", 10000.0);
+        engine.initializeUserBalance("Buyer1", 10000.0);
+        engine.initializeUserBalance("Seller1", 10000.0);
 
         // Market Buy Order with no asks
         double buyFilledVolume = engine.bidMarketOrder("Buyer1", ticker, 500.0);
@@ -530,8 +530,8 @@ public class MatchingEngineTest {
         assertEquals(orderId, -1); // -1 represents invalid user
         orderId = engine.askLimitOrder("RandomName", new Order("RandomName", ticker,5.0, 5.0, Side.ASK, Status.ACTIVE));
         assertEquals(orderId, -1);
-        engine.initializeUser("ActualUser", 1000.0);
-        engine.initializeUserVolume("ActualUser", ticker, 5.0);
+        engine.initializeUserBalance("ActualUser", 1000.0);
+        engine.initializeUserTickerVolume("ActualUser", ticker, 5.0);
         engine.askLimitOrder("ActualUser", new Order("ActualUser", ticker, 10.0, 5.0, Side.ASK, Status.ACTIVE));
         engine.bidLimitOrder("ActualUser", new Order("ActualUser", ticker, 8.0, 5.0, Side.BID, Status.ACTIVE));
         double orderFilledVolume = engine.bidMarketOrder("Buyer1", ticker, 1000.0);
@@ -547,10 +547,10 @@ public class MatchingEngineTest {
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
 
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUser("Trader2", 1000.0);
-        engine.initializeUserVolume("Trader1", ticker,100.0);
-        engine.initializeUserVolume("Trader2", ticker, 100.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader2", 1000.0);
+        engine.initializeUserTickerVolume("Trader1", ticker,100.0);
+        engine.initializeUserTickerVolume("Trader2", ticker, 100.0);
         assertEquals(engine.getUserBalance("Trader1"), 1000.0);
         Order bidOrder = new Order("Trader1", ticker, 100.0, 5.0, Side.BID, Status.ACTIVE);
         long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
@@ -575,7 +575,7 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
         Order bidOrder = new Order("Trader1", ticker, 100.0, 5.0, Side.BID, Status.ACTIVE);
         long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
         assertEquals(engine.getUserBalance("Trader1"), 500.0);
@@ -589,10 +589,10 @@ public class MatchingEngineTest {
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
 
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUser("Trader2", 500.0);
-        engine.initializeUserVolume("Trader1", ticker, 20.0);
-        engine.initializeUserVolume("Trader2", ticker, 20.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader2", 500.0);
+        engine.initializeUserTickerVolume("Trader1", ticker, 20.0);
+        engine.initializeUserTickerVolume("Trader2", ticker, 20.0);
 
         Order bidOrder = new Order("Trader1", ticker, 100.0, 10.0, Side.BID, Status.ACTIVE);
         long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
@@ -611,7 +611,7 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
         Order bidOrder = new Order("Trader1", ticker, 100.0, 10.0, Side.BID, Status.ACTIVE);
         engine.bidLimitOrder(bidOrder.name, bidOrder);
     }
@@ -620,7 +620,7 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 1000.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
 
         Order bidOrder = new Order("Trader1", ticker, 50.0, 10.0, Side.BID, Status.ACTIVE);
         long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
@@ -638,8 +638,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUserVolume("Trader1", ticker, 20.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserTickerVolume("Trader1", ticker, 20.0);
 
         Order askOrder = new Order("Trader1", ticker, 50.0, 10.0, Side.ASK, Status.ACTIVE);
         long orderId = engine.askLimitOrder(askOrder.name, askOrder);
@@ -658,10 +658,10 @@ public class MatchingEngineTest {
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
 
-        engine.initializeUser("Buyer1", 500.0);
-        engine.initializeUser("Seller1", 500.0);
-        engine.initializeUserVolume("Seller1", ticker, 10.0);
-        engine.initializeUserVolume("Buyer1", ticker, 0.0);
+        engine.initializeUserBalance("Buyer1", 500.0);
+        engine.initializeUserBalance("Seller1", 500.0);
+        engine.initializeUserTickerVolume("Seller1", ticker, 10.0);
+        engine.initializeUserTickerVolume("Buyer1", ticker, 0.0);
         // Seller posts an ask order
         engine.askLimitOrder("Seller1", new Order("Seller1", ticker, 50.0, 10.0, Side.ASK, Status.ACTIVE));
 
@@ -680,8 +680,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker("AAPL");
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUserVolume("Trader1", ticker, 20.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserTickerVolume("Trader1", ticker, 20.0);
 
         // Place multiple orders
         engine.bidLimitOrder("Trader1", new Order("Trader1", ticker, 50.0, 10.0, Side.BID, Status.ACTIVE));
@@ -697,8 +697,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker(ticker);
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUserVolume("Trader1", ticker, 20.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserTickerVolume("Trader1", ticker, 20.0);
 
         // Place an order
         Order bidOrder = new Order("Trader1", ticker, 100.0, 1, Side.BID, Status.ACTIVE);
@@ -723,8 +723,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker(ticker);
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUserVolume("Trader1", ticker, 20.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserTickerVolume("Trader1", ticker, 20.0);
 
         // Place multiple orders
         engine.bidLimitOrder("Trader1", new Order("Trader1", ticker, 50.0, 10.0, Side.BID, Status.ACTIVE));
@@ -750,8 +750,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = new MatchingEngine();
         String ticker = "AAPL";
         engine.initializeTicker(ticker);
-        engine.initializeUser("Trader1", 1000.0);
-        engine.initializeUserVolume("Trader1", ticker, 20.0);
+        engine.initializeUserBalance("Trader1", 1000.0);
+        engine.initializeUserTickerVolume("Trader1", ticker, 20.0);
 
         // Place an ask order
         Order askOrder = new Order("Trader1", ticker, 100.0, 10.0, Side.ASK, Status.ACTIVE);
@@ -771,5 +771,15 @@ public class MatchingEngineTest {
         assertEquals(Status.CANCELLED, engine.getOrder("Trader1", orderId).status, "Order status should be CANCELLED");
         List<PriceLevel> askLevels = engine.getAskPriceLevels(ticker);
         assertEquals(0, askLevels.size(), "Ask price levels should be empty after removing the order");
+    }
+    @Test
+    void initializeAllTickers() {
+        MatchingEngine matchingEngine = new MatchingEngine();
+        matchingEngine.initializeAllTickers();
+    }
+    @Test
+    void initializeAllUsers() {
+        MatchingEngine matchingEngine = new MatchingEngine();
+        matchingEngine.initializeUser("Trader1");
     }
 }

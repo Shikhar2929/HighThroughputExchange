@@ -44,8 +44,6 @@ public class ServerApplication {
     private LocalDBTable<Session> sessions;
     private MatchingEngine matchingEngine;
     private static final int KEY_LENGTH = 16;
-    private final double initialBalance = 100000.0;
-    private final double stockBalance = 1000.0;
 
     private static char randomChar() {
         return (char) ((int) (Math.random() * 26 + 65));
@@ -135,8 +133,7 @@ public class ServerApplication {
             users.putItem(new User(form.getUsername(), form.getName(), generateKey(), form.getEmail()));
             TaskQueue.addTask(() -> {
                 System.out.println("User initialized" + form.getUsername());
-                matchingEngine.initializeUser(form.getUsername(), initialBalance);
-                matchingEngine.initializeUserVolume(form.getUsername(), "AAPL", 10.0);
+                matchingEngine.initializeUser(form.getUsername());
             });
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
