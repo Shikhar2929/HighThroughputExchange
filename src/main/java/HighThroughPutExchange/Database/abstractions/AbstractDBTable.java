@@ -2,7 +2,6 @@ package HighThroughPutExchange.Database.abstractions;
 
 import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.exceptions.NotFoundException;
 
 public abstract class AbstractDBTable<T extends DBEntry> {
     protected String name;

@@ -2,6 +2,8 @@ package HighThroughPutExchange.API;
 
 import HighThroughPutExchange.API.api_objects.requests.*;
 import HighThroughPutExchange.API.api_objects.responses.*;
+import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
+import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
 import HighThroughPutExchange.Common.TaskQueue;
@@ -36,12 +38,12 @@ todo
 @RestController
 public class ServerApplication {
 
-    private final String adminUsername = "trading_club_admin";
-    private final String adminPassword = "abcxyz";
 
     private LocalDBClient dbClient;
     private LocalDBTable<User> users;
     private LocalDBTable<Session> sessions;
+    private PrivatePageAuthenticator privatePageAuthenticator;
+    private AdminPageAuthenticator adminPageAuthenticator;
     private MatchingEngine matchingEngine;
     private static final int KEY_LENGTH = 16;
 
@@ -55,25 +57,6 @@ public class ServerApplication {
             output.append(randomChar());
         }
         return output.toString();
-    }
-
-    private boolean authenticateAdminRequest(BaseAdminRequest req) {
-        return req.getAdminUsername().equals(adminUsername) && req.getAdminPassword().equals(adminPassword);
-    }
-
-    private boolean authenticatePrivateRequest(BasePrivateRequest req) {
-        // if username not found
-        if (!sessions.containsItem(req.getUsername())) {
-            return false;
-        }
-
-        Session s = sessions.getItem(req.getUsername());
-        // if username and api key mismatch
-        if (!s.getSessionToken().equals(req.getSessionToken())) {
-            return false;
-        }
-
-        return true;
     }
 
     public ServerApplication() {
@@ -104,6 +87,10 @@ public class ServerApplication {
             }
         }
 
+        PrivatePageAuthenticator.buildInstance(sessions);
+        adminPageAuthenticator = AdminPageAuthenticator.getInstance();
+        privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
+
     }
 
     public static void main(String[] args) {
@@ -121,7 +108,7 @@ public class ServerApplication {
 
     @PostMapping("/add_user")
     public AddUserResponse addUser(@RequestBody AddUserRequest form) {
-        if (!authenticateAdminRequest(form)) {
+        if (!adminPageAuthenticator.authenticate(form)) {
             return new AddUserResponse(false, false, "incorrect username or password", "");
         }
 
@@ -143,7 +130,7 @@ public class ServerApplication {
 
     @PostMapping("/admin_page")
     public AdminDashboardResponse adminPage(@RequestBody AdminDashboardRequest form) {
-        if (!authenticateAdminRequest(form)) {
+        if (!adminPageAuthenticator.authenticate(form)) {
             return new AdminDashboardResponse(false, false, "failed authentication");
         }
 
@@ -152,7 +139,7 @@ public class ServerApplication {
 
     @PostMapping("/shutdown")
     public ShutdownResponse shutdown(@RequestBody ShutdownRequest form) {
-        if (!authenticateAdminRequest(form)) {
+        if (!adminPageAuthenticator.authenticate(form)) {
             return new ShutdownResponse(false, false);
         }
 
@@ -194,7 +181,7 @@ public class ServerApplication {
 
     @PostMapping("/teardown")
     public TeardownResponse teardown(@RequestBody TeardownRequest form) {
-        if (!authenticatePrivateRequest(form)) {
+        if (!privatePageAuthenticator.authenticate(form)) {
             return new TeardownResponse(false, false);
         }
 
@@ -205,7 +192,7 @@ public class ServerApplication {
 
     @PostMapping("/privatePage")
     public PrivatePageResponse privatePage(@RequestBody PrivatePageRequest form) {
-        if (!authenticatePrivateRequest(form)) {
+        if (!privatePageAuthenticator.authenticate(form)) {
             return new PrivatePageResponse(false, false, "");
         }
 
@@ -214,7 +201,7 @@ public class ServerApplication {
 
     @PostMapping("/limit_order")
     public LimitOrderResponse limitOrder(@RequestBody LimitOrderRequest form) {
-        if (!authenticatePrivateRequest(form)) {
+        if (!privatePageAuthenticator.authenticate(form)) {
             return new LimitOrderResponse(false, false);
         }
         TaskQueue.addTask(() -> {
