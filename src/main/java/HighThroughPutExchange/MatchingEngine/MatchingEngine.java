@@ -1,10 +1,12 @@
 package HighThroughPutExchange.MatchingEngine;
 
+import java.io.FileReader;
+import java.nio.file.Paths;
 import java.util.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.io.IOException;
+import java.util.Iterator;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MatchingEngine {
     public MatchingEngine(){}
@@ -14,11 +16,11 @@ public class MatchingEngine {
     private Trades trades = new Trades();
     private long orderID = 0;
 
-    public boolean initializeUser(String username, double balance) {
+    public boolean initializeUserBalance(String username, double balance) {
         System.out.println("Initializing: " + username);
         return userList.initializeUser(username, balance);
     }
-    public boolean initializeUserVolume(String username, String ticker, double volume) {
+    public boolean initializeUserTickerVolume(String username, String ticker, double volume) {
         System.out.println("Initializing: " + username + " with ticker: " + ticker);
         return userList.initializeUserQuantity(username, ticker, volume);
     }
@@ -41,12 +43,63 @@ public class MatchingEngine {
         return true;
     }
     public boolean initializeAllTickers() {
-        //Add FILE IO STUFF LATER
-        initializeTicker("AAPL");
-        initializeTicker("MSFT");
-        initializeTicker("GOOGL");
+        try {
+            // Read the JSON file
+            System.out.println("Current Working Directory: " + Paths.get("").toAbsolutePath());
+            FileReader reader = new FileReader("src/main/java/HighThroughPutExchange/Common/config.json");
+            StringBuilder content = new StringBuilder();
+            int i;
+            while ((i = reader.read()) != -1) {
+                content.append((char) i);
+            }
+            reader.close();
+            JSONObject configData = new JSONObject(content.toString());
+            JSONArray tickersArray = configData.getJSONObject("defaults").getJSONArray("tickers");
+            for (int j = 0; j < tickersArray.length(); j++) {
+                String ticker = (String) tickersArray.getString(j);
+                System.out.println("Ticker: " + ticker);
+                initializeTicker(ticker);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return false;
+    }
+    public boolean initializeUser(String user) {
+        try {
+            // Read the JSON file
+            FileReader reader = new FileReader("src/main/java/HighThroughPutExchange/Common/config.json");
+            StringBuilder content = new StringBuilder();
+            int i;
+            while ((i = reader.read()) != -1) {
+                content.append((char) i);
+            }
+            reader.close();
+
+            // Parse JSON content
+            JSONObject configData = new JSONObject(content.toString());
+
+            // Extract and process balances
+            JSONObject defaults = configData.getJSONObject("defaults");
+            double defaultBalance = defaults.getDouble("defaultBalance");
+            JSONObject balances = defaults.getJSONObject("balances");
+            System.out.println("Default Balance: " + defaultBalance);
+            initializeUserBalance(user, defaultBalance);
+            Iterator<String> keys = balances.keys();
+            while (keys.hasNext()) {
+                String ticker = keys.next();
+                double balance = balances.getDouble(ticker);
+                System.out.println("Ticker: " + ticker + ", Balance: " + balance);
+                initializeUserTickerVolume(user, ticker, balance);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
+
     public double getHighestBid(String ticker) {
         if (!orderBooks.containsKey(ticker)) return 0.0;
         TreeMap<Double, Deque<Order>> bids = orderBooks.get(ticker).bids;
