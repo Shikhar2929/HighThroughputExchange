@@ -2,6 +2,7 @@ package HighThroughPutExchange.API;
 
 import HighThroughPutExchange.API.api_objects.requests.StartSocketRequest;
 import HighThroughPutExchange.API.api_objects.responses.SocketResponse;
+import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
@@ -19,8 +20,7 @@ public class SocketController {
 
     @MessageMapping("/start")
     public void startStream(StartSocketRequest req) throws Exception {
-        // todo authenticate request
-        // todo make authenticators singleton objects
+        if (!AdminPageAuthenticator.getInstance().authenticate(req)) {throw new Exception("authentication failed");}
         for (int i = 0; i < 50; ++i) {
             sendMessage(new SocketResponse(String.format("Message %d", i)));
             Thread.sleep(500);

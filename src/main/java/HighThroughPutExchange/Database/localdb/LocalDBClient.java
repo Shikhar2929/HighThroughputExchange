@@ -8,6 +8,7 @@ import HighThroughPutExchange.Database.exceptions.NotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,12 +18,12 @@ public class LocalDBClient extends AbstractDBClient {
 
     private File file;
     private ObjectMapper objectMapper;
-    private HashMap<String, LocalDBTable> tables;
+    private ConcurrentHashMap<String, LocalDBTable> tables;
 
     public LocalDBClient(String path, HashMap<String, Class<? extends DBEntry>> tableMapping) {
         file = new File(path);
         objectMapper = new ObjectMapper();
-        tables = new HashMap<>();
+        tables = new ConcurrentHashMap<>();
         HashMap<String, LinkedHashMap<String, LinkedHashMap<String, Object>>> temp;
         try {
             temp = objectMapper.readerFor(HashMap.class).readValue(file);
@@ -44,7 +45,7 @@ public class LocalDBClient extends AbstractDBClient {
                 tables.put(tableName, table);
             }
         } catch (IOException e) {
-            tables = new HashMap<>();
+            tables = new ConcurrentHashMap<>();
         }
     }
 

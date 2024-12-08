@@ -1,5 +1,6 @@
 package HighThroughPutExchange.Database.localdb;
 
+import java.util.concurrent.ConcurrentHashMap;
 import HighThroughPutExchange.Database.abstractions.AbstractDBTable;
 import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
@@ -8,15 +9,15 @@ import java.util.HashMap;
 
 public class LocalDBTable<T extends DBEntry> extends AbstractDBTable<T> {
 
-    private HashMap<String, T> backing;
+    private ConcurrentHashMap<String, T> backing;
 
-    public HashMap<String, T> getBacking() {
+    public ConcurrentHashMap<String, T> getBacking() {
         return backing;
     }
 
     public LocalDBTable(String name) {
         this.name = name;
-        backing = new HashMap<>();
+        backing = new ConcurrentHashMap<>();
     }
 
     @Override
