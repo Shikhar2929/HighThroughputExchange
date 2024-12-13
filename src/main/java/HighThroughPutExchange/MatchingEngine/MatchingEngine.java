@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.Iterator;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,6 +15,15 @@ public class MatchingEngine {
     private Map<String, Map<Long, Order>> userOrders = new HashMap<>(); // UserName, OrderId, Order
     private UserList userList = new UserList();
     private long orderID = 0;
+    public String serializeOrderBooks() {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(orderBooks);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public boolean initializeUserBalance(String username, double balance) {
         System.out.println("Initializing: " + username);

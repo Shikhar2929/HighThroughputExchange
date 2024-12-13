@@ -4,7 +4,7 @@ public class BuildupResponse {
     private boolean auth;
     private boolean success;
     private String sessionToken;
-
+    private String orderBookData;
 
     public boolean getAuth() {
         return auth;
@@ -29,10 +29,13 @@ public class BuildupResponse {
     public void setSessionToken(String sessionToken) {
         this.sessionToken = sessionToken;
     }
-
-    public BuildupResponse(boolean auth, boolean success, String sessionToken) {
+    public String getOrderBookData() {
+        return orderBookData;
+    }
+    public BuildupResponse(boolean auth, boolean success, String sessionToken, String orderBookData) {
         this.auth = auth;
         this.success = success;
         this.sessionToken = sessionToken;
+        this.orderBookData = orderBookData;
     }
 }

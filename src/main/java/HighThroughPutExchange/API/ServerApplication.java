@@ -162,13 +162,13 @@ public class ServerApplication {
          */
         // if username not found
         if (!users.containsItem(form.getUsername())) {
-            return new BuildupResponse(false, false, "");
+            return new BuildupResponse(false, false, "", "");
         }
 
         User u = users.getItem(form.getUsername());
         // if username and api key mismatch
         if (!u.getApiKey().equals(form.getApiKey())) {
-            return new BuildupResponse(false, false, "");
+            return new BuildupResponse(false, false, "", "");
         }
 
         Session s = new Session(generateKey(), u.getUsername());
@@ -177,8 +177,7 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-
-        return new BuildupResponse(true, true, s.getSessionToken());
+        return new BuildupResponse(true, true, s.getSessionToken(), matchingEngine.serializeOrderBooks());
     }
 
     @PostMapping("/teardown")
