@@ -1,9 +1,15 @@
 package HighThroughPutExchange.API.api_objects.requests;
 
+import jakarta.validation.constraints.NotNull;
+
 public class LimitOrderRequest extends BasePrivateRequest {
+    @NotNull
     private String ticker;
+    @NotNull
     private int volume;
+    @NotNull
     private float price;
+    @NotNull
     private boolean isBid;
 
     public boolean getBid() {

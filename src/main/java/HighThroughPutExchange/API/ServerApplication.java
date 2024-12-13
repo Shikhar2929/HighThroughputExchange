@@ -18,12 +18,12 @@ import HighThroughPutExchange.MatchingEngine.Side;
 import HighThroughPutExchange.MatchingEngine.Status;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import jakarta.validation.Valid;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-
 import java.util.HashMap;
 /*
 todo
@@ -109,7 +109,7 @@ public class ServerApplication {
     // admin pages
 
     @PostMapping("/add_user")
-    public AddUserResponse addUser(@RequestBody AddUserRequest form) {
+    public AddUserResponse addUser(@Valid @RequestBody AddUserRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
             return new AddUserResponse(false, false, "incorrect username or password", "");
         }
@@ -131,7 +131,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/admin_page")
-    public AdminDashboardResponse adminPage(@RequestBody AdminDashboardRequest form) {
+    public AdminDashboardResponse adminPage(@Valid @RequestBody AdminDashboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
             return new AdminDashboardResponse(false, false, "failed authentication");
         }
@@ -140,7 +140,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/shutdown")
-    public ShutdownResponse shutdown(@RequestBody ShutdownRequest form) {
+    public ShutdownResponse shutdown(@Valid @RequestBody ShutdownRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
             return new ShutdownResponse(false, false);
         }
@@ -156,7 +156,7 @@ public class ServerApplication {
     // private pages
 
     @PostMapping("/buildup")
-    public BuildupResponse buildup(@RequestBody BuildupRequest form) {
+    public BuildupResponse buildup(@Valid @RequestBody BuildupRequest form) {
         /*
         Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as oppsed to session token.
          */
@@ -181,7 +181,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/teardown")
-    public TeardownResponse teardown(@RequestBody TeardownRequest form) {
+    public TeardownResponse teardown(@Valid @RequestBody TeardownRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
             return new TeardownResponse(false, false);
         }
@@ -192,7 +192,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/privatePage")
-    public PrivatePageResponse privatePage(@RequestBody PrivatePageRequest form) {
+    public PrivatePageResponse privatePage(@Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
             return new PrivatePageResponse(false, false, "");
         }
@@ -201,7 +201,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/limit_order")
-    public LimitOrderResponse limitOrder(@RequestBody LimitOrderRequest form) {
+    public LimitOrderResponse limitOrder(@Valid @RequestBody LimitOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
             return new LimitOrderResponse(false, false);
         }
@@ -217,7 +217,7 @@ public class ServerApplication {
         return new LimitOrderResponse(true, true);
     }
     @PostMapping("/remove_all")
-    public RemoveAllResponse removeAll(@RequestBody BasePrivateRequest form) {
+    public RemoveAllResponse removeAll(@Valid @RequestBody BasePrivateRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
             return new RemoveAllResponse(false, false);
         }

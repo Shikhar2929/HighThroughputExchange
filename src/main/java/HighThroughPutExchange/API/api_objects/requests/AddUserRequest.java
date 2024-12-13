@@ -1,8 +1,13 @@
 package HighThroughPutExchange.API.api_objects.requests;
 
+import jakarta.validation.constraints.NotNull;
+
 public class AddUserRequest extends BaseAdminRequest {
+    @NotNull
     private String username;
+    @NotNull
     private String name;
+    @NotNull
     private String email;
 
 

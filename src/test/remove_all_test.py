@@ -49,7 +49,7 @@ def place_trade(username, session_token, ticker, volume, price, is_bid):
 # Remove all trades or sessions
 def remove_all(session_token):
     form_data = {
-        'username': username,
+        #'username': username,
         'sessionToken': session_token,
     }
     req = urllib.request.Request(URL + '/remove_all', data=json.dumps(form_data).encode('utf-8'), method='POST')
