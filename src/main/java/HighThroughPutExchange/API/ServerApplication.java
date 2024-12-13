@@ -216,4 +216,17 @@ public class ServerApplication {
         });
         return new LimitOrderResponse(true, true);
     }
+    @PostMapping("/remove_all")
+    public RemoveAllResponse removeAll(@RequestBody BasePrivateRequest form) {
+        if (!privatePageAuthenticator.authenticate(form)) {
+            return new RemoveAllResponse(false, false);
+        }
+        if (form.getUsername() == null)
+            return new RemoveAllResponse(true, false);
+        System.out.println("Script username ain't the issue here: " + form.getUsername());
+        TaskQueue.addTask(() -> {
+            matchingEngine.removeAll(form.getUsername());
+        });
+        return new RemoveAllResponse(true, true);
+    }
 }
