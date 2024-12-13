@@ -45,7 +45,7 @@ function disconnect() {
 function sendStartSignal() {
     stompClient.publish({
         destination: "/app/start",
-        body: JSON.stringify({"adminUsername": "username", "adminPassword": "password"})
+        body: JSON.stringify({ "adminUsername": "trading_club_admin", "adminPassword": "abcxyz" })
     });
 }
 
