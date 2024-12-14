@@ -217,13 +217,12 @@ public class ServerApplication {
         return new LimitOrderResponse(true, true);
     }
     @PostMapping("/remove_all")
-    public RemoveAllResponse removeAll(@Valid @RequestBody BasePrivateRequest form) {
+    public RemoveAllResponse removeAll(@Valid @RequestBody RemoveAllRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
             return new RemoveAllResponse(false, false);
         }
         if (form.getUsername() == null)
             return new RemoveAllResponse(true, false);
-        System.out.println("Script username ain't the issue here: " + form.getUsername());
         TaskQueue.addTask(() -> {
             matchingEngine.removeAll(form.getUsername());
         });

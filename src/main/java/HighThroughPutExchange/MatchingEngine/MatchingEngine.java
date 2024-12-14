@@ -56,7 +56,7 @@ public class MatchingEngine {
         try {
             // Read the JSON file
             System.out.println("Current Working Directory: " + Paths.get("").toAbsolutePath());
-            FileReader reader = new FileReader("src/main/java/HighThroughPutExchange/Common/config.json");
+            FileReader reader = new FileReader("config.json");
             StringBuilder content = new StringBuilder();
             int i;
             while ((i = reader.read()) != -1) {
@@ -79,7 +79,7 @@ public class MatchingEngine {
     public boolean initializeUser(String user) {
         try {
             // Read the JSON file
-            FileReader reader = new FileReader("src/main/java/HighThroughPutExchange/Common/config.json");
+            FileReader reader = new FileReader("config.json");
             StringBuilder content = new StringBuilder();
             int i;
             while ((i = reader.read()) != -1) {
