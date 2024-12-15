@@ -18,11 +18,12 @@ import HighThroughPutExchange.MatchingEngine.Side;
 import HighThroughPutExchange.MatchingEngine.Status;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import jakarta.validation.Valid;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-
 import java.util.HashMap;
 /*
 todo
@@ -36,6 +37,7 @@ todo
 
 @SpringBootApplication
 @RestController
+@EnableScheduling
 public class ServerApplication {
 
 
@@ -107,7 +109,7 @@ public class ServerApplication {
     // admin pages
 
     @PostMapping("/add_user")
-    public AddUserResponse addUser(@RequestBody AddUserRequest form) {
+    public AddUserResponse addUser(@Valid @RequestBody AddUserRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
             return new AddUserResponse(false, false, "incorrect username or password", "");
         }
@@ -129,7 +131,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/admin_page")
-    public AdminDashboardResponse adminPage(@RequestBody AdminDashboardRequest form) {
+    public AdminDashboardResponse adminPage(@Valid @RequestBody AdminDashboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
             return new AdminDashboardResponse(false, false, "failed authentication");
         }
@@ -138,7 +140,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/shutdown")
-    public ShutdownResponse shutdown(@RequestBody ShutdownRequest form) {
+    public ShutdownResponse shutdown(@Valid @RequestBody ShutdownRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
             return new ShutdownResponse(false, false);
         }
@@ -154,19 +156,19 @@ public class ServerApplication {
     // private pages
 
     @PostMapping("/buildup")
-    public BuildupResponse buildup(@RequestBody BuildupRequest form) {
+    public BuildupResponse buildup(@Valid @RequestBody BuildupRequest form) {
         /*
         Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as oppsed to session token.
          */
         // if username not found
         if (!users.containsItem(form.getUsername())) {
-            return new BuildupResponse(false, false, "");
+            return new BuildupResponse(false, false, "", "");
         }
 
         User u = users.getItem(form.getUsername());
         // if username and api key mismatch
         if (!u.getApiKey().equals(form.getApiKey())) {
-            return new BuildupResponse(false, false, "");
+            return new BuildupResponse(false, false, "", "");
         }
 
         Session s = new Session(generateKey(), u.getUsername());
@@ -175,12 +177,11 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-
-        return new BuildupResponse(true, true, s.getSessionToken());
+        return new BuildupResponse(true, true, s.getSessionToken(), matchingEngine.serializeOrderBooks());
     }
 
     @PostMapping("/teardown")
-    public TeardownResponse teardown(@RequestBody TeardownRequest form) {
+    public TeardownResponse teardown(@Valid @RequestBody TeardownRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
             return new TeardownResponse(false, false);
         }
@@ -191,7 +192,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/privatePage")
-    public PrivatePageResponse privatePage(@RequestBody PrivatePageRequest form) {
+    public PrivatePageResponse privatePage(@Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
             return new PrivatePageResponse(false, false, "");
         }
@@ -200,7 +201,7 @@ public class ServerApplication {
     }
 
     @PostMapping("/limit_order")
-    public LimitOrderResponse limitOrder(@RequestBody LimitOrderRequest form) {
+    public LimitOrderResponse limitOrder(@Valid @RequestBody LimitOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
             return new LimitOrderResponse(false, false);
         }
@@ -214,5 +215,17 @@ public class ServerApplication {
                 matchingEngine.askLimitOrder(form.getUsername(), order);
         });
         return new LimitOrderResponse(true, true);
+    }
+    @PostMapping("/remove_all")
+    public RemoveAllResponse removeAll(@Valid @RequestBody RemoveAllRequest form) {
+        if (!privatePageAuthenticator.authenticate(form)) {
+            return new RemoveAllResponse(false, false);
+        }
+        if (form.getUsername() == null)
+            return new RemoveAllResponse(true, false);
+        TaskQueue.addTask(() -> {
+            matchingEngine.removeAll(form.getUsername());
+        });
+        return new RemoveAllResponse(true, true);
     }
 }
