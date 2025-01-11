@@ -50,6 +50,8 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
+
+<!--        todo: Delete this dependency. JUnits and Spring should be only dependencies of the project -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>

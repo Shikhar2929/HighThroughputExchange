@@ -1,13 +1,16 @@
 package HighThroughPutExchange.MatchingEngine;
 
+import java.io.File;
 import java.io.FileReader;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
+// todo: get rid of usage of JSON library
+ import org.json.JSONArray;
+ import org.json.JSONObject;
 
 public class MatchingEngine {
     public MatchingEngine(){}
@@ -52,6 +55,24 @@ public class MatchingEngine {
         orderBooks.put(ticker, new OrderBook());
         return true;
     }
+
+    // todo: test and replace
+    public boolean alternativeInitializeAllTickers() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            FileReader reader = new FileReader("config.json");
+            OrderbookConfig configData = mapper.readerFor(OrderbookConfig.class).readValue(reader);
+            reader.close();
+
+            for (String ticker: configData.getDefaults().getTickers()) {
+                System.out.println("Ticker: " + ticker);
+                initializeTicker(ticker);
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
     public boolean initializeAllTickers() {
         try {
             // Read the JSON file
@@ -74,7 +95,27 @@ public class MatchingEngine {
             e.printStackTrace();
             return false;
         }
-        return false;
+        return false; // todo did you mean return true?
+    }
+
+    // todo test and replace
+    public boolean alternativeInitializeUser(String user) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            FileReader reader = new FileReader("config.json");
+            OrderbookConfig configData = mapper.readerFor(OrderbookConfig.class).readValue(reader);
+            reader.close();
+
+            System.out.println("Default Balance: " + configData.getDefaults().getDefaultBalance());
+            for (String key: configData.getDefaults().getBalances().keySet()) {
+                System.out.println("Ticker: " + key + ", Balance: " + configData.getDefaults().getBalances().get(key));
+                initializeUserTickerVolume(user, key, configData.getDefaults().getBalances().get(key));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
     public boolean initializeUser(String user) {
         try {
