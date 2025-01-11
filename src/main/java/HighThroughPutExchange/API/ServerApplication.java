@@ -228,4 +228,17 @@ public class ServerApplication {
         });
         return new RemoveAllResponse(true, true);
     }
+    @PostMapping("/market_order")
+    public MarketOrderResponse marketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
+        if (!privatePageAuthenticator.authenticate(form)) {
+            return new MarketOrderResponse(false, false);
+        }
+        TaskQueue.addTask(() -> {
+            if (form.getBid())
+                matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
+            else
+                matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
+        });
+        return new MarketOrderResponse(true, true);
+    }
 }

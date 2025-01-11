@@ -1,36 +1,25 @@
 package HighThroughPutExchange.API.api_objects.requests;
 
 import jakarta.validation.constraints.NotNull;
-
-public class LimitOrderRequest extends BasePrivateRequest {
+public class MarketOrderRequest extends BasePrivateRequest {
     @NotNull
     private String ticker;
     @NotNull
     private double volume;
     @NotNull
-    private double price;
-    @NotNull
     private boolean isBid;
 
-    public boolean getBid() {
-        return isBid;
-    }
-
-    public void setBid(boolean bid) {
-        isBid = bid;
-    }
-
-    public LimitOrderRequest(String username, String sessionToken, String ticker, double volume, double price, boolean isBid) {
+    public MarketOrderRequest(String username, String sessionToken, String ticker, double volume, boolean isBid) {
         super(username, sessionToken);
         this.ticker = ticker;
         this.volume = volume;
-        this.price = price;
         this.isBid = isBid;
     }
-
     public String getTicker() {
         return ticker;
     }
+    public boolean getBid() {return isBid;}
+    public boolean setBid(boolean bid) {this.isBid = bid;}
 
     public void setTicker(String ticker) {
         this.ticker = ticker;
@@ -42,13 +31,5 @@ public class LimitOrderRequest extends BasePrivateRequest {
 
     public void setVolume(double volume) {
         this.volume = volume;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(float price) {
-        this.price = price;
     }
 }
