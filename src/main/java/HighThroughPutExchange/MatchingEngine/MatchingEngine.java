@@ -13,11 +13,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  import org.json.JSONObject;
 
 public class MatchingEngine {
-    public MatchingEngine(){}
     private Map<String, OrderBook> orderBooks = new HashMap<>();
     private Map<String, Map<Long, Order>> userOrders = new HashMap<>(); // UserName, OrderId, Order
     private UserList userList = new UserList();
     private long orderID = 0;
+    public MatchingEngine() {
+        userList.setInfinite(false);
+    }
+    public MatchingEngine(boolean initialize){
+        if (initialize)
+            initializeGameMode();
+    }
+    public MatchingEngine(double positionLimit) {
+        userList.setInfinite(true);
+        userList.setPositionLimit(positionLimit);
+    }
     public String serializeOrderBooks() {
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -25,6 +35,32 @@ public class MatchingEngine {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+    private void initializeGameMode() {
+        try {
+            FileReader reader = new FileReader("config.json");
+            StringBuilder content = new StringBuilder();
+            int i;
+            while ((i = reader.read()) != -1) {
+                content.append((char) i);
+            }
+            reader.close();
+
+            // Parse JSON content
+            JSONObject configData = new JSONObject(content.toString());
+            String mode = configData.getString("mode");
+            if (mode.equals("finite"))
+                userList.setInfinite(false);
+            else {
+                userList.setInfinite(true);
+                JSONObject defaults = configData.getJSONObject("defaults");
+                double positionLimit = defaults.getDouble("positionLimit");
+                userList.setPositionLimit(positionLimit);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -95,7 +131,7 @@ public class MatchingEngine {
             e.printStackTrace();
             return false;
         }
-        return false; // todo did you mean return true?
+        return true;
     }
 
     // todo test and replace
@@ -130,19 +166,35 @@ public class MatchingEngine {
 
             // Parse JSON content
             JSONObject configData = new JSONObject(content.toString());
+            String mode = configData.getString("mode");
+            if (!userList.getMode()) {
+                // Extract and process balances
+                JSONObject defaults = configData.getJSONObject("defaults");
+                double defaultBalance = defaults.getDouble("defaultBalance");
+                JSONObject balances = defaults.getJSONObject("balances");
+                System.out.println("Default Balance: " + defaultBalance);
+                initializeUserBalance(user, defaultBalance);
+                Iterator<String> keys = balances.keys();
+                while (keys.hasNext()) {
+                    String ticker = keys.next();
+                    double balance = balances.getDouble(ticker);
+                    System.out.println("Ticker: " + ticker + ", Balance: " + balance);
+                    initializeUserTickerVolume(user, ticker, balance);
+                }
+            }
+            else {
+                JSONObject defaults = configData.getJSONObject("defaults");
+                JSONObject balances = defaults.getJSONObject("balances");
+                Iterator<String> keys = balances.keys();
+                System.out.println("Infinite Mode");
+                userList.initializeUser(user);
+                while (keys.hasNext()) {
+                    String ticker = keys.next();
+                    double balance = balances.getDouble(ticker);
+                    System.out.println("Ticker: " + ticker + ", Balance: " + balance);
+                    initializeUserTickerVolume(user, ticker, balance);
+                }
 
-            // Extract and process balances
-            JSONObject defaults = configData.getJSONObject("defaults");
-            double defaultBalance = defaults.getDouble("defaultBalance");
-            JSONObject balances = defaults.getJSONObject("balances");
-            System.out.println("Default Balance: " + defaultBalance);
-            initializeUserBalance(user, defaultBalance);
-            Iterator<String> keys = balances.keys();
-            while (keys.hasNext()) {
-                String ticker = keys.next();
-                double balance = balances.getDouble(ticker);
-                System.out.println("Ticker: " + ticker + ", Balance: " + balance);
-                initializeUserTickerVolume(user, ticker, balance);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -186,8 +238,8 @@ public class MatchingEngine {
             System.out.println("Bad User");
             return false;
         }
-        if (userList.getUserBalance(user) < order.volume * order.price) {
-            System.out.println("Insufficient Funds");
+        if (!userList.validBidParameters(user, order)) {
+            System.out.println("Invalid Volume Parameters");
             return false;
         }
         return true;
@@ -204,8 +256,10 @@ public class MatchingEngine {
             System.out.println("Bad User");
             return false;
         }
-        if (!userList.validQuantity(user, order.ticker, order.volume))
+        if (!userList.validAskQuantity(user, order.ticker, order.volume)) {
             System.out.println("Insufficient Sell Funds");
+            return false;
+        }
         return true;
     }
     private void processBid(Deque<Order> orders, Map<Double, Double> askVolumes, Order aggressor) {
@@ -427,9 +481,14 @@ public class MatchingEngine {
                 orders.poll();
                 continue;
             }
+            // 2 Cases:
+            // First Case: Finite Stack - only sell what you can own
             double aggressorVolume = aggressor.volume;
             if (side == Side.BID)
-                aggressorVolume = Math.min(aggressorVolume, userList.getValidVolume(aggressor.name, order.price));
+                aggressorVolume = Math.min(aggressorVolume, userList.getValidBidVolume(aggressor.name, order.ticker, order.price));
+            else if (side == Side.ASK) {
+                aggressorVolume = Math.min(aggressorVolume, userList.getValidAskVolume(aggressor.name, order.ticker));
+            }
             if (order.volume > aggressorVolume) {
                 double volumeTraded = aggressorVolume;
                 double tradePrice = order.price;
@@ -506,7 +565,7 @@ public class MatchingEngine {
         if (!userList.validUser(name)) {
             return 0.0;
         }
-        if (userList.getUserVolume(name, ticker) < volume) {
+        if (!userList.validAskQuantity(name, ticker, volume)) {
             return 0.0;
         }
         Order marketOrder = new Order(name, ticker, 0, volume, Side.ASK, Status.ACTIVE); // Price is 0 for market orders

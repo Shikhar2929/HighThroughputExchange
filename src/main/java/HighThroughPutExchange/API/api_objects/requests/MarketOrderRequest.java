@@ -19,7 +19,7 @@ public class MarketOrderRequest extends BasePrivateRequest {
         return ticker;
     }
     public boolean getBid() {return isBid;}
-    public boolean setBid(boolean bid) {this.isBid = bid;}
+    public void setBid(boolean bid) {this.isBid = bid;}
 
     public void setTicker(String ticker) {
         this.ticker = ticker;

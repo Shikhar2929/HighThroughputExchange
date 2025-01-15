@@ -601,9 +601,9 @@
             Order askOrder =  new Order("Trader1", ticker, 101.0, 10.0, Side.ASK, Status.ACTIVE);
             orderId = engine.askLimitOrder(askOrder.name, askOrder);
             double volume = engine.bidMarketOrder("Trader2", ticker, 10);
-            assertEquals(9.0, volume);
-            assertEquals(909, engine.getUserBalance("Trader1"));
-            assertEquals(91, engine.getUserBalance("Trader2"));
+            assertEquals(1000.0 / 101.0, volume);
+            assertEquals(1000.0, engine.getUserBalance("Trader1"));
+            assertEquals(0.0, engine.getUserBalance("Trader2"));
         }
         @Test
         void testBidTrades() {
@@ -919,4 +919,78 @@
             System.out.println(trades);
             assertEquals(trades.size(),1, "Cancel is also in the map");
         }
+        private static final double POSITION_LIMIT = 100.0;
+        @Test
+        public void testValidTransactionsWithinPositionLimits() {
+            MatchingEngine engine = new MatchingEngine(POSITION_LIMIT);
+            String user = "TraderZ";
+            String ticker = "AAPL";
+            engine.initializeUserBalance(user, 0.0);
+            engine.initializeTicker(ticker);
+            engine.initializeUserTickerVolume(user, ticker, 50.0); // Long 50 shares
+
+            // Try to buy up to position limit
+            System.out.println("This Far");
+            Order buyOrder = new Order(user, ticker, 150.0, 50.0, Side.BID, Status.ACTIVE); // Buy additional 50 to reach 100
+            long orderId = engine.bidLimitOrder(user, buyOrder);
+            System.out.println(orderId);
+            assertTrue(orderId > 0, "Should allow buying within position limit");
+
+            // Try to short up to position limit
+            String user2 = "Trader2";
+            engine.initializeUserBalance(user2, 0.0);
+            engine.initializeUserTickerVolume(user, ticker, 50.0); // Short 50 shares
+            Order sellOrder = new Order(user, ticker, 150.0, 150.0, Side.ASK, Status.ACTIVE); // Short additional 50 to reach -100
+            orderId = engine.askLimitOrder(user, sellOrder);
+            assertTrue(orderId > 0, "Should allow shorting within position limit");
+        }
+
+        @Test
+        public void testHandlingNegativeQuantities() {
+            MatchingEngine engine = new MatchingEngine(POSITION_LIMIT);
+            String user = "TraderW";
+            String user2 = "TraderX";
+            String ticker = "AAPL";
+
+            engine.initializeTicker(ticker);
+            engine.initializeUserBalance(user, 0.0);
+            engine.initializeUserBalance(user2, 0.0);
+            engine.initializeUserTickerVolume(user2, ticker, 0.0);
+            // Short sell within limits
+            engine.initializeUserTickerVolume(user, ticker, -50.0);
+            double position = engine.getTickerBalance(user, ticker);
+            assertEquals(-50.0, position, "Should correctly handle short positions");
+
+            // Cover short within limits
+            Order buyOrder = new Order(user, ticker, 150.0, 50.0, Side.BID, Status.ACTIVE);
+            engine.bidLimitOrder(user, buyOrder);
+            Order askOrder = new Order(user2, ticker, 145.0, 50.0, Side.ASK, Status.ACTIVE);
+            position = engine.getTickerBalance(user, ticker);
+            double position2 = engine.getTickerBalance(user2, ticker);
+
+        }
+
+        @Test
+        public void testRejectionOfTradesThatBreachPositionLimits() {
+            MatchingEngine engine = new MatchingEngine(POSITION_LIMIT);
+            String user = "TraderV";
+            String ticker = "AAPL";
+
+            engine.initializeTicker(ticker);
+            engine.initializeUserBalance(user, 0.0);
+            engine.initializeUserTickerVolume(user, ticker, 90.0); // Long 90 shares
+
+            // Attempt to buy over the position limit
+            Order buyOrder = new Order(user, ticker, 200.0, 20.0, Side.BID, Status.ACTIVE);
+            long orderId = engine.bidLimitOrder(user, buyOrder);
+            assertEquals(-1, orderId, "Should reject buying that breaches position limit");
+
+            // Attempt to short over the position limit
+            //engine.initializeTicker(ticker);
+            engine.initializeUserTickerVolume(user, ticker, -90.0); // Short 90 shares
+            Order sellOrder = new Order(user, ticker, 200.0, 20.0, Side.ASK, Status.ACTIVE);
+            orderId = engine.askLimitOrder(user, sellOrder);
+            assertEquals(-1, orderId, "Should reject shorting that breaches position limit");
+        }
+
     }
