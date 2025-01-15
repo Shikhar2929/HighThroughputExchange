@@ -3,7 +3,7 @@ package HighThroughPutExchange.MatchingEngine;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class TradeKey {
+public class TradeKey implements Comparable<TradeKey>{
     String ticker;
     private final double price;
     private final Side side;
@@ -47,5 +47,16 @@ public class TradeKey {
         return Double.compare(tradeKey.price, price) == 0 &&
                 ticker.equals(tradeKey.ticker) &&
                 side == tradeKey.side;
+    }
+    @Override public int compareTo(TradeKey other) {
+        int sideCompare = this.side.compareTo(other.side);
+        if (sideCompare != 0) {
+            return sideCompare;
+        }
+        if (this.side == Side.BID) {
+            return Double.compare(other.price, this.price);
+        } else {
+            return Double.compare(this.price, other.price);
+        }
     }
 }

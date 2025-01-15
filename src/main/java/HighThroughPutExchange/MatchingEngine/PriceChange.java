@@ -9,4 +9,7 @@ public class PriceChange extends TradeKey{
     public double getVolume() {
         return volume;
     }
+    public int compareTo(PriceChange other) {
+        return super.compareTo(other);
+    }
 }

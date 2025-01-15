@@ -992,5 +992,35 @@
             orderId = engine.askLimitOrder(user, sellOrder);
             assertEquals(-1, orderId, "Should reject shorting that breaches position limit");
         }
+        @Test
+        public void testUnlimitedMarketOrders() {
+            double positionLimit = 1000.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            engine.initializeTicker("AAPL");
+            engine.initializeUserBalance("Seller1", 0.0);
+            //engine.initializeUser("Seller1");
+            engine.initializeUserTickerVolume("Seller1", "AAPL", 500.0);
+            engine.askLimitOrder("Seller1", new Order("Seller1", "AAPL", 150.0, 500.0, Side.ASK, Status.ACTIVE));
 
+            // Trader with unlimited balance and high position limit
+            String buyer = "UnlimitedBuyer";
+            engine.initializeUserBalance(buyer, 0.0);
+            //engine.initializeUser(buyer);
+
+            // Market order that can be fully filled
+            double filledVolume = engine.bidMarketOrder(buyer, "AAPL", 500.0);
+            assertEquals(500.0, filledVolume, "Market order should be fully filled by available asks");
+        }
+        @Test
+        public void testCancellationInInfiniteMode() {
+            MatchingEngine engine = new MatchingEngine(true);
+            engine.initializeTicker("AAPL");
+            engine.initializeUser("TraderCancelable");
+
+            // Place and then cancel an order
+            Order bidOrder = new Order("TraderCancelable", "AAPL", 200.0, 20.0, Side.BID, Status.ACTIVE);
+            long orderId = engine.bidLimitOrder("TraderCancelable", bidOrder);
+            assertTrue(engine.removeOrder("TraderCancelable", orderId), "Order should be cancelled successfully");
+            assertEquals(bidOrder.status, Status.CANCELLED);
+        }
     }

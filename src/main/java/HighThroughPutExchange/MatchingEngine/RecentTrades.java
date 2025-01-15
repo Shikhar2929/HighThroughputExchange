@@ -1,5 +1,6 @@
 package HighThroughPutExchange.MatchingEngine;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,7 +17,6 @@ public class RecentTrades {
         tradeCounter++;
         TradeKey tradeKey = new TradeKey(ticker, price, side);
         tradeMap.merge(tradeKey, volume, Double::sum);
-        tradeCounter++;
     }
 
     public static ArrayList<PriceChange> getRecentTrades() {
@@ -25,6 +25,7 @@ public class RecentTrades {
             PriceChange priceChange = new PriceChange(key.getTicker(), key.getPrice(), volume, key.getSide());
             recentTrades.add(priceChange);
         });
+        Collections.sort(recentTrades);
         tradeMap.clear();
         return recentTrades;
     }
