@@ -94,8 +94,9 @@ public class ServerApplication {
         }
 
         // PrivatePageAuthenticator privatePageAuthenticator = new PrivatePageAuthenticator(sessions);
-        adminPageAuthenticator = new AdminPageAuthenticator();
-        privatePageAuthenticator = new PrivatePageAuthenticator(sessions);
+        adminPageAuthenticator = AdminPageAuthenticator.getInstance();
+        PrivatePageAuthenticator.buildInstance(sessions);
+        privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
         rateLimiter = new RateLimiter();
 
     }

@@ -8,14 +8,14 @@ public class AdminPageAuthenticator {
     private final String adminUsername = "trading_club_admin";
     private final String adminPassword = "abcxyz";
 
-    public AdminPageAuthenticator() {}
+    private AdminPageAuthenticator() {}
 
-//    public static AdminPageAuthenticator getInstance() {
-//        if (instance == null) {
-//            instance = new AdminPageAuthenticator();
-//        }
-//        return instance;
-//    }
+    public static AdminPageAuthenticator getInstance() {
+        if (instance == null) {
+            instance = new AdminPageAuthenticator();
+        }
+        return instance;
+    }
 
     public boolean authenticate(BaseAdminRequest req) {
         return req.getAdminUsername().equals(adminUsername) && req.getAdminPassword().equals(adminPassword);

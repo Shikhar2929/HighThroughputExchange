@@ -1,0 +1,31 @@
+POST http://localhost:8080/add_user
+Content-Type: application/json
+
+{
+  "adminUsername": "trading_club_admin",
+  "adminPassword": "abcxyz",
+  "username": "test",
+  "name": "Team 1",
+  "email": "team@team.team"
+}
+
+
+
+###
+POST http://localhost:8080/buildup
+Content-Type: application/json
+
+{
+  "username": "test",
+  "apiKey": "WIYHDIONEJACMGSB"
+}
+
+
+###
+#POST  http://localhost:8080/privatePage
+#Content-Type: application/json
+#
+#{
+#  "username": "test",
+#  "sessionToken": "QZUGYQKMJQYJHDAI"
+#}
