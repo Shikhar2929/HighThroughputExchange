@@ -15,4 +15,16 @@ public class OrderBook {
     public Map<Double, Double> getAskVolumes() {
         return askVolumes;
     }
+    public void printOrderBook() {
+        System.out.println("Bid Volumes:");
+        for (Map.Entry<Double, Double> entry : bidVolumes.entrySet()) {
+            System.out.println("Price: " + entry.getKey() + ", Volume: " + entry.getValue());
+        }
+
+        System.out.println("\nAsk Volumes:");
+        for (Map.Entry<Double, Double> entry : askVolumes.entrySet()) {
+            System.out.println("Price: " + entry.getKey() + ", Volume: " + entry.getValue());
+        }
+    }
+
 }

@@ -34,14 +34,9 @@ public class SocketController {
     }
     @Scheduled(fixedRate = 500) // sends an update every 500 milliseconds
     public void sendRecentTrades() {
-        List<PriceChange> recentTrades = RecentTrades.getRecentTrades();
-        if (!recentTrades.isEmpty()) {
-            recentTrades.forEach(trade ->
-                    sendMessage(new SocketResponse(
-                            String.format("Ticker: %s, Price: %.2f, Volume: %.2f, Side: %s",
-                                    trade.getTicker(), trade.getPrice(), trade.getVolume(), trade.getSide())
-                    ))
-            );
+        String recentTradesJson = RecentTrades.getRecentTradesAsJson();
+        if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[]")) { // Ensure JSON is not empty
+            sendMessage(new SocketResponse(recentTradesJson));
         } else {
             sendMessage(new SocketResponse("No recent trades"));
         }

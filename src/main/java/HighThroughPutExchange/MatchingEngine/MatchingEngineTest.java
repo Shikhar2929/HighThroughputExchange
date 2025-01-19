@@ -893,12 +893,12 @@
             // Check first trade details
             PriceChange firstTrade = trades.get(0);
             assertEquals(200.0, firstTrade.getPrice(), "First trade price should be 200.0");
-            assertEquals(-20.0, firstTrade.getVolume(), "First trade volume should be 20.0");
+            assertEquals(0.0, firstTrade.getVolume(), "Volume at level should now be 0.0");
 
             // Check second trade details
             PriceChange secondTrade = trades.get(1);
             assertEquals(205.0, secondTrade.getPrice(), "Second trade price should be 205.0");
-            assertEquals(-10.0, secondTrade.getVolume(), "Second trade volume should be 10.0");
+            assertEquals(10.0, secondTrade.getVolume(), "Volume at level show now be 10.0");
         }
 
         @Test
@@ -1013,10 +1013,9 @@
         }
         @Test
         public void testCancellationInInfiniteMode() {
-            MatchingEngine engine = new MatchingEngine(true);
+            MatchingEngine engine = new MatchingEngine(POSITION_LIMIT);
             engine.initializeTicker("AAPL");
-            engine.initializeUser("TraderCancelable");
-
+            engine.initializeUserBalance("TraderCancelable", 0.0);
             // Place and then cancel an order
             Order bidOrder = new Order("TraderCancelable", "AAPL", 200.0, 20.0, Side.BID, Status.ACTIVE);
             long orderId = engine.bidLimitOrder("TraderCancelable", bidOrder);

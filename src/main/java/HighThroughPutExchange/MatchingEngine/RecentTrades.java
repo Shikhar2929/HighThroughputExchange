@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class RecentTrades {
 
@@ -16,7 +18,7 @@ public class RecentTrades {
     public static void addTrade(String ticker, double price, double volume, Side side) {
         tradeCounter++;
         TradeKey tradeKey = new TradeKey(ticker, price, side);
-        tradeMap.merge(tradeKey, volume, Double::sum);
+        tradeMap.put(tradeKey, volume);
     }
 
     public static ArrayList<PriceChange> getRecentTrades() {
@@ -28,5 +30,15 @@ public class RecentTrades {
         Collections.sort(recentTrades);
         tradeMap.clear();
         return recentTrades;
+    }
+    public static String getRecentTradesAsJson() {
+        ArrayList<PriceChange> recentTrades = getRecentTrades();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT); // To make JSON output pretty
+        try {
+            return objectMapper.writeValueAsString(recentTrades);
+        } catch (Exception e) {
+            throw new RuntimeException("Error serializing trades to JSON", e);
+        }
     }
 }

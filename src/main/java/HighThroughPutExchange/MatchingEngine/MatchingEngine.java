@@ -30,6 +30,9 @@ public class MatchingEngine {
     }
     public String serializeOrderBooks() {
         ObjectMapper mapper = new ObjectMapper();
+        for (String key : orderBooks.keySet()) {
+            orderBooks.get(key).printOrderBook();
+        }
         try {
             return mapper.writeValueAsString(orderBooks);
         } catch (Exception e) {
@@ -43,6 +46,7 @@ public class MatchingEngine {
             StringBuilder content = new StringBuilder();
             int i;
             while ((i = reader.read()) != -1) {
+                content.append((char) i);
                 content.append((char) i);
             }
             reader.close();
@@ -224,7 +228,8 @@ public class MatchingEngine {
         if (volumeMap.get(price) <= 0) {
             volumeMap.remove(price);
         }
-        RecentTrades.addTrade(ticker, price, delta, side);
+        double newQuantity = volumeMap.getOrDefault(price, 0.0);
+        RecentTrades.addTrade(ticker, price, newQuantity, side);
     }
     private boolean validateBidOrder(String user, Order order) {
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
