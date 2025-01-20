@@ -13,7 +13,7 @@ public class PrivatePageAuthenticator {
     public static void buildInstance(LocalDBTable<Session> sessions) {
         instance = new PrivatePageAuthenticator(sessions);
     }
-    public static PrivatePageAuthenticator getInstance() {
+     public static PrivatePageAuthenticator getInstance() {
         return instance;
     }
     public boolean authenticate(BasePrivateRequest req) {

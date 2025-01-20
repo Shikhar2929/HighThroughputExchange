@@ -4,6 +4,7 @@ import HighThroughPutExchange.API.api_objects.requests.*;
 import HighThroughPutExchange.API.api_objects.responses.*;
 import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
 import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
+import HighThroughPutExchange.API.authentication.RateLimiter;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
 import HighThroughPutExchange.Common.TaskQueue;
@@ -19,6 +20,8 @@ import HighThroughPutExchange.MatchingEngine.Status;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,6 +49,7 @@ public class ServerApplication {
     private LocalDBTable<Session> sessions;
     private PrivatePageAuthenticator privatePageAuthenticator;
     private AdminPageAuthenticator adminPageAuthenticator;
+    private RateLimiter rateLimiter;
     private MatchingEngine matchingEngine;
     private static final int KEY_LENGTH = 16;
 
@@ -89,9 +93,11 @@ public class ServerApplication {
             }
         }
 
-        PrivatePageAuthenticator.buildInstance(sessions);
+        // PrivatePageAuthenticator privatePageAuthenticator = new PrivatePageAuthenticator(sessions);
         adminPageAuthenticator = AdminPageAuthenticator.getInstance();
+        PrivatePageAuthenticator.buildInstance(sessions);
         privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
+        rateLimiter = new RateLimiter();
 
     }
 
@@ -99,24 +105,32 @@ public class ServerApplication {
         SpringApplication.run(ServerApplication.class, args);
     }
 
+    /*
+    HTTP Status Codes:
+        - OK: success
+        - UNAUTHORIZED: failed authentication
+        - TOO_MANY_REQUESTS: rate limited
+        - BAD_REQUEST: bad input in HTTP request form
+     */
+
     // public pages
 
     @GetMapping("/")
-    public String home() {
-        return "Hello, World! This is a public page.";
+    public ResponseEntity<String> home() {
+        return new ResponseEntity<>("Welcome to GT Trading Club's High Throughput Exchange!", HttpStatus.OK);
     }
 
     // admin pages
 
     @PostMapping("/add_user")
-    public AddUserResponse addUser(@Valid @RequestBody AddUserRequest form) {
+    public ResponseEntity<AddUserResponse> addUser(@Valid @RequestBody AddUserRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new AddUserResponse(false, false, "incorrect username or password", "");
+            return new ResponseEntity<>(new AddUserResponse(false, false, "incorrect username or password", ""), HttpStatus.UNAUTHORIZED);
         }
 
         // no duplicate usernames
         if (users.containsItem(form.getUsername())) {
-            return new AddUserResponse(true, false, "username already exists", "");
+            return new ResponseEntity<>(new AddUserResponse(true, false, "username already exists", ""), HttpStatus.BAD_REQUEST);
         }
         try {
             users.putItem(new User(form.getUsername(), form.getName(), generateKey(), form.getEmail()));
@@ -127,22 +141,22 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new AddUserResponse(true, true, "user successfully created", users.getItem(form.getUsername()).getApiKey());
+        return new ResponseEntity<>(new AddUserResponse(true, true, "user successfully created", users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
     }
 
     @PostMapping("/admin_page")
-    public AdminDashboardResponse adminPage(@Valid @RequestBody AdminDashboardRequest form) {
+    public ResponseEntity<AdminDashboardResponse> adminPage(@Valid @RequestBody AdminDashboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new AdminDashboardResponse(false, false, "failed authentication");
+            return new ResponseEntity<>(new AdminDashboardResponse(false, false, "failed authentication"), HttpStatus.UNAUTHORIZED);
         }
 
-        return new AdminDashboardResponse(true, false, "this is the admin dashboard");
+        return new ResponseEntity<>(new AdminDashboardResponse(true, false, "this is the admin dashboard"), HttpStatus.OK);
     }
 
     @PostMapping("/shutdown")
-    public ShutdownResponse shutdown(@Valid @RequestBody ShutdownRequest form) {
+    public ResponseEntity<ShutdownResponse> shutdown(@Valid @RequestBody ShutdownRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ShutdownResponse(false, false);
+            return new ResponseEntity<>(new ShutdownResponse(false, false), HttpStatus.UNAUTHORIZED);
         }
 
         try {
@@ -150,25 +164,25 @@ public class ServerApplication {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new ShutdownResponse(true, true);
+        return new ResponseEntity<>(new ShutdownResponse(true, true), HttpStatus.OK);
     }
 
     // private pages
 
     @PostMapping("/buildup")
-    public BuildupResponse buildup(@Valid @RequestBody BuildupRequest form) {
+    public ResponseEntity<BuildupResponse> buildup(@Valid @RequestBody BuildupRequest form) {
         /*
         Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as oppsed to session token.
          */
         // if username not found
         if (!users.containsItem(form.getUsername())) {
-            return new BuildupResponse(false, false, "", "");
+            return new ResponseEntity<>(new BuildupResponse(false, false, "", ""), HttpStatus.UNAUTHORIZED);
         }
 
         User u = users.getItem(form.getUsername());
         // if username and api key mismatch
         if (!u.getApiKey().equals(form.getApiKey())) {
-            return new BuildupResponse(false, false, "", "");
+            return new ResponseEntity<>(new BuildupResponse(false, false, "", ""), HttpStatus.UNAUTHORIZED);
         }
 
         Session s = new Session(generateKey(), u.getUsername());
@@ -177,33 +191,39 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new BuildupResponse(true, true, s.getSessionToken(), matchingEngine.serializeOrderBooks());
+        return new ResponseEntity<>(new BuildupResponse(true, true, s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
     }
 
     @PostMapping("/teardown")
-    public TeardownResponse teardown(@Valid @RequestBody TeardownRequest form) {
+    public ResponseEntity<TeardownResponse> teardown(@Valid @RequestBody TeardownRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new TeardownResponse(false, false);
+            return new ResponseEntity<>(new TeardownResponse(false, false), HttpStatus.UNAUTHORIZED);
         }
 
         sessions.deleteItem(form.getUsername());
 
-        return new TeardownResponse(true, true);
+        return new ResponseEntity<>(new TeardownResponse(true, true), HttpStatus.OK);
     }
 
     @PostMapping("/privatePage")
-    public PrivatePageResponse privatePage(@Valid @RequestBody PrivatePageRequest form) {
+    public ResponseEntity<PrivatePageResponse> privatePage(@Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new PrivatePageResponse(false, false, "");
+            return new ResponseEntity<>(new PrivatePageResponse(false, false, ""), HttpStatus.UNAUTHORIZED);
+        }
+        if (!rateLimiter.processRequest(form)) {
+            return new ResponseEntity<>(new PrivatePageResponse(true, false, "rate limited"), HttpStatus.TOO_MANY_REQUESTS);
         }
 
-        return new PrivatePageResponse(true, true, "this is a private page");
+        return new ResponseEntity<>(new PrivatePageResponse(true, true, "this is a private page"), HttpStatus.OK);
     }
 
     @PostMapping("/limit_order")
-    public LimitOrderResponse limitOrder(@Valid @RequestBody LimitOrderRequest form) {
+    public ResponseEntity<LimitOrderResponse> limitOrder(@Valid @RequestBody LimitOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new LimitOrderResponse(false, false);
+            return new ResponseEntity<>(new LimitOrderResponse(false, false), HttpStatus.UNAUTHORIZED);
+        }
+        if (!rateLimiter.processRequest(form)) {
+            return new ResponseEntity<>(new LimitOrderResponse(true, false), HttpStatus.TOO_MANY_REQUESTS);
         }
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
@@ -214,24 +234,30 @@ public class ServerApplication {
             else
                 matchingEngine.askLimitOrder(form.getUsername(), order);
         });
-        return new LimitOrderResponse(true, true);
+        return new ResponseEntity<>(new LimitOrderResponse(true, true), HttpStatus.OK);
     }
     @PostMapping("/remove_all")
-    public RemoveAllResponse removeAll(@Valid @RequestBody RemoveAllRequest form) {
+    public ResponseEntity<RemoveAllResponse> removeAll(@Valid @RequestBody RemoveAllRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new RemoveAllResponse(false, false);
+            return new ResponseEntity<>(new RemoveAllResponse(false, false), HttpStatus.UNAUTHORIZED);
+        }
+        if (!rateLimiter.processRequest(form)) {
+            return new ResponseEntity<>(new RemoveAllResponse(true, false), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (form.getUsername() == null)
-            return new RemoveAllResponse(true, false);
+            return new ResponseEntity<>(new RemoveAllResponse(true, false), HttpStatus.UNAUTHORIZED);
         TaskQueue.addTask(() -> {
             matchingEngine.removeAll(form.getUsername());
         });
-        return new RemoveAllResponse(true, true);
+        return new ResponseEntity<>(new RemoveAllResponse(true, true), HttpStatus.OK);
     }
     @PostMapping("/market_order")
-    public MarketOrderResponse marketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
+    public ResponseEntity<MarketOrderResponse> marketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new MarketOrderResponse(false, false);
+            return new ResponseEntity<>(new MarketOrderResponse(false, false), HttpStatus.UNAUTHORIZED);
+        }
+        if (!rateLimiter.processRequest(form)) {
+            return new ResponseEntity<>(new MarketOrderResponse(true, false), HttpStatus.TOO_MANY_REQUESTS);
         }
         TaskQueue.addTask(() -> {
             if (form.getBid())
@@ -239,6 +265,6 @@ public class ServerApplication {
             else
                 matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
         });
-        return new MarketOrderResponse(true, true);
+        return new ResponseEntity<>(new MarketOrderResponse(true, true), HttpStatus.OK);
     }
 }
