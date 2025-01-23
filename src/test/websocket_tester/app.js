@@ -1,5 +1,7 @@
 const stompClient = new StompJs.Client({
     "brokerURL": "ws://localhost:8080/exchange-socket"
+    //"brokerURL": "ws://ec2-18-119-248-10.us-east-2.compute.amazonaws.com:8080/exchange-socket"
+    //"brokerURL": "ws://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/exchange-socket"
 });
 
 stompClient.onConnect = (frame) => {

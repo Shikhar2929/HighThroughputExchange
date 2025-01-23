@@ -1,64 +1,108 @@
-URL = 'http://localhost:8080'
-import stomp
 import json
+import websocket
+import threading
+from websocket import WebSocketApp
 import time
-class MyListener(stomp.ConnectionListener):
-    def __init__(self, connection):
-        self.connection = connection
+import OrderBook
 
-    def on_connected(self, headers, body):
-        print("Connected to the broker.")
-        # Subscribe to the topic after connection
-        self.connection.subscribe(destination='/topic/orderbook', id=1, ack='auto')
+class WebSocketClient:
+    def __init__(self, order_book: OrderBook):
+        self.ws_url = "ws://localhost:8080/exchange-socket"
+        self.connected = False
+        self.ws = None
+        self.order_book = order_book
+    def on_message(self, ws, message):
+        """Handle incoming WebSocket messages."""
+        try:
+            if isinstance(message, bytes):
+                message = message.decode('utf-8')
 
-    def on_message(self, headers, message):
-        print("Received message: ", json.loads(message).get('content', 'No content'))
+            if '\n\n' in message:
+                headers, body = message.split('\n\n', 1)
+                body = body.replace('\x00', '').strip()
+                json_body = json.loads(body)
 
-    def on_error(self, headers, message):
-        print("Broker reported error:", message)
+                if "content" in json_body:
+                    content = json.loads(json_body["content"])
+                    print(content)
+                    if isinstance(content, list):
+                        self.order_book.update_volumes(content)
+        except Exception as e:
+            pass
 
-    def on_disconnected(self):
-        print("Disconnected from the broker.")
+    def on_error(self, ws, error):
+        print(f"Error: {error}")
 
-    def on_heartbeat_timeout(self):
-        print("Heartbeat timeout, disconnecting...")
-        self.connection.disconnect()
+    def on_open(self, ws):
+        print("WebSocket connection established")
+        # Send STOMP CONNECT frame
+        connect_frame = "CONNECT\naccept-version:1.1,1.0\nhost:localhost\n\n\x00"
+        ws.send(connect_frame)
 
-def connect_to_websocket(broker_url, username=None, password=None):
-    host, port = broker_url.replace("ws://", "").split(':')
-    port = int(port)
+        # Subscribe to orderbook topic
+        subscribe_frame = "SUBSCRIBE\nid:sub-0\ndestination:/topic/orderbook\nack:auto\n\n\x00"
+        ws.send(subscribe_frame)
 
-    # Establish the connection
-    conn = stomp.Connection([(host, port)])
-    listener = MyListener(conn)
-    conn.set_listener('', listener)
+        self.connected = True
+        print("STOMP connection and subscription established")
 
-    conn.connect(username=username, passcode=password, wait=True)
-    return conn
+    def on_close(self, ws, close_status_code, close_msg):
+        print(f"Disconnected: {close_msg if close_msg else 'No message'}")
+        self.connected = False
 
-def send_start_signal(conn):
-    # Send a message to the app destination
-    conn.send(destination='/app/start', body=json.dumps({
-        "adminUsername": "trading_club_admin",
-        "adminPassword": "abc"
-    }))
-    print("Start signal sent.")
+    def connect(self):
+        """Connect to the WebSocket STOMP broker"""
+        websocket.enableTrace(False)
+        self.ws = WebSocketApp(
+            self.ws_url,
+            on_open=self.on_open,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_close=self.on_close
+        )
 
-def main():
-    broker_url = "ws://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/exchange-socket"
+        # Start WebSocket connection in a separate thread
+        wst = threading.Thread(target=self.ws.run_forever)
+        wst.daemon = True
+        wst.start()
 
-    try:
-        connection = connect_to_websocket(broker_url)
+    def disconnect(self):
+        """Disconnect from the STOMP broker"""
+        if self.connected and self.ws:
+            # Send STOMP DISCONNECT frame
+            disconnect_frame = "DISCONNECT\nreceipt:77\n\n\x00"
+            self.ws.send(disconnect_frame)
+            self.ws.close()
+            print("Disconnected from broker")
 
-        # Simulate sending the start signal after connecting
-        send_start_signal(connection)
+    def send_start_signal(self):
+        """Send the start signal with admin credentials"""
+        if self.connected and self.ws:
+            message = {
+                "adminUsername": "trading_club_admin",
+                "adminPassword": "abcxyz"
+            }
 
-        print("Waiting for messages...")
-        while True:
-            time.sleep(1)  # Keep the program running to receive messages
-    except KeyboardInterrupt:
-        print("Disconnecting...")
-        connection.disconnect()
+            # Construct STOMP SEND frame
+            send_frame = (
+                "SEND\n"
+                "destination:/app/start\n"
+                "content-type:application/json\n"
+                f"content-length:{len(json.dumps(message))}\n"
+                "\n"
+                f"{json.dumps(message)}\x00"
+            )
 
-if __name__ == "__main__":
-    main()
+            self.ws.send(send_frame)
+            print("Start signal sent")
+        else:
+            print("Not connected to broker")
+
+def run_socket(order_book: OrderBook):
+    if not hasattr(order_book, '__class__') or order_book.__class__.__name__ != "OrderBook":
+        print(order_book)
+        raise Exception("Bad input - must be an instance of the OrderBook class")
+    client = WebSocketClient(order_book)
+    client.connect()
+    while True:
+        time.sleep(0.3)

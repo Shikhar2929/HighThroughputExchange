@@ -3,8 +3,9 @@ import urllib.request
 import random
 import time
 
-URL = 'http://localhost:8080'
-
+#URL = 'http://ec2-18-119-248-10.us-east-2.compute.amazonaws.com:8080'
+URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
+#URL = 'http://localhost:8080'
 # Admin creates multiple users (bots)
 def create_user(username, name, email):
     form_data = {
@@ -151,4 +152,3 @@ if __name__ == "__main__":
                 print(f"Tore down session for {bot['username']}: {resp}")
             except Exception as e:
                 print(f"Error tearing down session for {bot['username']}: {e}")
-
