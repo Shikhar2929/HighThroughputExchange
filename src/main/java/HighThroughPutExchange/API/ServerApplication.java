@@ -67,13 +67,18 @@ public class ServerApplication {
 
     public ServerApplication() {
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
-        matchingEngine = new MatchingEngine();
+        matchingEngine = new MatchingEngine(true);
         matchingEngine.initializeAllTickers();
         mapping.put("users", User.class);
         mapping.put("sessions", Session.class);
         dbClient = new LocalDBClient("data.json", mapping);
         try {
             users = dbClient.getTable("users");
+            Iterable<String> iterable = users.getAllKeys();
+            for (String user : iterable) {
+                matchingEngine.initializeUser(user);
+            }
+
         } catch (NotFoundException e) {
             try {
                 dbClient.createTable("users");

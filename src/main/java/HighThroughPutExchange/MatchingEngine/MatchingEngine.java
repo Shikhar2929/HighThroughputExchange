@@ -47,7 +47,6 @@ public class MatchingEngine {
             int i;
             while ((i = reader.read()) != -1) {
                 content.append((char) i);
-                content.append((char) i);
             }
             reader.close();
 
@@ -543,6 +542,7 @@ public class MatchingEngine {
 
     public double bidMarketOrder(String name, String ticker, double volume) {
         if (!userList.validUser(name)) {
+            System.out.println("Invalid");
             return 0.0;
         }
         Order marketOrder = new Order(name, ticker, 0, volume, Side.BID, Status.ACTIVE); // Price is 0 for market orders
@@ -568,9 +568,11 @@ public class MatchingEngine {
 
     public double askMarketOrder(String name, String ticker, double volume) {
         if (!userList.validUser(name)) {
+            System.out.println("Invalid User");
             return 0.0;
         }
         if (!userList.validAskQuantity(name, ticker, volume)) {
+            System.out.println("Invalid Name");
             return 0.0;
         }
         Order marketOrder = new Order(name, ticker, 0, volume, Side.ASK, Status.ACTIVE); // Price is 0 for market orders

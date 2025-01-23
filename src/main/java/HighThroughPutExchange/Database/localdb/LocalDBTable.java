@@ -43,4 +43,7 @@ public class LocalDBTable<T extends DBEntry> extends AbstractDBTable<T> {
     public void deleteItem(String key) {
         backing.remove(key);
     }
+    public Iterable<String> getAllKeys() {
+        return backing.keySet();
+    }
 }
