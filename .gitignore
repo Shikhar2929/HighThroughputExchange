@@ -7,3 +7,5 @@
 *.class
 target
 .DS_Store
+pom.xml
+*.pyc

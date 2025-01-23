@@ -186,6 +186,9 @@ public class ServerApplication {
         }
 
         Session s = new Session(generateKey(), u.getUsername());
+        if (sessions.containsItem(s.getUsername())) {
+            sessions.deleteItem(s.getUsername());
+        }
         try {
             sessions.putItem(s);
         } catch (AlreadyExistsException e) {
