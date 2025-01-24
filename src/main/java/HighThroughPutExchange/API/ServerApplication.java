@@ -17,6 +17,7 @@ import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import HighThroughPutExchange.MatchingEngine.Order;
 import HighThroughPutExchange.MatchingEngine.Side;
 import HighThroughPutExchange.MatchingEngine.Status;
+import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import jakarta.validation.Valid;
@@ -274,5 +275,15 @@ public class ServerApplication {
                 matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
         });
         return new ResponseEntity<>(new MarketOrderResponse(true, true), HttpStatus.OK);
+    }
+    @PostMapping("/get_details")
+    public ResponseEntity<GetDetailsResponse> getDetails(@Valid @RequestBody PrivatePageRequest form) {
+        if (!privatePageAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new GetDetailsResponse(false, false, ""), HttpStatus.UNAUTHORIZED);
+        }
+        if (!rateLimiter.processRequest(form)) {
+            return new ResponseEntity<>(new GetDetailsResponse(false, false, ""), HttpStatus.TOO_MANY_REQUESTS);
+        }
+        return new ResponseEntity<>(new GetDetailsResponse(true, true, matchingEngine.getUserDetails(form.getUsername())), HttpStatus.OK);
     }
 }

@@ -1,5 +1,7 @@
 package HighThroughPutExchange.MatchingEngine;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 public class UserList {
@@ -98,6 +100,27 @@ public class UserList {
     }
     public boolean getMode() {
         return infinite;
+    }
+    public JSONObject getUserDetailsAsJson(String username) {
+        JSONObject userJson = new JSONObject();
+
+        // Check if the user exists
+        if (!validUser(username)) {
+            userJson.put("error", "User not found");
+            return userJson;
+        }
+
+        // Add balance to JSON
+        double balance = getUserBalance(username);
+        userJson.put("username", username);
+        userJson.put("balance", balance);
+
+        // Add positions to JSON
+        Map<String, Double> userPositions = quantities.getOrDefault(username, new HashMap<>());
+        JSONObject positionsJson = new JSONObject(userPositions);
+        userJson.put("positions", positionsJson);
+
+        return userJson;
     }
 }
 

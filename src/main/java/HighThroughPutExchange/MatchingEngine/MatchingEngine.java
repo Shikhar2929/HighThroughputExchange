@@ -595,4 +595,7 @@ public class MatchingEngine {
         }
         return volumeFilled;
     }
+    public String getUserDetails(String username) {
+        return userList.getUserDetailsAsJson(username).toString();
+    }
 }
