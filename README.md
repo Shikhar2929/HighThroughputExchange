@@ -4,6 +4,14 @@
 
 <h3>API Design</h3>
 
+[//]: # (Todo: stopping mechanism; action endpoint; show auction results; frontend orderbook; individual order cancelation)
+
+{
+    "game_name": "X Cards",
+    "rounds": 10,
+    ""
+}
+
 <table>
     <tr>
         <th>Name</th>
@@ -24,34 +32,34 @@
     <tr>
         <td>Leaderboard</td>
         <td>/leaderboard</td>
-        <td>public</td>
-        <td>Information on how each team is doing.</td>
-        <td>N/A - just a simple HTTP GET</td>
-        <td>JSON of team performance in sorted order.</td>
-    </tr>
-    <tr>
-        <td>Trends</td>
-        <td>/trends</td>
-        <td>public</td>
-        <td>Gets key timestamps to visualize historical trends of the performance of a stock.</td>
-        <td>N/A - just a simple HTTP GET</td>
-        <td>JSON representing historical stock data</td>
-    </tr>
-    <tr>
-        <td>Admin Dashboard</td>
-        <td>/admin</td>
         <td>admin</td>
-        <td>Allows admin to view all current teams + all dummy bots registered on the platform, as well as all active sessions trading.</td>
-        <td>{"adminUsername": string, "adminPassword": string}</td>
-        <td>{"auth": boolean}</td>
+        <td>Displays team ranking by PnL.</td>
+        <td>N/A - just a simple HTTP GET</td>
+        <td>N/A - just a raw, static frontend</td>
     </tr>
     <tr>
-        <td>Add Team</td>
-        <td>/add_team</td>
+        <td>Add User</td>
+        <td>/add_user</td>
         <td>admin</td>
         <td>Allows the admin to submit a new team's registration information.</td>
-        <td>{"adminUsername": string, "adminPassword": string, "username": string, "name": string}</td>
+        <td>{"adminUsername": string, "adminPassword": string, "username": string, "name": string, "email": string}</td>
         <td>{"auth": boolean, "success": boolean, "message": string}</td>
+    </tr>
+    <tr>
+        <td>Clear Round</td>
+        <td>/clear_round</td>
+        <td>admin</td>
+        <td>Clears everything except for PNL.</td>
+        <td>{"adminUsername": string, "adminPassword": string, "username": string, "name": string, "email": string}</td>
+        <td>{"auth": boolean, "success": boolean, "message": string}</td>
+    </tr>
+    <tr>
+        <td>Shutdown</td>
+        <td>/shutdown</td>
+        <td>admin</td>
+        <td>Saves all the database states in a JSON file.</td>
+        <td>{"adminUsername": string, "adminPassword": string}</td>
+        <td>Success/Failure</td>
     </tr>
     <tr>
         <td>Buildup</td>
@@ -70,27 +78,85 @@
         <td>{"auth": string, "success": string}</td>
     </tr>
     <tr>
-        <td>Order</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>Limit Order</td>
+        <td>/limit_order</td>
+        <td>private</td>
+        <td>Places a limit order for team.</td>
+        <td>{"username": string, "sessionToken": string, "ticker": string, "volume": float, "price": float, "isBid": boolean}</td>
+        <td>Success/Fail</td>
     </tr>
     <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>Market Order</td>
+        <td>/market_order</td>
+        <td>private</td>
+        <td>Places a market order for team.</td>
+        <td>{"username": string, "sessionToken": string, "ticker": string, "volume": float, "isBid": boolean}</td>
+        <td>Success/Fail</td>
     </tr>
     <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>Remove All</td>
+        <td>/remove_all</td>
+        <td>private</td>
+        <td>Removes all active orders of team.</td>
+        <td>{"username": string, "sessionToken": string}</td>
+        <td>Success/Fail</td>
+    </tr>
+    <tr>
+        <td>Auction</td>
+        <td>/auction</td>
+        <td>private</td>
+        <td>Facilitates the auction.</td>
+        <td>{"username": string, "sessionToken": string, "price": float}</td>
+        <td>Success/Fail</td>
     </tr>
 </table>
+
+
+
+[//]: # (<tr>)
+
+[//]: # (        <td>Trends</td>)
+
+[//]: # (        <td>/trends</td>)
+
+[//]: # (        <td>public</td>)
+
+[//]: # (        <td>Gets key timestamps to visualize historical trends of the performance of a stock.</td>)
+
+[//]: # (        <td>N/A - just a simple HTTP GET</td>)
+
+[//]: # (        <td>JSON representing historical stock data</td>)
+
+[//]: # (    </tr>)
+
+[//]: # (<tr>)
+
+[//]: # (        <td>Leaderboard</td>)
+
+[//]: # (        <td>/leaderboard</td>)
+
+[//]: # (        <td>public</td>)
+
+[//]: # (        <td>Information on how each team is doing.</td>)
+
+[//]: # (        <td>N/A - just a simple HTTP GET</td>)
+
+[//]: # (        <td>JSON of team performance in sorted order.</td>)
+
+[//]: # (    </tr>)
+
+[//]: # (    <tr>)
+
+[//]: # (        <td>Admin Dashboard</td>)
+
+[//]: # (        <td>/admin</td>)
+
+[//]: # (        <td>admin</td>)
+
+[//]: # (        <td>Allows admin to view all current teams + all dummy bots registered on the platform, as well as all active sessions trading.</td>)
+
+[//]: # (        <td>{"adminUsername": string, "adminPassword": string}</td>)
+
+[//]: # (        <td>{"auth": boolean}</td>)
+
+[//]: # (    </tr>)

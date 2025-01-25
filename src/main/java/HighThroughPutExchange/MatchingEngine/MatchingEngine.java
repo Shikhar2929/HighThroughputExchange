@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.Iterator;
 
+import HighThroughPutExchange.Common.TaskFuture;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 // todo: get rid of usage of JSON library
@@ -597,5 +598,9 @@ public class MatchingEngine {
     }
     public String getUserDetails(String username) {
         return userList.getUserDetailsAsJson(username).toString();
+    }
+    public void getLeaderboard(TaskFuture<List<LeaderboardEntry>> future) {
+        future.setData(userList.getLeaderboard());
+        future.markAsComplete();
     }
 }

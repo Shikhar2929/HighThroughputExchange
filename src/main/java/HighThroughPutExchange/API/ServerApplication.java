@@ -7,16 +7,14 @@ import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.authentication.RateLimiter;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
+import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
 import HighThroughPutExchange.Database.exceptions.NotFoundException;
 import HighThroughPutExchange.Database.localdb.LocalDBClient;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
-import HighThroughPutExchange.MatchingEngine.Order;
-import HighThroughPutExchange.MatchingEngine.Side;
-import HighThroughPutExchange.MatchingEngine.Status;
+import HighThroughPutExchange.MatchingEngine.*;
 import org.json.JSONObject;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import java.util.HashMap;
+import java.util.List;
 /*
 todo
     fix exception handling of database classes
@@ -128,6 +127,15 @@ public class ServerApplication {
 
     // admin pages
 
+    @PostMapping("/admin_page")
+    public ResponseEntity<AdminDashboardResponse> adminPage(@Valid @RequestBody AdminDashboardRequest form) {
+        if (!adminPageAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new AdminDashboardResponse(false, false, "failed authentication"), HttpStatus.UNAUTHORIZED);
+        }
+
+        return new ResponseEntity<>(new AdminDashboardResponse(true, false, "this is the admin dashboard"), HttpStatus.OK);
+    }
+
     @PostMapping("/add_user")
     public ResponseEntity<AddUserResponse> addUser(@Valid @RequestBody AddUserRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
@@ -150,15 +158,6 @@ public class ServerApplication {
         return new ResponseEntity<>(new AddUserResponse(true, true, "user successfully created", users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
     }
 
-    @PostMapping("/admin_page")
-    public ResponseEntity<AdminDashboardResponse> adminPage(@Valid @RequestBody AdminDashboardRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AdminDashboardResponse(false, false, "failed authentication"), HttpStatus.UNAUTHORIZED);
-        }
-
-        return new ResponseEntity<>(new AdminDashboardResponse(true, false, "this is the admin dashboard"), HttpStatus.OK);
-    }
-
     @PostMapping("/shutdown")
     public ResponseEntity<ShutdownResponse> shutdown(@Valid @RequestBody ShutdownRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
@@ -171,6 +170,22 @@ public class ServerApplication {
             throw new RuntimeException(e);
         }
         return new ResponseEntity<>(new ShutdownResponse(true, true), HttpStatus.OK);
+    }
+
+    @PostMapping("/leaderboard")
+    public ResponseEntity<LeaderboardResponse> leaderboard(@Valid @RequestBody LeaderboardRequest form) {
+        if (!adminPageAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new LeaderboardResponse(), HttpStatus.UNAUTHORIZED);
+        }
+
+        TaskFuture<List<LeaderboardEntry>> future = new TaskFuture<>();
+        TaskQueue.addTask(() -> {
+            matchingEngine.getLeaderboard(future);
+        });
+
+        future.waitForCompletion();
+
+        return new ResponseEntity<>(new LeaderboardResponse(future.getData()), HttpStatus.OK);
     }
 
     // private pages
