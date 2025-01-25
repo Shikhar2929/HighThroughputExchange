@@ -6,12 +6,6 @@
 
 [//]: # (Todo: stopping mechanism; action endpoint; show auction results; frontend orderbook; individual order cancelation)
 
-{
-    "game_name": "X Cards",
-    "rounds": 10,
-    ""
-}
-
 <table>
     <tr>
         <th>Name</th>
@@ -160,3 +154,21 @@
 [//]: # (        <td>{"auth": boolean}</td>)
 
 [//]: # (    </tr>)
+
+
+
+Notes (pls ignore)
+
+
+python -> python3
+dont automatically loop over
+make layout more friendly
+make notebook markdown
+make example strategy more all-encompassing
+make readme better
+
+{
+"game_name": "X Cards",
+"rounds": 10,
+""
+}
