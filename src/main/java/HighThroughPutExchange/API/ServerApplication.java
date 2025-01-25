@@ -14,8 +14,12 @@ import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
 import HighThroughPutExchange.Database.exceptions.NotFoundException;
 import HighThroughPutExchange.Database.localdb.LocalDBClient;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
-import HighThroughPutExchange.MatchingEngine.*;
-import org.json.JSONObject;
+import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.MatchingEngine.Order;
+import HighThroughPutExchange.MatchingEngine.Side;
+import HighThroughPutExchange.MatchingEngine.Status;
+import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
+import HighThroughPutExchange.Auction.Auction;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import jakarta.validation.Valid;
@@ -51,6 +55,7 @@ public class ServerApplication {
     private AdminPageAuthenticator adminPageAuthenticator;
     private RateLimiter rateLimiter;
     private MatchingEngine matchingEngine;
+    private Auction auction;
     private static final int KEY_LENGTH = 16;
 
     private static char randomChar() {
@@ -103,6 +108,7 @@ public class ServerApplication {
         PrivatePageAuthenticator.buildInstance(sessions);
         privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
         rateLimiter = new RateLimiter();
+        auction = new Auction(matchingEngine);
 
     }
 
