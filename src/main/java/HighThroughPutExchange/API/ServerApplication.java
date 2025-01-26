@@ -26,10 +26,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.HashMap;
 import java.util.List;
 /*
@@ -46,8 +44,7 @@ todo
 @RestController
 @EnableScheduling
 public class ServerApplication {
-
-
+    private State state;
     private LocalDBClient dbClient;
     private LocalDBTable<User> users;
     private LocalDBTable<Session> sessions;
@@ -71,6 +68,7 @@ public class ServerApplication {
     }
 
     public ServerApplication() {
+        state = State.STOP;
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
         matchingEngine = new MatchingEngine(true);
         matchingEngine.initializeAllTickers();
@@ -122,17 +120,26 @@ public class ServerApplication {
         - UNAUTHORIZED: failed authentication
         - TOO_MANY_REQUESTS: rate limited
         - BAD_REQUEST: bad input in HTTP request form
+        - LOCKED: if state is mismatched
      */
 
-    // public pages
+    // -------------------- public pages --------------------
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/")
     public ResponseEntity<String> home() {
         return new ResponseEntity<>("Welcome to GT Trading Club's High Throughput Exchange!", HttpStatus.OK);
     }
 
-    // admin pages
+    @CrossOrigin(origins = "http://localhost:3000")
+    @GetMapping("/get_state")
+    public ResponseEntity<String> state() {
+        return new ResponseEntity<>(String.format("{\"state\": %d}", state.ordinal()), HttpStatus.OK);
+    }
 
+    // -------------------- admin pages --------------------
+
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/admin_page")
     public ResponseEntity<AdminDashboardResponse> adminPage(@Valid @RequestBody AdminDashboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
@@ -142,6 +149,7 @@ public class ServerApplication {
         return new ResponseEntity<>(new AdminDashboardResponse(true, false, "this is the admin dashboard"), HttpStatus.OK);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/add_user")
     public ResponseEntity<AddUserResponse> addUser(@Valid @RequestBody AddUserRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
@@ -164,6 +172,7 @@ public class ServerApplication {
         return new ResponseEntity<>(new AddUserResponse(true, true, "user successfully created", users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/shutdown")
     public ResponseEntity<ShutdownResponse> shutdown(@Valid @RequestBody ShutdownRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
@@ -178,6 +187,7 @@ public class ServerApplication {
         return new ResponseEntity<>(new ShutdownResponse(true, true), HttpStatus.OK);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/leaderboard")
     public ResponseEntity<LeaderboardResponse> leaderboard(@Valid @RequestBody LeaderboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
@@ -194,8 +204,25 @@ public class ServerApplication {
         return new ResponseEntity<>(new LeaderboardResponse(future.getData()), HttpStatus.OK);
     }
 
-    // private pages
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PostMapping("/set_state")
+    public ResponseEntity<SetStateResponse> setState(@Valid @RequestBody SetStateRequest form) {
+        if (!adminPageAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new SetStateResponse(state.ordinal()), HttpStatus.UNAUTHORIZED);
+        }
 
+        if (form.getTargetState() >= State.values().length || form.getTargetState() < 0) {
+            return new ResponseEntity<>(new SetStateResponse(state.ordinal()), HttpStatus.BAD_REQUEST);
+        }
+
+        state = State.values()[form.getTargetState()];
+
+        return new ResponseEntity<>(new SetStateResponse(state.ordinal()), HttpStatus.OK);
+    }
+
+    // -------------------- private pages --------------------
+
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/buildup")
     public ResponseEntity<BuildupResponse> buildup(@Valid @RequestBody BuildupRequest form) {
         /*
@@ -224,6 +251,7 @@ public class ServerApplication {
         return new ResponseEntity<>(new BuildupResponse(true, true, s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/teardown")
     public ResponseEntity<TeardownResponse> teardown(@Valid @RequestBody TeardownRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
@@ -235,6 +263,7 @@ public class ServerApplication {
         return new ResponseEntity<>(new TeardownResponse(true, true), HttpStatus.OK);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/privatePage")
     public ResponseEntity<PrivatePageResponse> privatePage(@Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
@@ -247,6 +276,7 @@ public class ServerApplication {
         return new ResponseEntity<>(new PrivatePageResponse(true, true, "this is a private page"), HttpStatus.OK);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/limit_order")
     public ResponseEntity<LimitOrderResponse> limitOrder(@Valid @RequestBody LimitOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
@@ -254,6 +284,9 @@ public class ServerApplication {
         }
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new LimitOrderResponse(true, false), HttpStatus.TOO_MANY_REQUESTS);
+        }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new LimitOrderResponse(true, false), HttpStatus.LOCKED);
         }
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
@@ -266,6 +299,8 @@ public class ServerApplication {
         });
         return new ResponseEntity<>(new LimitOrderResponse(true, true), HttpStatus.OK);
     }
+
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/remove_all")
     public ResponseEntity<RemoveAllResponse> removeAll(@Valid @RequestBody RemoveAllRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
@@ -274,6 +309,9 @@ public class ServerApplication {
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new RemoveAllResponse(true, false), HttpStatus.TOO_MANY_REQUESTS);
         }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new RemoveAllResponse(true, false), HttpStatus.LOCKED);
+        }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(true, false), HttpStatus.UNAUTHORIZED);
         TaskQueue.addTask(() -> {
@@ -281,6 +319,8 @@ public class ServerApplication {
         });
         return new ResponseEntity<>(new RemoveAllResponse(true, true), HttpStatus.OK);
     }
+
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/market_order")
     public ResponseEntity<MarketOrderResponse> marketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
@@ -288,6 +328,9 @@ public class ServerApplication {
         }
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new MarketOrderResponse(true, false), HttpStatus.TOO_MANY_REQUESTS);
+        }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new MarketOrderResponse(true, false), HttpStatus.LOCKED);
         }
         TaskQueue.addTask(() -> {
             if (form.getBid())
@@ -297,6 +340,8 @@ public class ServerApplication {
         });
         return new ResponseEntity<>(new MarketOrderResponse(true, true), HttpStatus.OK);
     }
+
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/get_details")
     public ResponseEntity<GetDetailsResponse> getDetails(@Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {

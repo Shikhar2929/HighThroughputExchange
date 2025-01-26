@@ -40,6 +40,14 @@
         <td>{"auth": boolean, "success": boolean, "message": string}</td>
     </tr>
     <tr>
+        <td>Set State</td>
+        <td>/set_state</td>
+        <td>admin</td>
+        <td>Sets the state of the server (STOP, TRADING, or AUCTION). State is represented as an integer (0 is STOP, 1 is TRADE, 2 is AUCTION).</td>
+        <td>{"adminUsername": string, "adminPassword": string, "state": int}</td>
+        <td>{"newState": int}</td>
+    </tr>
+    <tr>
         <td>Clear Round</td>
         <td>/clear_round</td>
         <td>admin</td>

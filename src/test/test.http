@@ -39,3 +39,13 @@ Content-Type: application/json
   "adminUsername": "trading_club_admin",
   "adminPassword": "abcxyz"
 }
+
+
+###
+POST http://localhost:8080/leaderboard
+Content-Type: application/json
+
+{
+  "adminUsername": "trading_club_admin",
+  "adminPassword": "abcxyz"
+}

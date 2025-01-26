@@ -6,7 +6,7 @@ import java.util.concurrent.locks.Condition;
 
 public class TaskFuture<T> {
     private boolean completed;
-    private Lock mutex;
+    private ReentrantLock mutex;
     private Condition cv;
     private T data;
 
@@ -20,7 +20,7 @@ public class TaskFuture<T> {
         mutex.lock();
         while (!completed) {
             try {
-                cv.wait();
+                cv.await();
             } catch (InterruptedException e) {
                 throw new RuntimeException();
             }
@@ -31,7 +31,7 @@ public class TaskFuture<T> {
     public void markAsComplete() {
         mutex.lock();
         completed = true;
-        cv.notifyAll();
+        cv.signalAll();
         mutex.unlock();
     }
 

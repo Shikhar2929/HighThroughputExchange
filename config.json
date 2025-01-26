@@ -1,4 +1,5 @@
 {
+  "mode": "finite",
   "defaults": {
     "tickers": ["AAPL", "GOOGL", "MSFT"],
     "balances": {
