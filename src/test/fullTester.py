@@ -45,4 +45,4 @@ if __name__ == "__main__":
                         "username": username,
                         "session_token": session_data['sessionToken']
                         })
-    websocketConnection.run_socket(order_book)
+    #websocketConnection.run_socket(order_book)

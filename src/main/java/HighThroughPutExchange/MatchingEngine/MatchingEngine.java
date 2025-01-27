@@ -452,8 +452,8 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
                     Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
                     updateVolume(askVolumes, order.price, -order.volume, order.ticker, Side.ASK);
-
                 }
+                orders.remove(orderId);
                 return true;
             }
         }
