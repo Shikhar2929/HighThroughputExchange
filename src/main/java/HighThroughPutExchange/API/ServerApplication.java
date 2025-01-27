@@ -22,6 +22,7 @@ import HighThroughPutExchange.Auction.Auction;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import jakarta.validation.Valid;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -67,6 +68,10 @@ public class ServerApplication {
         }
         return output.toString();
     }
+    @Bean
+    public LocalDBTable<Session> getSessions() {
+        return this.sessions;
+    }
 
     public ServerApplication() {
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
@@ -107,7 +112,6 @@ public class ServerApplication {
         privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
         rateLimiter = new RateLimiter();
         auction = new Auction(matchingEngine);
-
     }
 
     public static void main(String[] args) {

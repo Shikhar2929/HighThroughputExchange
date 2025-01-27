@@ -6,18 +6,27 @@ import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
 import HighThroughPutExchange.MatchingEngine.PriceChange;
 import HighThroughPutExchange.MatchingEngine.RecentTrades;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
-import java.util.List;
+import java.security.Principal;
+import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.messaging.simp.user.SimpUser;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
 
 @Controller
 public class SocketController {
 
     @Autowired
     private SimpMessagingTemplate template;
+    @Autowired
+    private SimpUserRegistry simpUserRegistry;
 
     public void sendMessage(SocketResponse resp) {
         template.convertAndSend("/topic/orderbook", resp);
@@ -41,5 +50,28 @@ public class SocketController {
             sendMessage(new SocketResponse("No recent trades"));
         }
     }
-
+    @Scheduled(fixedRate = 2000)
+    public void sendUserBalances() {
+        for (SimpUser user : simpUserRegistry.getUsers()) {
+            //For Debugging: System.out.println("Onboarded User: " + user.getName());
+            sendUserInfo(user.getName());
+        }
+    }
+    public void sendUserInfo(String username) {
+        String resp = username;
+        template.convertAndSendToUser(username, "/queue/private", resp);
+    }
+    /*
+    For Debugging:
+    @EventListener
+    public void handleSessionConnected(SessionConnectEvent event) {
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        Principal user = headerAccessor.getUser();
+        if (user != null) {
+            System.out.println("User connected: " + user.getName());
+        } else {
+            System.out.println("No Principal found for the session.");
+        }
+    }
+    */
 }
