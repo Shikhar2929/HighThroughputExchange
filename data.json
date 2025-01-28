@@ -1,0 +1,17 @@
+{
+  "sessions" : {
+    "name" : "sessions",
+    "backing" : { }
+  },
+  "users" : {
+    "name" : "users",
+    "backing" : {
+      "team1" : {
+        "username" : "team1",
+        "name" : "National Fellas League",
+        "apiKey" : "RQKGQQDHHDQCJFHN",
+        "email" : "team_email@email.com"
+      }
+    }
+  }
+}

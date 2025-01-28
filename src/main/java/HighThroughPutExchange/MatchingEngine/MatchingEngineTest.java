@@ -714,7 +714,7 @@
             assertTrue(removed, "Order should be successfully removed");
             assertEquals(1000.0, engine.getUserBalance("Trader1"), "User balance should be restored after removing bid order");
             assertEquals(20.0, engine.getTickerBalance("Trader1", ticker), "Ticker balance should remain unchanged after removing bid order");
-            assertEquals(Status.CANCELLED, engine.getOrder("Trader1", orderId).status, "Order status should be CANCELLED");
+            assertNull(engine.getOrder("Trader1", orderId), "Getting Order Should be Null");
         }
     
         @Test
@@ -767,7 +767,7 @@
             assertTrue(removed, "Ask order should be successfully removed");
             assertEquals(1000.0, engine.getUserBalance("Trader1"), "User balance should remain unchanged after removing ask order");
             assertEquals(20.0, engine.getTickerBalance("Trader1", ticker), "Ticker balance should be fully restored after removing ask order");
-            assertEquals(Status.CANCELLED, engine.getOrder("Trader1", orderId).status, "Order status should be CANCELLED");
+            assertNull(engine.getOrder("Trader1", orderId), "Order status should be CANCELLED");
             List<PriceLevel> askLevels = engine.getAskPriceLevels(ticker);
             assertEquals(0, askLevels.size(), "Ask price levels should be empty after removing the order");
         }

@@ -7,6 +7,7 @@ import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.authentication.RateLimiter;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
+import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.Database.entry.DBEntry;
@@ -51,9 +52,10 @@ public class ServerApplication {
     private PrivatePageAuthenticator privatePageAuthenticator;
     private AdminPageAuthenticator adminPageAuthenticator;
     private RateLimiter rateLimiter;
-    private MatchingEngine matchingEngine;
+
     private Auction auction;
     private static final int KEY_LENGTH = 16;
+    private MatchingEngine matchingEngine;
 
     private static char randomChar() {
         return (char) ((int) (Math.random() * 26 + 65));
@@ -66,11 +68,10 @@ public class ServerApplication {
         }
         return output.toString();
     }
-
     public ServerApplication() {
         state = State.STOP;
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
-        matchingEngine = new MatchingEngine(true);
+        matchingEngine = MatchingEngineSingleton.getMatchingEngine();
         matchingEngine.initializeAllTickers();
         mapping.put("users", User.class);
         mapping.put("sessions", Session.class);
@@ -107,7 +108,6 @@ public class ServerApplication {
         privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
         rateLimiter = new RateLimiter();
         auction = new Auction(matchingEngine);
-
     }
 
     public static void main(String[] args) {

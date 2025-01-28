@@ -453,8 +453,8 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
                     Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
                     updateVolume(askVolumes, order.price, -order.volume, order.ticker, Side.ASK);
-
                 }
+                orders.remove(orderId);
                 return true;
             }
         }
@@ -597,7 +597,13 @@ public class MatchingEngine {
         return volumeFilled;
     }
     public String getUserDetails(String username) {
-        return userList.getUserDetailsAsJson(username).toString();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        JSONObject userListDetails = userList.getUserDetailsAsJson(username);
+        if (userOrders.containsKey(username)) {
+            userListDetails.put("Orders", userOrders.get(username));
+        }
+        return userListDetails.toString();
     }
     public void getLeaderboard(TaskFuture<List<LeaderboardEntry>> future) {
         future.setData(userList.getLeaderboard());

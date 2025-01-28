@@ -1,60 +1,88 @@
+const sessionId = "THXVZVOOHCVXULJK"; // Replace with the actual Session ID variable
+const username = "bot1"; // Replace with the actual Username variable
+
+// Construct the WebSocket URL with query parameters
+const brokerURL = `ws://localhost:8080/exchange-socket?Session-ID=${encodeURIComponent(sessionId)}&Username=${encodeURIComponent(username)}`;
+
 const stompClient = new StompJs.Client({
-    "brokerURL": "ws://localhost:8080/exchange-socket"
-    //"brokerURL": "ws://ec2-18-119-248-10.us-east-2.compute.amazonaws.com:8080/exchange-socket"
-    //"brokerURL": "ws://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/exchange-socket"
+    brokerURL: brokerURL,
+    debug: (str) => {
+        console.log(str); // Logs all debug messages for troubleshooting
+    },
+    reconnectDelay: 5000, // Auto-reconnect after 5 seconds
+    heartbeatIncoming: 4000, // Keep the connection alive
+    heartbeatOutgoing: 4000
 });
 
 stompClient.onConnect = (frame) => {
     setConnected(true);
     console.log("Connected: " + frame);
-    stompClient.subscribe("/topic/orderbook", onMessage);
-}
+
+    // Subscribe to public messages (orderbook updates)
+    stompClient.subscribe("/topic/orderbook", (message) => {
+        console.log("Orderbook message received: " + message.body);
+        showMessage(JSON.parse(message.body).content); // Handle orderbook messages
+    });
+
+    // Subscribe to private messages (user-specific updates)
+    stompClient.subscribe("/user/queue/private", (message) => {
+        console.log("Private message received: " + message.body);
+        showMessage(`Private: ${message.body}`); // Handle private messages
+    });
+};
 
 stompClient.onWebSocketError = (error) => {
-    console.log("Web Socket Error: " + error);
-}
+    console.error("WebSocket Error: ", error);
+};
 
 stompClient.onStompError = (frame) => {
-    console.log("Broker reported error: " + frame.headers['message']);
-    console.log("Additional details: " + frame.body);
-}
+    console.error("Broker reported error: ", frame.headers['message']);
+    console.error("Additional details: ", frame.body);
+};
 
-function onMessage(message) {
-    showMessage(JSON.parse(message.body).content)
-}
-
+// Utility function to update UI connection status
 function setConnected(connected) {
     $("#connect").prop("disabled", connected);
     $("#disconnect").prop("disabled", !connected);
     if (connected) {
         $("#conversation").show();
     } else {
-        $("#conversation").show();
+        $("#conversation").hide();
     }
     $("#greetings").html("");
 }
 
+// Connect to WebSocket server
 function connect() {
+    console.log("Connecting to WebSocket...");
     stompClient.activate();
 }
 
+// Disconnect from WebSocket server
 function disconnect() {
+    console.log("Disconnecting from WebSocket...");
     stompClient.deactivate();
     setConnected(false);
-    console.log("disconnected");
 }
 
+// Send start signal to initiate the stream
 function sendStartSignal() {
     stompClient.publish({
         destination: "/app/start",
-        body: JSON.stringify({ "adminUsername": "trading_club_admin", "adminPassword": "abcxyz" })
+        body: JSON.stringify({
+            adminUsername: "trading_club_admin",
+            adminPassword: "abcxyz"
+        })
     });
+    console.log("Start signal sent.");
 }
 
+// Display a message in the UI
 function showMessage(message) {
     $("#messages").append("<tr><td>" + message + "</td></tr>");
 }
 
+// Event listeners for buttons
 $(function() {
     $("#connect").click(() => connect());
     $("#disconnect").click(() => disconnect());

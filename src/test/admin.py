@@ -22,7 +22,7 @@ def create_random_users(n = 1):
    l = []
    for i in range(n):
         default += 1
-        username = f"Full Tester bot{default}"
+        username = f"bot{default}"
         name = f"Full Tester Trading Bot {default}"
         email = f"fulltester_bot{default}@example.com"
         session_token = create_user(username, email, email)
