@@ -1,4 +1,4 @@
-const sessionId = "YWSQUDOHXCWIQFVN"; // Replace with the actual Session ID variable
+const sessionId = "NHBEQXRWBDVPSKEU"; // Replace with the actual Session ID variable
 const username = "bot1"; // Replace with the actual Username variable
 
 // Construct the WebSocket URL with query parameters

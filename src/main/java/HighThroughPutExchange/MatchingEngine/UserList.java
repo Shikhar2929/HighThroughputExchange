@@ -2,8 +2,8 @@ package HighThroughPutExchange.MatchingEngine;
 
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
 public class UserList {
     private Map<String, Double> userBalances = new HashMap<>(); // UserName -> Balance
     private Map<String, Map<String, Double>> quantities = new HashMap<>(); // Ticker -> Quantity
@@ -121,6 +121,16 @@ public class UserList {
         userJson.put("positions", positionsJson);
 
         return userJson;
+    }
+
+    // todo: consider sorting only in the frontend
+    public List<LeaderboardEntry> getLeaderboard() {
+        ArrayList<LeaderboardEntry> output = new ArrayList<>();
+        for (String username: userBalances.keySet()) {
+            output.add(new LeaderboardEntry(username, userBalances.get(username)));
+        }
+        Collections.sort(output);
+        return output;
     }
 }
 

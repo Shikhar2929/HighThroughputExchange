@@ -3,6 +3,9 @@ package HighThroughPutExchange.API;
 import HighThroughPutExchange.API.api_objects.requests.StartSocketRequest;
 import HighThroughPutExchange.API.api_objects.responses.SocketResponse;
 import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
+import HighThroughPutExchange.Common.MatchingEngineSingleton;
+import HighThroughPutExchange.Common.TaskQueue;
+import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import HighThroughPutExchange.MatchingEngine.PriceChange;
 import HighThroughPutExchange.MatchingEngine.RecentTrades;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +30,7 @@ public class SocketController {
     private SimpMessagingTemplate template;
     @Autowired
     private SimpUserRegistry simpUserRegistry;
-
+    private MatchingEngine matchingEngine = MatchingEngineSingleton.getMatchingEngine();
     public void sendMessage(SocketResponse resp) {
         template.convertAndSend("/topic/orderbook", resp);
     }
@@ -52,13 +55,14 @@ public class SocketController {
     }
     @Scheduled(fixedRate = 2000)
     public void sendUserBalances() {
-        for (SimpUser user : simpUserRegistry.getUsers()) {
-            //For Debugging: System.out.println("Onboarded User: " + user.getName());
-            sendUserInfo(user.getName());
-        }
+        TaskQueue.addTask(() -> {
+            for (SimpUser user : simpUserRegistry.getUsers()) {
+                String userDetailsJson = matchingEngine.getUserDetails(user.getName());
+                sendUserInfo(user.getName(), userDetailsJson);
+            }
+        });
     }
-    public void sendUserInfo(String username) {
-        String resp = username;
+    public void sendUserInfo(String username, String resp) {
         template.convertAndSendToUser(username, "/queue/private", resp);
     }
     /*

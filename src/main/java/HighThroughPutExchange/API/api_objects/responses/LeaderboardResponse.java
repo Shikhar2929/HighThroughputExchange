@@ -1,0 +1,23 @@
+package HighThroughPutExchange.API.api_objects.responses;
+
+import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
+
+import java.util.List;
+
+public class LeaderboardResponse {
+    private List<LeaderboardEntry> data;
+
+    public LeaderboardResponse() {}
+
+    public LeaderboardResponse(List<LeaderboardEntry> data) {
+        this.data = data;
+    }
+
+    public void setData(List<LeaderboardEntry> data) {
+        this.data = data;
+    }
+
+    public List<LeaderboardEntry> getData() {
+        return data;
+    }
+}
