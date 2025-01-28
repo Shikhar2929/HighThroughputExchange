@@ -49,3 +49,17 @@ Content-Type: application/json
   "adminUsername": "trading_club_admin",
   "adminPassword": "abcxyz"
 }
+
+### enable trading
+POST http://localhost:8080/set_state
+Content-Type: application/json
+
+{
+  "adminUsername": "trading_club_admin",
+  "adminPassword": "abcxyz",
+  "targetState": 1
+}
+
+###
+GET http://localhost:8080/get_state
+
