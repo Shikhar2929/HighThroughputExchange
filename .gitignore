@@ -11,3 +11,4 @@ pom.xml
 *.pyc
 ec2
 data.json
+HighThroughputExchange-1.0-SNAPSHOT.jar
