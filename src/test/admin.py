@@ -2,6 +2,8 @@ import json
 import urllib.request
 import random
 import time
+
+#URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
 URL = 'http://localhost:8080'
 default = 0
 def create_user(username, name, email):
@@ -37,6 +39,16 @@ def teardown(username, session_token):
     req = urllib.request.Request(URL + '/teardown', data=json.dumps(form_data).encode('utf-8'), method='POST')
     req.add_header('Content-Type', 'application/json')
     return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
+def set_state(target_state):
+    form_data = {
+        'adminUsername': 'trading_club_admin',
+        'adminPassword': 'abcxyz',
+        'targetState': target_state
+    }
+    req = urllib.request.Request(URL + '/set_state', data=json.dumps(form_data).encode('utf-8'), method='POST')
+    req.add_header('Content-Type', 'application/json')
+    return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
+
 if __name__ == "__main__":
-    print(create_random_users())
-    #teardown('Full Tester bot1', 'SXNVGZGDAFWVDEVT')
+    #print(create_random_users())
+    print(set_state(1))  # Example usage of set_state

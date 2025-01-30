@@ -229,6 +229,7 @@ public class MatchingEngine {
             volumeMap.remove(price);
         }
         double newQuantity = volumeMap.getOrDefault(price, 0.0);
+        //System.out.printf("Price: %f Quantity: %f\n", price, newQuantity);
         RecentTrades.addTrade(ticker, price, newQuantity, side);
     }
     private boolean validateBidOrder(String user, Order order) {
@@ -511,6 +512,7 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                     //Update the bid volume map and the bid if it is a bid order
+                    updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
                 }
                 order.volume -= aggressorVolume;
                 overallVolume += aggressorVolume;
@@ -598,13 +600,41 @@ public class MatchingEngine {
     }
     public String getUserDetails(String username) {
         ObjectMapper objectMapper = new ObjectMapper();
-
         JSONObject userListDetails = userList.getUserDetailsAsJson(username);
+
+        // Organize active orders by ticker
+        JSONObject ordersByTicker = new JSONObject();
+
         if (userOrders.containsKey(username)) {
-            userListDetails.put("Orders", userOrders.get(username));
+            Map<Long, Order> orders = userOrders.get(username);
+
+            for (Map.Entry<Long, Order> entry : orders.entrySet()) {
+                Order order = entry.getValue();
+
+                if (order.status == Status.ACTIVE) {
+                    JSONObject orderDetails = new JSONObject();
+                    orderDetails.put("orderId", entry.getKey());
+                    orderDetails.put("price", order.price);
+                    orderDetails.put("volume", order.volume);
+                    orderDetails.put("side", order.side.toString());
+
+                    // If ticker key does not exist, initialize it with a new JSONArray
+                    if (!ordersByTicker.has(order.ticker)) {
+                        ordersByTicker.put(order.ticker, new JSONArray());
+                    }
+
+                    // Add the order details to the appropriate ticker array
+                    ordersByTicker.getJSONArray(order.ticker).put(orderDetails);
+                }
+            }
         }
+
+        // Ensure ordersByTicker is added even if empty
+        userListDetails.put("Orders", ordersByTicker);
+
         return userListDetails.toString();
     }
+
     public void getLeaderboard(TaskFuture<List<LeaderboardEntry>> future) {
         future.setData(userList.getLeaderboard());
         future.markAsComplete();

@@ -292,7 +292,7 @@ public class ServerApplication {
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
                     form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-            System.out.println("Adding: " + order.toString());
+            System.out.println("Adding Limit Order");
             if (form.getBid())
                 matchingEngine.bidLimitOrder(form.getUsername(), order);
             else
@@ -320,7 +320,27 @@ public class ServerApplication {
         });
         return new ResponseEntity<>(new RemoveAllResponse(true, true), HttpStatus.OK);
     }
-
+    @CrossOrigin(origins = "*")
+    @PostMapping("/remove")
+    public ResponseEntity<RemoveAllResponse> remove(@Valid @RequestBody RemoveRequest form) {
+        if (!privatePageAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new RemoveAllResponse(false, false), HttpStatus.UNAUTHORIZED);
+        }
+        if (!rateLimiter.processRequest(form)) {
+            return new ResponseEntity<>(new RemoveAllResponse(true, false), HttpStatus.TOO_MANY_REQUESTS);
+        }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new RemoveAllResponse(true, false), HttpStatus.LOCKED);
+        }
+        if (form.getUsername() == null)
+            return new ResponseEntity<>(new RemoveAllResponse(true, false), HttpStatus.UNAUTHORIZED);
+        System.out.println("Removing Order");
+        System.out.println(form.getOrderID());
+        TaskQueue.addTask(() -> {
+            matchingEngine.removeOrder(form.getUsername(), form.getOrderID());
+        });
+        return new ResponseEntity<>(new RemoveAllResponse(true, true), HttpStatus.OK);
+    }
     @CrossOrigin(origins = "*")
     @PostMapping("/market_order")
     public ResponseEntity<MarketOrderResponse> marketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
@@ -334,6 +354,7 @@ public class ServerApplication {
             return new ResponseEntity<>(new MarketOrderResponse(true, false), HttpStatus.LOCKED);
         }
         TaskQueue.addTask(() -> {
+            System.out.println("Adding Market Order: " + form);
             if (form.getBid())
                 matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
             else
