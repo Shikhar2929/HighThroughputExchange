@@ -1,28 +1,18 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
 public class TeardownResponse {
-    private boolean auth;
-    private boolean success;
+    private String message;
 
 
-    public TeardownResponse(boolean auth, boolean success) {
-        this.auth = auth;
-        this.success = success;
+    public TeardownResponse(String message) {
+        this.message = message;
     }
 
-    public boolean getAuth() {
-        return auth;
+    public String getMessage() {
+        return message;
     }
 
-    public void setAuth(boolean auth) {
-        this.auth = auth;
-    }
-
-    public boolean getSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

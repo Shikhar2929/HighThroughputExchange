@@ -42,7 +42,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:8080/leaderboard
+POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/leaderboard
 Content-Type: application/json
 
 {
@@ -51,7 +51,7 @@ Content-Type: application/json
 }
 
 ### enable trading
-POST http://localhost:8080/set_state
+POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/set_state
 Content-Type: application/json
 
 {

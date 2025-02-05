@@ -1,31 +1,20 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
 public class AdminDashboardResponse {
-    private boolean auth;
-    private boolean success;
+    private String message;
     private String data;
 
-
-    public AdminDashboardResponse(boolean auth, boolean success, String data) {
-        this.auth = auth;
-        this.success = success;
+    public AdminDashboardResponse(String message, String data) {
+        this.message = message;
         this.data = data;
     }
 
-    public boolean getAuth() {
-        return auth;
+    public String getMessage() {
+        return message;
     }
 
-    public void setAuth(boolean auth) {
-        this.auth = auth;
-    }
-
-    public boolean getSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public String getData() {

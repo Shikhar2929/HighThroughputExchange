@@ -1,28 +1,17 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
 public class ShutdownResponse {
-    private boolean success;
-    private boolean auth;
+    private String message;
 
-
-    public boolean getSuccess() {
-        return success;
+    public String getMessage() {
+        return message;
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public boolean getAuth() {
-        return auth;
-    }
-
-    public void setAuth(boolean auth) {
-        this.auth = auth;
-    }
-
-    public ShutdownResponse(boolean success, boolean auth) {
-        this.success = success;
-        this.auth = auth;
+    public ShutdownResponse(String message) {
+        this.message = message;
     }
 }
