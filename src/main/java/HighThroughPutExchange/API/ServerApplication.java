@@ -289,6 +289,8 @@ public class ServerApplication {
         if (state != State.TRADE) {
             return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
+
+        TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
                     form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
@@ -298,8 +300,9 @@ public class ServerApplication {
             else
                 matchingEngine.askLimitOrder(form.getUsername(), order);
         });
+        future.waitForCompletion();
         // todo set message to volume filled
-        return new ResponseEntity<>(new LimitOrderResponse(""), HttpStatus.OK);
+        return new ResponseEntity<>(new LimitOrderResponse(future.getData()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -316,11 +319,13 @@ public class ServerApplication {
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.removeAll(form.getUsername());
         });
+        future.waitForCompletion();
         // todo set message to volume filled
-        return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.OK);
+        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
     }
     @CrossOrigin(origins = "*")
     @PostMapping("/remove")
@@ -338,11 +343,13 @@ public class ServerApplication {
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         System.out.println("Removing Order");
         System.out.println(form.getOrderID());
+        TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.removeOrder(form.getUsername(), form.getOrderID());
         });
+        future.waitForCompletion();
         // todo set message to volume filled
-        return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.OK);
+        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
     }
     @CrossOrigin(origins = "*")
     @PostMapping("/market_order")
@@ -356,6 +363,7 @@ public class ServerApplication {
         if (state != State.TRADE) {
             return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
+        TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             System.out.println("Adding Market Order: " + form);
             if (form.getBid())
@@ -363,8 +371,9 @@ public class ServerApplication {
             else
                 matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
         });
+        future.waitForCompletion();
         // todo set message to volume filled
-        return new ResponseEntity<>(new MarketOrderResponse(""), HttpStatus.OK);
+        return new ResponseEntity<>(new MarketOrderResponse(future.getData()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
