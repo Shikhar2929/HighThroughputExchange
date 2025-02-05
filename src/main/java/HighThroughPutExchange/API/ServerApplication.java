@@ -144,22 +144,22 @@ public class ServerApplication {
     @PostMapping("/admin_page")
     public ResponseEntity<AdminDashboardResponse> adminPage(@Valid @RequestBody AdminDashboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AdminDashboardResponse("failed authentication", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new AdminDashboardResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
         }
 
-        return new ResponseEntity<>(new AdminDashboardResponse("this is the admin dashboard", ""), HttpStatus.OK);
+        return new ResponseEntity<>(new AdminDashboardResponse(Message.SUCCESS.toString(), ""), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/add_user")
     public ResponseEntity<AddUserResponse> addUser(@Valid @RequestBody AddUserRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AddUserResponse("incorrect username or password", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new AddUserResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
         }
 
         // no duplicate usernames
         if (users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new AddUserResponse("username already exists", ""), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
         }
         try {
             users.putItem(new User(form.getUsername(), form.getName(), generateKey(), form.getEmail()));
@@ -170,14 +170,14 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new ResponseEntity<>(new AddUserResponse("user successfully created", users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
+        return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/shutdown")
     public ResponseEntity<ShutdownResponse> shutdown(@Valid @RequestBody ShutdownRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new ShutdownResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new ShutdownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
 
         try {
@@ -185,14 +185,14 @@ public class ServerApplication {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new ResponseEntity<>(new ShutdownResponse(""), HttpStatus.OK);
+        return new ResponseEntity<>(new ShutdownResponse(Message.SUCCESS.toString()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/leaderboard")
     public ResponseEntity<LeaderboardResponse> leaderboard(@Valid @RequestBody LeaderboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new LeaderboardResponse(), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new LeaderboardResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
         }
 
         TaskFuture<List<LeaderboardEntry>> future = new TaskFuture<>();
@@ -202,23 +202,23 @@ public class ServerApplication {
 
         future.waitForCompletion();
 
-        return new ResponseEntity<>(new LeaderboardResponse("", future.getData()), HttpStatus.OK);
+        return new ResponseEntity<>(new LeaderboardResponse(Message.SUCCESS.toString(), future.getData()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/set_state")
     public ResponseEntity<SetStateResponse> setState(@Valid @RequestBody SetStateRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new SetStateResponse("", state.ordinal()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new SetStateResponse(Message.AUTHENTICATION_FAILED.toString(), state.ordinal()), HttpStatus.UNAUTHORIZED);
         }
 
         if (form.getTargetState() >= State.values().length || form.getTargetState() < 0) {
-            return new ResponseEntity<>(new SetStateResponse("", state.ordinal()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new SetStateResponse(Message.BAD_INPUT.toString(), state.ordinal()), HttpStatus.BAD_REQUEST);
         }
 
         state = State.values()[form.getTargetState()];
 
-        return new ResponseEntity<>(new SetStateResponse("", state.ordinal()), HttpStatus.OK);
+        return new ResponseEntity<>(new SetStateResponse(Message.SUCCESS.toString(), state.ordinal()), HttpStatus.OK);
     }
 
     // -------------------- private pages --------------------
@@ -231,13 +231,13 @@ public class ServerApplication {
          */
         // if username not found
         if (!users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new BuildupResponse("", "", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
         }
 
         User u = users.getItem(form.getUsername());
         // if username and api key mismatch
         if (!u.getApiKey().equals(form.getApiKey())) {
-            return new ResponseEntity<>(new BuildupResponse("", "", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
         }
 
         Session s = new Session(generateKey(), u.getUsername());
@@ -249,45 +249,45 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new ResponseEntity<>(new BuildupResponse("", s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
+        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/teardown")
     public ResponseEntity<TeardownResponse> teardown(@Valid @RequestBody TeardownRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new TeardownResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new TeardownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
 
         sessions.deleteItem(form.getUsername());
 
-        return new ResponseEntity<>(new TeardownResponse(""), HttpStatus.OK);
+        return new ResponseEntity<>(new TeardownResponse(Message.SUCCESS.toString()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/privatePage")
     public ResponseEntity<PrivatePageResponse> privatePage(@Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new PrivatePageResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new PrivatePageResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new PrivatePageResponse("rate limited"), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(new PrivatePageResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
 
-        return new ResponseEntity<>(new PrivatePageResponse("this is a private page"), HttpStatus.OK);
+        return new ResponseEntity<>(new PrivatePageResponse(Message.SUCCESS.toString()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/limit_order")
     public ResponseEntity<LimitOrderResponse> limitOrder(@Valid @RequestBody LimitOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new LimitOrderResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new LimitOrderResponse(""), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(new LimitOrderResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state != State.TRADE) {
-            return new ResponseEntity<>(new LimitOrderResponse(""), HttpStatus.LOCKED);
+            return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
@@ -298,6 +298,7 @@ public class ServerApplication {
             else
                 matchingEngine.askLimitOrder(form.getUsername(), order);
         });
+        // todo set message to volume filled
         return new ResponseEntity<>(new LimitOrderResponse(""), HttpStatus.OK);
     }
 
@@ -305,53 +306,55 @@ public class ServerApplication {
     @PostMapping("/remove_all")
     public ResponseEntity<RemoveAllResponse> removeAll(@Valid @RequestBody RemoveAllRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state != State.TRADE) {
-            return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.LOCKED);
+            return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
-            return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         TaskQueue.addTask(() -> {
             matchingEngine.removeAll(form.getUsername());
         });
+        // todo set message to volume filled
         return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.OK);
     }
     @CrossOrigin(origins = "*")
     @PostMapping("/remove")
     public ResponseEntity<RemoveAllResponse> remove(@Valid @RequestBody RemoveRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state != State.TRADE) {
-            return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.LOCKED);
+            return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
-            return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         System.out.println("Removing Order");
         System.out.println(form.getOrderID());
         TaskQueue.addTask(() -> {
             matchingEngine.removeOrder(form.getUsername(), form.getOrderID());
         });
+        // todo set message to volume filled
         return new ResponseEntity<>(new RemoveAllResponse(""), HttpStatus.OK);
     }
     @CrossOrigin(origins = "*")
     @PostMapping("/market_order")
     public ResponseEntity<MarketOrderResponse> marketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new MarketOrderResponse(""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new MarketOrderResponse(""), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(new MarketOrderResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state != State.TRADE) {
-            return new ResponseEntity<>(new MarketOrderResponse(""), HttpStatus.LOCKED);
+            return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         TaskQueue.addTask(() -> {
             System.out.println("Adding Market Order: " + form);
@@ -360,6 +363,7 @@ public class ServerApplication {
             else
                 matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
         });
+        // todo set message to volume filled
         return new ResponseEntity<>(new MarketOrderResponse(""), HttpStatus.OK);
     }
 
@@ -367,11 +371,11 @@ public class ServerApplication {
     @PostMapping("/get_details")
     public ResponseEntity<GetDetailsResponse> getDetails(@Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new GetDetailsResponse("", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new GetDetailsResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new GetDetailsResponse("", ""), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(new GetDetailsResponse(Message.RATE_LIMITED.toString(), ""), HttpStatus.TOO_MANY_REQUESTS);
         }
-        return new ResponseEntity<>(new GetDetailsResponse("", matchingEngine.getUserDetails(form.getUsername())), HttpStatus.OK);
+        return new ResponseEntity<>(new GetDetailsResponse(Message.SUCCESS.toString(), matchingEngine.getUserDetails(form.getUsername())), HttpStatus.OK);
     }
 }
