@@ -6,7 +6,7 @@ import java.util.*;
 
 public class UserList {
     private Map<String, Double> userBalances = new HashMap<>(); // UserName -> Balance
-    private Map<String, Map<String, Double>> quantities = new HashMap<>(); // Ticker -> Quantity
+    private Map<String, Map<String, Double>> quantities = new HashMap<>(); // User -> Ticker -> Quantity
     private boolean infinite = false;
     private double positionLimit = 0.0;
 
@@ -82,7 +82,8 @@ public class UserList {
     public boolean adjustUserBalance(String username, double delta) {
         double currentBalance = getUserBalance(username);
         double newBalance = currentBalance + delta;
-        if (newBalance < 0) {
+        if (newBalance < 0 && !infinite) {
+            System.out.println("NEGATIVE AND NOT INFINITE");
             return false;
         }
         userBalances.put(username, newBalance);
@@ -91,7 +92,8 @@ public class UserList {
     public boolean adjustUserTickerBalance(String username, String ticker, double delta) {
         double currentBalance = getUserVolume(username, ticker);
         double newBalance = currentBalance + delta;
-        if (newBalance < 0) {
+        if (newBalance < 0 && !infinite) {
+            System.out.println("NEGATIVE AND NOT INFINITE");
             return false;
         }
         if (!quantities.containsKey(username)) return false;

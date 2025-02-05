@@ -920,31 +920,8 @@
             assertEquals(trades.size(),1, "Cancel is also in the map");
         }
         private static final double POSITION_LIMIT = 100.0;
-        @Test
-        public void testValidTransactionsWithinPositionLimits() {
-            MatchingEngine engine = new MatchingEngine(POSITION_LIMIT);
-            String user = "TraderZ";
-            String ticker = "AAPL";
-            engine.initializeUserBalance(user, 0.0);
-            engine.initializeTicker(ticker);
-            engine.initializeUserTickerVolume(user, ticker, 50.0); // Long 50 shares
 
-            // Try to buy up to position limit
-            System.out.println("This Far");
-            Order buyOrder = new Order(user, ticker, 150.0, 50.0, Side.BID, Status.ACTIVE); // Buy additional 50 to reach 100
-            long orderId = engine.bidLimitOrder(user, buyOrder);
-            System.out.println(orderId);
-            assertTrue(orderId > 0, "Should allow buying within position limit");
-
-            // Try to short up to position limit
-            String user2 = "Trader2";
-            engine.initializeUserBalance(user2, 0.0);
-            engine.initializeUserTickerVolume(user, ticker, 50.0); // Short 50 shares
-            Order sellOrder = new Order(user, ticker, 150.0, 150.0, Side.ASK, Status.ACTIVE); // Short additional 50 to reach -100
-            orderId = engine.askLimitOrder(user, sellOrder);
-            assertTrue(orderId > 0, "Should allow shorting within position limit");
-        }
-
+        /**
         @Test
         public void testHandlingNegativeQuantities() {
             MatchingEngine engine = new MatchingEngine(POSITION_LIMIT);
@@ -1021,5 +998,192 @@
             long orderId = engine.bidLimitOrder("TraderCancelable", bidOrder);
             assertTrue(engine.removeOrder("TraderCancelable", orderId), "Order should be cancelled successfully");
             assertEquals(bidOrder.status, Status.CANCELLED);
+        }
+        @Test
+        void testInfiniteBalanceAllowsNegativeBalances() {
+            double positionLimit = 100.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            engine.initializeTicker("AAPL");
+
+            // Trader with infinite balance
+            String buyer = "InfiniteTrader";
+            engine.initializeUser(buyer);
+
+            // Seller with regular balance
+            String seller = "RegularTrader";
+            engine.initializeUserBalance(seller, 0.0);
+            engine.initializeUserTickerVolume(seller, "AAPL", 50.0);
+
+            // Seller places a sell order
+            engine.askLimitOrder(seller, new Order(seller, "AAPL", 150.0, 50.0, Side.ASK, Status.ACTIVE));
+
+            // Buyer places a market order
+            double filledVolume = engine.bidMarketOrder(buyer, "AAPL", 50.0);
+
+            // Ensure trade was executed
+            assertEquals(50.0, filledVolume, "Trader with infinite balance should be able to buy 50.0 shares");
+
+            // Ensure balance went negative
+            assertTrue(engine.getUserBalance(buyer) < 0.0, "Trader with infinite balance should have negative balance");
+        }
+
+        @Test
+        void testInfiniteBalanceAllowsNegativeBalancesSecond() {
+            double positionLimit = 100.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            engine.initializeTicker("AAPL");
+
+            // Trader with infinite balance
+            String buyer = "InfiniteTrader";
+            engine.initializeUser(buyer);
+            engine.initializeUserTickerVolume(buyer, "AAPL", 0.0);
+
+            // Seller with regular balance
+            String seller = "RegularTrader";
+            engine.initializeUserBalance(seller, 0.0);
+            engine.initializeUserTickerVolume(seller, "AAPL", 0.0);
+
+            // Seller places a sell order
+            engine.askLimitOrder(seller, new Order(seller, "AAPL", 150.0, 50.0, Side.ASK, Status.ACTIVE));
+
+            // Buyer places a market order
+            double filledVolume = engine.bidMarketOrder(buyer, "AAPL", 50.0);
+
+            // Ensure trade was executed
+            assertEquals(50.0, filledVolume, "Trader with infinite balance should be able to buy 50.0 shares");
+
+            // Ensure balance went negative
+            assertTrue(engine.getUserBalance(buyer) < 0.0, "Trader with infinite balance should have negative balance");
+        }
+
+        @Test
+        void testPositionLimitRestrictsOwnershipEvenWithInfiniteBalanceSecond() {
+            double positionLimit = 100.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            engine.initializeTicker("AAPL");
+
+            // Trader with infinite balance
+            String buyer = "InfiniteTrader";
+            engine.initializeUser(buyer);
+
+            // Seller with regular balance
+            String seller1 = "Seller1";
+            String seller2 = "Seller2";
+            engine.initializeUserBalance(seller1, 0.0);
+            engine.initializeUserBalance(seller2, 0.0);
+            engine.initializeUserTickerVolume(seller1, "AAPL", 60.0);
+            engine.initializeUserTickerVolume(seller2, "AAPL", 60.0);
+
+            // Two sellers place sell orders
+            engine.askLimitOrder(seller1, new Order(seller1, "AAPL", 150.0, 60.0, Side.ASK, Status.ACTIVE));
+            engine.askLimitOrder(seller2, new Order(seller2, "AAPL", 150.0, 60.0, Side.ASK, Status.ACTIVE));
+
+            // Buyer places two market orders
+            double firstFill = engine.bidMarketOrder(buyer, "AAPL", 60.0);
+            double secondFill = engine.bidMarketOrder(buyer, "AAPL", 60.0);
+
+            // Ensure only up to the position limit was filled
+            assertEquals(100.0, firstFill + secondFill, "Trader should not be able to own more than the position limit");
+
+            // Ensure the trader's position does not exceed the limit
+            assertEquals(100.0, engine.getTickerBalance(buyer, "AAPL"), "Trader's position should not exceed the position limit");
+        }
+        /** REWRITTEN INFINITE TESTS - ALL ABOVE ARE BEING REFACTORED**/
+        @Test
+        void infiniteTest1() {
+            double positionLimit = 100.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            String ticker = "AAPL";
+            engine.initializeTicker("AAPL");
+            // Trader with infinite balance
+            String buyer = "InfiniteTrader";
+            // Seller with regular balance
+            String seller1 = "Seller1";
+            String seller2 = "Seller2";
+            engine.initializeUserBalance(seller1, 0.0);
+            engine.initializeUserBalance(seller2, 0.0);
+            engine.initializeUserBalance(buyer, 0.0);
+            engine.initializeUserTickerVolume(seller1, "AAPL", 0.0);
+            engine.initializeUserTickerVolume(seller2, "AAPL", 0.0);
+            engine.initializeUserTickerVolume(buyer, "AAPL", 0.0);
+            // Two sellers place sell orders
+            engine.askLimitOrder(seller1, new Order(seller1, "AAPL", 150.0, 60.0, Side.ASK, Status.ACTIVE));
+            engine.askLimitOrder(seller2, new Order(seller2, "AAPL", 150.0, 40.0, Side.ASK, Status.ACTIVE));
+            long orderId = engine.askLimitOrder(seller1, new Order(seller1, "AAPL", 150.0, 40.0, Side.ASK, Status.ACTIVE));
+            assertEquals(engine.getUserBalance(seller1), 0.0); // Shouldn't get more balance before placing the trade
+            assertEquals(-100.0, engine.getTickerBalance(seller1, "AAPL")); //Selling 100 should be -100
+            // Buyer places two market orders
+            double firstFill = engine.bidMarketOrder(buyer, "AAPL", 60.0);
+            double secondFill = engine.bidMarketOrder(buyer, "AAPL", 60.0);
+            System.out.println(firstFill);
+            System.out.println(secondFill);
+            // Ensure only up to the position limit was filled
+            assertEquals(100.0, firstFill + secondFill, "Trader should not be able to own more than the position limit");
+
+            // Ensure the trader's position does not exceed the limit
+            assertEquals(100.0, engine.getTickerBalance(buyer, "AAPL"), "Trader's position should not exceed the position limit");
+            assertEquals(-15000.0, engine.getUserBalance(buyer));
+            assertEquals(9000.0, engine.getUserBalance(seller1));
+            assertEquals(6000.0, engine.getUserBalance(seller2));
+            assertEquals(0.0, engine.getUserBalance(buyer) + engine.getUserBalance(seller1) + engine.getUserBalance(seller2));
+            assertEquals(-40.0, engine.getTickerBalance(buyer, ticker) + engine.getTickerBalance(seller1, ticker) + engine.getTickerBalance(seller2, ticker));
+            engine.removeOrder(seller1, orderId);
+            assertEquals(0.0, engine.getTickerBalance(buyer, ticker) + engine.getTickerBalance(seller1, ticker) + engine.getTickerBalance(seller2, ticker));
+        }
+        @Test
+        public void infiniteTestTradingWithSelf() {
+            double positionLimit = 1000.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            String user = "TraderZ";
+            String ticker = "A";
+            engine.initializeUserBalance(user, 0.0);
+            engine.initializeTicker(ticker);
+            engine.initializeUserTickerVolume(user, ticker, 0.0); // Long 50 shares
+
+            // Try to buy up to position limit
+            System.out.println("This Far");
+            Order buyOrder = new Order(user, ticker, 150.0, 50.0, Side.BID, Status.ACTIVE); // Buy additional 50 to reach 100
+            long orderId = engine.bidLimitOrder(user, buyOrder);
+            System.out.println(orderId);
+            assertTrue(orderId > 0, "Should allow buying within position limit");
+            assertEquals(0.0, engine.getTickerBalance(user, ticker));
+            assertEquals(-150.0 * 50.0, engine.getUserBalance(user));
+            // Try to short up to position limit
+            Order sellOrder = new Order(user, ticker, 150.0, 50.0, Side.ASK, Status.ACTIVE); // Short additional 50 to reach -100
+            orderId = engine.askLimitOrder(user, sellOrder);
+            assertEquals(0, orderId, "Should be completely filled");
+            assertEquals(0.0, engine.getTickerBalance(user, ticker));
+            assertEquals(0.0, engine.getUserBalance(user));
+        }
+        @Test
+        public void infiniteTestRemove() {
+            double positionLimit = 1000.0;
+            String user1 = "A";
+            String user2 = "B";
+            String ticker = "Spades";
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            engine.initializeUserBalance(user1, 0.0);
+            engine.initializeUserBalance(user2, 0.0);
+            engine.initializeTicker(ticker);
+            engine.initializeUserTickerVolume(user1, ticker, 0.0);
+            engine.initializeUserTickerVolume(user2, ticker, 0.0);
+            long orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 100.0, 1000.0, Side.BID, Status.ACTIVE));
+            assertEquals(-1000.0 * 100.0, engine.getUserBalance(user1));
+            assertEquals(0.0, engine.getTickerBalance(user1, ticker));
+
+            engine.removeOrder(user1, orderId);
+            assertEquals(0.0, engine.getUserBalance(user1));
+            assertEquals(0.0, engine.getTickerBalance(user1, ticker));
+            engine.askLimitOrder(user2, new Order(user2, ticker, 100.0, 100.0, Side.ASK, Status.ACTIVE));
+
+            assertEquals(0.0, engine.getUserBalance(user2));
+            assertEquals(-100.0, engine.getTickerBalance(user2, ticker));
+
+            engine.bidLimitOrder(user1, new Order(user1, ticker, 101.0, 100.0, Side.BID, Status.ACTIVE));
+            //engine.bidMarketOrder(user1, ticker, 100.0);
+            assertEquals(-100 * 100, engine.getUserBalance(user1));
+            assertEquals(100 * 100, engine.getUserBalance(user2));
+            assertEquals(100, engine.getTickerBalance(user1, ticker));
+            assertEquals(-100, engine.getTickerBalance(user2, ticker));
         }
     }

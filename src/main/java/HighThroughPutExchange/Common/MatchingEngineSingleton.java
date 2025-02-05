@@ -7,7 +7,7 @@ public class MatchingEngineSingleton {
         if (matchingEngine == null) {
             synchronized (MatchingEngineSingleton.class) {
                 if (matchingEngine == null) {
-                    matchingEngine = new MatchingEngine();
+                    matchingEngine = new MatchingEngine(true);
                 }
             }
         }

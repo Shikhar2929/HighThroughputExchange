@@ -280,7 +280,6 @@ public class MatchingEngine {
                 userList.adjustUserBalance(order.name, volumeTraded * order.price);
                 userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
-                //System.out.println("Adjusting balance 1");
 
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
@@ -291,8 +290,6 @@ public class MatchingEngine {
                 userList.adjustUserBalance(order.name, volumeTraded * order.price);
                 userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
-                //System.out.println("Adjusting balance 2");
-
                 aggressor.volume = aggressor.volume - order.volume;
                 order.volume = 0;
                 order.status = Status.FILLED;
@@ -347,6 +344,7 @@ public class MatchingEngine {
                 asks.pollFirstEntry();
             }
         }
+        System.out.printf("BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
         if (order.volume > 0) {
             order.status = Status.ACTIVE;
             bids.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
@@ -361,6 +359,9 @@ public class MatchingEngine {
                 userOrders.get(order.name).put(orderID, order);
             }
             return orderID;
+        }
+        else {
+            order.status = Status.FILLED;
         }
         return 0;
     }
@@ -380,6 +381,7 @@ public class MatchingEngine {
                 bids.pollLastEntry();
             }
         }
+        System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
         if (order.volume > 0) {
             order.status = Status.ACTIVE;
             asks.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
@@ -395,6 +397,9 @@ public class MatchingEngine {
                 userOrders.get(order.name).put(orderID, order);
             }
             return orderID;
+        }
+        else {
+            order.status = Status.FILLED;
         }
         return 0;
     }
