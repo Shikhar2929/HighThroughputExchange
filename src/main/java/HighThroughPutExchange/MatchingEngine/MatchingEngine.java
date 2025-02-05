@@ -365,6 +365,45 @@ public class MatchingEngine {
         }
         return 0;
     }
+    public long bidLimitOrder(String name, Order order, TaskFuture<String> future) {
+        if (!validateBidOrder(name, order)) {
+            return -1;
+        }
+        TreeMap<Double, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
+        Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
+        TreeMap<Double, Deque<Order>> bids = orderBooks.get(order.ticker).bids;
+        Map<Double, Double> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
+
+        //validate order ensures that there is sufficient balance
+        while (order.volume > 0 && !asks.isEmpty() && asks.firstKey() <= order.price) {
+            Deque<Order> orderList = asks.get(asks.firstKey());
+            processBid(orderList, askVolumes, order);
+            if (orderList.isEmpty()) {
+                asks.pollFirstEntry();
+            }
+        }
+        future.setData(String.format("BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume));
+        System.out.printf("BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
+        if (order.volume > 0) {
+            order.status = Status.ACTIVE;
+            bids.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
+            updateVolume(bidVolumes, order.price, order.volume, order.ticker, Side.BID);
+            userList.adjustUserBalance(name, -order.price * order.volume);
+            orderID++;
+            if (userOrders.containsKey(order.name)) {
+                userOrders.get(order.name).put(orderID, order);
+            }
+            else {
+                userOrders.put(order.name, new HashMap<>());
+                userOrders.get(order.name).put(orderID, order);
+            }
+            return orderID;
+        }
+        else {
+            order.status = Status.FILLED;
+        }
+        return 0;
+    }
     public long askLimitOrder(String name, Order order) {
         if (!validateAskOrder(name, order)) {
             return -1;
@@ -381,6 +420,45 @@ public class MatchingEngine {
                 bids.pollLastEntry();
             }
         }
+        System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
+        if (order.volume > 0) {
+            order.status = Status.ACTIVE;
+            asks.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
+            orderID++;
+            updateVolume(askVolumes, order.price, order.volume, order.ticker, Side.ASK);
+            userList.adjustUserTickerBalance(order.name, order.ticker, -order.volume);
+
+            if (userOrders.containsKey(order.name)) {
+                userOrders.get(order.name).put(orderID, order);
+            }
+            else {
+                userOrders.put(order.name, new HashMap<>());
+                userOrders.get(order.name).put(orderID, order);
+            }
+            return orderID;
+        }
+        else {
+            order.status = Status.FILLED;
+        }
+        return 0;
+    }
+    public long askLimitOrder(String name, Order order, TaskFuture<String> future) {
+        if (!validateAskOrder(name, order)) {
+            return -1;
+        }
+        TreeMap<Double, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
+        Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
+        TreeMap<Double, Deque<Order>> bids = orderBooks.get(order.ticker).bids;
+        Map<Double, Double> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
+
+        while (order.volume > 0 && !bids.isEmpty() && bids.lastKey() >= order.price) {
+            Deque<Order> orderList = bids.get(bids.lastKey());
+            processAsk(orderList, bidVolumes, order);
+            if (orderList.isEmpty()) {
+                bids.pollLastEntry();
+            }
+        }
+        future.setData(String.format("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume));
         System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
         if (order.volume > 0) {
             order.status = Status.ACTIVE;

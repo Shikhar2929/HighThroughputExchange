@@ -296,9 +296,10 @@ public class ServerApplication {
                     form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
             System.out.println("Adding Limit Order");
             if (form.getBid())
-                matchingEngine.bidLimitOrder(form.getUsername(), order);
+                matchingEngine.bidLimitOrder(form.getUsername(), order, future);
             else
-                matchingEngine.askLimitOrder(form.getUsername(), order);
+                matchingEngine.askLimitOrder(form.getUsername(), order, future);
+            future.markAsComplete();
         });
         future.waitForCompletion();
         // todo set message to volume filled
@@ -322,6 +323,7 @@ public class ServerApplication {
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.removeAll(form.getUsername());
+            future.markAsComplete();
         });
         future.waitForCompletion();
         // todo set message to volume filled
@@ -346,6 +348,7 @@ public class ServerApplication {
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.removeOrder(form.getUsername(), form.getOrderID());
+            future.markAsComplete();
         });
         future.waitForCompletion();
         // todo set message to volume filled
@@ -370,6 +373,7 @@ public class ServerApplication {
                 matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
             else
                 matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
+            future.markAsComplete();
         });
         future.waitForCompletion();
         // todo set message to volume filled
