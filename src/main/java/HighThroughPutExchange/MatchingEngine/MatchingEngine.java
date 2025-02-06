@@ -544,6 +544,31 @@ public class MatchingEngine {
         }
         return false;
     }
+    // todo: verify correctness of messaging
+    public boolean removeOrder(String userId, long orderId, TaskFuture<String> future) {
+        if (!userList.validUser(userId))
+            return false;
+        Map<Long, Order> orders = userOrders.get(userId);
+        if (orders != null) {
+            if (orders.containsKey(orderId) && orders.get(orderId).status == Status.ACTIVE) {
+                Order order = orders.get(orderId);
+                orders.get(orderId).status = Status.CANCELLED;
+                if (order.side == Side.BID) {
+                    userList.adjustUserBalance(userId, order.price * order.volume);
+                    Map<Double, Double> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
+                    updateVolume(bidVolumes, order.price, -order.volume, order.ticker, Side.BID);
+                }
+                else {
+                    userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
+                    Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
+                    updateVolume(askVolumes, order.price, -order.volume, order.ticker, Side.ASK);
+                }
+                future.setData(String.format("removed order with properties - id: %d, volume: %f, ", orderId, orders.remove(orderId).volume));
+                return true;
+            }
+        }
+        return false;
+    }
     public void removeAll(String userId) {
         if (!userList.validUser(userId)) {
             return;
@@ -561,6 +586,32 @@ public class MatchingEngine {
         for (Long orderId : new ArrayList<>(orders.keySet())) {
             boolean removed = removeOrder(userId, orderId);
         }
+    }
+    public void removeAll(String userId, TaskFuture<String> future) {
+        if (!userList.validUser(userId)) {
+            return;
+        }
+
+        // Retrieve user's orders
+        Map<Long, Order> orders = userOrders.get(userId);
+        if (orders == null || orders.isEmpty()) {
+            return; // No orders to remove
+        }
+
+        boolean allRemoved = true;
+
+        double volumeRemoved = 0;
+
+        // Iterate through all orders and remove each
+        for (Long orderId : new ArrayList<>(orders.keySet())) {
+            double vol = orders.get(orderId).volume;
+            boolean removed = removeOrder(userId, orderId);
+            if (removed) {
+                volumeRemoved += vol;
+            }
+        }
+
+        future.setData(String.format("Removed total volume of %f", volumeRemoved));
     }
     public double processMarketOrder(Deque<Order> orders, Map<Double, Double> volumeMap, Order aggressor, Side side) {
         double overallVolume = 0.0;
@@ -652,6 +703,33 @@ public class MatchingEngine {
         return volumeFilled;
     }
 
+    public double bidMarketOrder(String name, String ticker, double volume, TaskFuture<String> future) {
+        if (!userList.validUser(name)) {
+            System.out.println("Invalid");
+            return 0.0;
+        }
+        Order marketOrder = new Order(name, ticker, 0, volume, Side.BID, Status.ACTIVE); // Price is 0 for market orders
+        double volumeFilled = 0.0;
+        TreeMap<Double, Deque<Order>> asks = orderBooks.get(ticker).asks;
+        Map<Double, Double> askVolumes = orderBooks.get(ticker).askVolumes;
+        while (marketOrder.volume > 0 && !asks.isEmpty()) {
+            Deque<Order> orderList = asks.get(asks.firstKey());
+            volumeFilled += processMarketOrder(orderList, askVolumes, marketOrder, Side.BID);
+            if (orderList.isEmpty()) {
+                asks.pollFirstEntry();
+            }
+        }
+        future.setData(String.format("BID MARKET ORDER Filled a volume of %.2f; canceling the rest\n", volumeFilled));
+        if (marketOrder.volume > 0) {
+            // Cancel any remaining volume
+            marketOrder.status = Status.CANCELLED;
+            marketOrder.volume = 0;
+        } else {
+            marketOrder.status = Status.FILLED;
+        }
+        return volumeFilled;
+    }
+
     public double askMarketOrder(String name, String ticker, double volume) {
         if (!userList.validUser(name)) {
             System.out.println("Invalid User");
@@ -672,6 +750,36 @@ public class MatchingEngine {
                 bids.pollLastEntry();
             }
         }
+        if (marketOrder.volume > 0) {
+            // Cancel any remaining volume
+            marketOrder.status = Status.CANCELLED;
+            marketOrder.volume = 0;
+        } else {
+            marketOrder.status = Status.FILLED;
+        }
+        return volumeFilled;
+    }
+    public double askMarketOrder(String name, String ticker, double volume, TaskFuture<String> future) {
+        if (!userList.validUser(name)) {
+            System.out.println("Invalid User");
+            return 0.0;
+        }
+        if (!userList.validAskQuantity(name, ticker, volume)) {
+            System.out.println("Invalid Name");
+            return 0.0;
+        }
+        Order marketOrder = new Order(name, ticker, 0, volume, Side.ASK, Status.ACTIVE); // Price is 0 for market orders
+        double volumeFilled = 0.0;
+        TreeMap<Double, Deque<Order>> bids = orderBooks.get(ticker).bids;
+        Map<Double, Double> bidVolumes = orderBooks.get(ticker).bidVolumes;
+        while (marketOrder.volume > 0 && !bids.isEmpty()) {
+            Deque<Order> orderList = bids.get(bids.lastKey());
+            volumeFilled += processMarketOrder(orderList, bidVolumes, marketOrder, Side.ASK);
+            if (orderList.isEmpty()) {
+                bids.pollLastEntry();
+            }
+        }
+        future.setData(String.format("ASK MARKET ORDER Filled a volume of %.2f; canceling the rest\n", volumeFilled));
         if (marketOrder.volume > 0) {
             // Cancel any remaining volume
             marketOrder.status = Status.CANCELLED;
@@ -718,7 +826,7 @@ public class MatchingEngine {
         return userListDetails.toString();
     }
 
-    public void getLeaderboard(TaskFuture<List<LeaderboardEntry>> future) {
+    public void getLeaderboard(TaskFuture<ArrayList<LeaderboardEntry>> future) {
         future.setData(userList.getLeaderboard());
         future.markAsComplete();
     }

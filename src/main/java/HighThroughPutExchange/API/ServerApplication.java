@@ -30,10 +30,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 import java.util.HashMap;
 import java.util.List;
 /*
 todo
+    make all task queue tasks into completable futures
     fix exception handling of database classes
     make all DBs threadsafe
         Atomicity - not guaranteed, but expose backing and mutex
@@ -132,6 +135,24 @@ public class ServerApplication {
         return new ResponseEntity<>("Welcome to GT Trading Club's High Throughput Exchange!", HttpStatus.OK);
     }
 
+    /*@PostMapping("/test")
+    public CompletableFuture<String> test(@RequestBody PrivatePageRequest form) {
+        if (form.getUsername().equals("test")) {
+            System.out.println("test is the username");
+            return CompletableFuture.completedFuture("done sir");
+        }
+        return CompletableFuture.supplyAsync(() -> {
+            System.out.println(form.getUsername());
+            System.out.println(form.getSessionToken());
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return "done";
+        });
+    }*/
+
     @CrossOrigin(origins = "*")
     @GetMapping("/get_state")
     public ResponseEntity<String> state() {
@@ -195,7 +216,7 @@ public class ServerApplication {
             return new ResponseEntity<>(new LeaderboardResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
         }
 
-        TaskFuture<List<LeaderboardEntry>> future = new TaskFuture<>();
+        TaskFuture<ArrayList<LeaderboardEntry>> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.getLeaderboard(future);
         });
@@ -322,7 +343,7 @@ public class ServerApplication {
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
-            matchingEngine.removeAll(form.getUsername());
+            matchingEngine.removeAll(form.getUsername(), future);
             future.markAsComplete();
         });
         future.waitForCompletion();
@@ -347,7 +368,7 @@ public class ServerApplication {
         System.out.println(form.getOrderID());
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
-            matchingEngine.removeOrder(form.getUsername(), form.getOrderID());
+            matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
             future.markAsComplete();
         });
         future.waitForCompletion();
@@ -370,9 +391,9 @@ public class ServerApplication {
         TaskQueue.addTask(() -> {
             System.out.println("Adding Market Order: " + form);
             if (form.getBid())
-                matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
+                matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
             else
-                matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume());
+                matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
             future.markAsComplete();
         });
         future.waitForCompletion();

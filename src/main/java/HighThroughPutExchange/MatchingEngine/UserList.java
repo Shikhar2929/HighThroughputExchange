@@ -126,7 +126,7 @@ public class UserList {
     }
 
     // todo: consider sorting only in the frontend
-    public List<LeaderboardEntry> getLeaderboard() {
+    public ArrayList<LeaderboardEntry> getLeaderboard() {
         ArrayList<LeaderboardEntry> output = new ArrayList<>();
         for (String username: userBalances.keySet()) {
             output.add(new LeaderboardEntry(username, userBalances.get(username)));
