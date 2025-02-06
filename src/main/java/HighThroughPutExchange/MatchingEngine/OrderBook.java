@@ -8,6 +8,7 @@ public class OrderBook {
     protected TreeMap<Double, Deque<Order>> asks = new TreeMap<>(); // Price -> Orders
     protected Map<Double, Double> bidVolumes = new TreeMap<>(); // Price -> Total Volume
     protected Map<Double, Double> askVolumes = new TreeMap<>(); // Price -> Total Volume
+    private Double currentPrice = null;
     public Map<Double, Double> getBidVolumes() {
         return bidVolumes;
     }
@@ -26,5 +27,13 @@ public class OrderBook {
             System.out.println("Price: " + entry.getKey() + ", Volume: " + entry.getValue());
         }
     }
-
+    public void updatePrice(double newPrice) {
+        this.currentPrice = newPrice;
+    }
+    public double getPrice() {
+        if (currentPrice == null) {
+            return 0.0;
+        }
+        return currentPrice;
+    }
 }

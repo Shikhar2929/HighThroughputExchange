@@ -216,7 +216,7 @@ public class ServerApplication {
             return new ResponseEntity<>(new LeaderboardResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
         }
 
-        TaskFuture<ArrayList<LeaderboardEntry>> future = new TaskFuture<>();
+        TaskFuture<List<LeaderboardEntry>> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.getLeaderboard(future);
         });
