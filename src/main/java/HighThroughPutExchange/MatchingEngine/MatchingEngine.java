@@ -16,6 +16,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class MatchingEngine {
     private Map<String, OrderBook> orderBooks = new HashMap<>();
     private Map<String, Map<Long, Order>> userOrders = new HashMap<>(); // UserName, OrderId, Order
+    private Map<String, Double> latestPrice = new HashMap<>(); // For PnL
+
+
     private UserList userList = new UserList();
     private long orderID = 0;
     public MatchingEngine() {
@@ -206,7 +209,12 @@ public class MatchingEngine {
         }
         return true;
     }
-
+    public double getPrice(String ticker) {
+        return latestPrice.getOrDefault(ticker,0.0);
+    }
+    public void setPrice(String ticker, double price) {
+        latestPrice.put(ticker, price);
+    }
     public double getHighestBid(String ticker) {
         if (!orderBooks.containsKey(ticker)) return 0.0;
         TreeMap<Double, Deque<Order>> bids = orderBooks.get(ticker).bids;
@@ -280,7 +288,8 @@ public class MatchingEngine {
                 userList.adjustUserBalance(order.name, volumeTraded * order.price);
                 userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
-
+                //Update OrderBook to reflect new price of the ticker
+                latestPrice.put(order.ticker, order.price);
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
@@ -291,6 +300,7 @@ public class MatchingEngine {
                 userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
                 aggressor.volume = aggressor.volume - order.volume;
+                latestPrice.put(order.ticker, order.price);
                 order.volume = 0;
                 order.status = Status.FILLED;
                 orders.poll();
@@ -309,7 +319,7 @@ public class MatchingEngine {
                 userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
-
+                latestPrice.put(order.ticker, order.price);
                 //RecentTrades.addTrade(order.name, aggressor.name, order.ticker, order.price, volumeTraded);
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
@@ -320,6 +330,7 @@ public class MatchingEngine {
                 userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
+                latestPrice.put(order.ticker, order.price);
                 aggressor.volume = aggressor.volume - order.volume;
                 order.volume = 0;
                 order.status = Status.FILLED;
@@ -519,6 +530,7 @@ public class MatchingEngine {
                     //Update the bid volume map and the bid if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
                 }
+                latestPrice.put(order.ticker, tradePrice);
                 order.volume -= aggressorVolume;
                 overallVolume += aggressorVolume;
                 aggressor.volume = 0;
@@ -538,6 +550,7 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
                 }
+                latestPrice.put(order.ticker, tradePrice);
                 overallVolume += order.volume;
                 aggressor.volume -= order.volume;
                 order.volume = 0;
@@ -605,7 +618,7 @@ public class MatchingEngine {
     }
     public String getUserDetails(String username) {
         ObjectMapper objectMapper = new ObjectMapper();
-        JSONObject userListDetails = userList.getUserDetailsAsJson(username);
+        JSONObject userListDetails = userList.getUserDetailsAsJson(username, latestPrice);
 
         // Organize active orders by ticker
         JSONObject ordersByTicker = new JSONObject();
@@ -636,12 +649,11 @@ public class MatchingEngine {
 
         // Ensure ordersByTicker is added even if empty
         userListDetails.put("Orders", ordersByTicker);
-
         return userListDetails.toString();
     }
 
     public void getLeaderboard(TaskFuture<List<LeaderboardEntry>> future) {
-        future.setData(userList.getLeaderboard());
+        future.setData(userList.getLeaderboard(latestPrice));
         future.markAsComplete();
     }
 }

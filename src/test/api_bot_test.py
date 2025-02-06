@@ -3,8 +3,8 @@ import urllib.request
 import random
 import time
 
-URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
-#URL = 'http://localhost:8080'
+#URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
+URL = 'http://localhost:8080'
 # Admin creates multiple users (bots)
 def create_user(username, name, email):
     form_data = {
@@ -84,15 +84,15 @@ def trading_bot(username, session_token, ticker, initial_balance=100000, max_pos
 # Main script
 if __name__ == "__main__":
     bot_count = 5  # Number of bots
-    ticker = 'A'  # Stock ticker to trade
+    ticker = 'AAPL'  # Stock ticker to trade
     bot_sessions = []
 
     try:
         # Create bots
         for i in range(bot_count):
-            username = f"tradingbot{i + 1}"
-            name = f"Trading Bot {i + 1}"
-            email = f"bot{i + 1}@example.com"
+            username = f"tradingbotdemo{i + 1}"
+            name = f"Trading BotDEMO{i + 1}"
+            email = f"bot{i + 1}demo@example.com"
 
             # Step 1: Admin creates a bot user
             user_data = create_user(username, name, email)

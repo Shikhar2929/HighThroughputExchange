@@ -103,7 +103,7 @@ public class UserList {
     public boolean getMode() {
         return infinite;
     }
-    public JSONObject getUserDetailsAsJson(String username) {
+    public JSONObject getUserDetailsAsJson(String username, Map<String, Double> prices) {
         JSONObject userJson = new JSONObject();
 
         // Check if the user exists
@@ -116,7 +116,7 @@ public class UserList {
         double balance = getUserBalance(username);
         userJson.put("username", username);
         userJson.put("balance", balance);
-
+        userJson.put("pnl", getRealizedPnl(username, prices));
         // Add positions to JSON
         Map<String, Double> userPositions = quantities.getOrDefault(username, new HashMap<>());
         JSONObject positionsJson = new JSONObject(userPositions);
@@ -124,12 +124,19 @@ public class UserList {
 
         return userJson;
     }
+    public double getRealizedPnl(String username, Map<String, Double> prices) {
+        double pnl = getUserBalance(username);
+        for (Map.Entry<String, Double> entry : prices.entrySet()) {
+            pnl += quantities.get(username).get(entry.getKey()) * entry.getValue();
+        }
+        return pnl;
+    }
 
     // todo: consider sorting only in the frontend
-    public List<LeaderboardEntry> getLeaderboard() {
+    public List<LeaderboardEntry> getLeaderboard(Map<String, Double> prices) {
         ArrayList<LeaderboardEntry> output = new ArrayList<>();
         for (String username: userBalances.keySet()) {
-            output.add(new LeaderboardEntry(username, userBalances.get(username)));
+            output.add(new LeaderboardEntry(username, getRealizedPnl(username, prices)));
         }
         Collections.sort(output);
         return output;
