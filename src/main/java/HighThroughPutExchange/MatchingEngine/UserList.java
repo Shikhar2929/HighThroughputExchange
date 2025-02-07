@@ -133,7 +133,7 @@ public class UserList {
     }
 
     // todo: consider sorting only in the frontend
-    public List<LeaderboardEntry> getLeaderboard(Map<String, Double> prices) {
+    public ArrayList<LeaderboardEntry> getLeaderboard(Map<String, Double> prices) {
         ArrayList<LeaderboardEntry> output = new ArrayList<>();
         for (String username: userBalances.keySet()) {
             output.add(new LeaderboardEntry(username, getRealizedPnl(username, prices)));

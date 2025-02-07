@@ -51,7 +51,7 @@ Content-Type: application/json
 }
 
 ### enable trading
-POST http://localhost:8080/set_state
+POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/set_state
 Content-Type: application/json
 
 {
@@ -63,3 +63,11 @@ Content-Type: application/json
 ###
 GET http://localhost:8080/get_state
 
+### testing async responses
+POST http://localhost:8080/test
+Content-Type: application/json
+
+{
+  "username": "test1",
+  "sessionToken": "test"
+}

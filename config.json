@@ -1,12 +1,12 @@
 {
-  "mode": "finite",
+  "mode": "infinite",
   "defaults": {
-    "tickers": ["AAPL", "GOOGL", "MSFT"],
+    "tickers": ["A", "B", "C"],
     "balances": {
-      "AAPL": 100,
-      "GOOGL": 100,
-      "MSFT": 100
+      "A": 0,
+      "B": 0,
+      "C": 0
     },
-    "defaultBalance": 10000
+    "positionLimit": 1000
   }
 }

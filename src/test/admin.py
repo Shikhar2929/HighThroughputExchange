@@ -4,7 +4,8 @@ import random
 import time
 
 #URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
-URL = 'http://localhost:8080'
+#URL = 'http://localhost:8080'
+URL = 'http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080'
 default = 0
 def create_user(username, name, email):
     form_data = {
