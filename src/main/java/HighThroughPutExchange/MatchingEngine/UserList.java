@@ -6,7 +6,9 @@ import java.util.*;
 
 public class UserList {
     private Map<String, Double> userBalances = new HashMap<>(); // UserName -> Balance
-    private Map<String, Map<String, Double>> quantities = new HashMap<>(); // User -> Ticker -> Quantity
+    private Map<String, Map<String, Double>> quantities = new HashMap<>(); // Actual Amount Owned
+    private Map<String, Map<String, Double>> bidSize = new HashMap<>();
+    private Map<String, Map<String, Double>> askSize = new HashMap<>();
     private boolean infinite = false;
     private double positionLimit = 0.0;
 
@@ -48,7 +50,13 @@ public class UserList {
         if (!quantities.containsKey(username)) {
             quantities.put(username, new HashMap<>());
         }
+        if (!askSize.containsKey(username))
+            askSize.put(username, new HashMap<>());
+        if (!bidSize.containsKey(username))
+            bidSize.put(username, new HashMap<>());
         quantities.get(username).put(ticker, quantity);
+        askSize.get(username).put(ticker, 0.0);
+        bidSize.get(username).put(ticker, 0.0);
         return true;
     }
     public boolean validUser(String username) {
@@ -62,8 +70,13 @@ public class UserList {
     getValidBidVolume method, for both finite and infinite volumes
      */
     public double getValidBidVolume(String username, String ticker, double price) {
-        if (infinite)
-            return positionLimit - getUserVolume(username, ticker);
+        if (infinite) {
+            double returnVal = positionLimit - getUserVolume(username, ticker) - bidSize.get(username).getOrDefault(ticker, 0.0);
+            System.out.printf("Return Value: %f\n", returnVal);
+            System.out.printf("Volume: %f\n", getUserVolume(username, ticker));
+            System.out.printf("Bid Size %f", bidSize.get(username).getOrDefault(ticker, 0.0));
+            return returnVal;
+        }
         double currentBalance = getUserBalance(username);
         if (price != 0.0)
             return currentBalance / price;
@@ -74,10 +87,10 @@ public class UserList {
         return getValidBidVolume(username, order.ticker, order.price) >= order.volume;
     }
     public double getValidAskVolume(String username, String ticker) {
-        if (infinite)
-            return positionLimit + getUserVolume(username, ticker);
-        double currentBalance = getUserVolume(username, ticker);
-        return currentBalance;
+        if (infinite) {
+            return positionLimit + getUserVolume(username, ticker) - askSize.get(username).getOrDefault(ticker, 0.0);
+        }
+        return getUserVolume(username, ticker);
     }
     public boolean adjustUserBalance(String username, double delta) {
         double currentBalance = getUserBalance(username);
@@ -100,6 +113,26 @@ public class UserList {
         quantities.get(username).put(ticker, newBalance);
         return true;
     }
+    public boolean adjustUserAskBalance(String username, String ticker, double delta) {
+        if (!askSize.containsKey(username)) {
+            return false;
+        }
+        if (!askSize.get(username).containsKey(ticker))
+            return false;
+        askSize.get(username).compute(ticker, (k, currentBalance) -> currentBalance + delta);
+        return true;
+    }
+    public boolean adjustUserBidBalance(String username, String ticker, double delta) {
+        if (!bidSize.containsKey(username)) {
+            return false;
+        }
+        if (!bidSize.get(username).containsKey(ticker)) {
+            return false;
+        }
+        bidSize.get(username).compute(ticker, (k, currentBalance) -> currentBalance + delta);
+        return true;
+    }
+
     public boolean getMode() {
         return infinite;
     }

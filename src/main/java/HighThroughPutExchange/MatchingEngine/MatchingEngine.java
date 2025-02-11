@@ -70,6 +70,8 @@ public class MatchingEngine {
         }
     }
 
+
+
     public boolean initializeUserBalance(String username, double balance) {
         System.out.println("Initializing: " + username);
         return userList.initializeUser(username, balance);
@@ -284,9 +286,13 @@ public class MatchingEngine {
             else if (order.volume > aggressor.volume) {
                 double volumeTraded = aggressor.volume;
                 updateVolume(askVolumes, order.price, -volumeTraded, order.ticker, Side.ASK);
+                userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
+
                 userList.adjustUserBalance(order.name, volumeTraded * order.price);
                 userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
+
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
+                userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
                 //Update OrderBook to reflect new price of the ticker
                 latestPrice.put(order.ticker, order.price);
                 order.volume = order.volume - aggressor.volume;
@@ -295,9 +301,13 @@ public class MatchingEngine {
             } else {
                 double volumeTraded = order.volume;
                 updateVolume(askVolumes, order.price, -volumeTraded, order.ticker, Side.ASK);
+                userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
+
                 userList.adjustUserBalance(order.name, volumeTraded * order.price);
                 userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
+
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
+                userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
                 aggressor.volume = aggressor.volume - order.volume;
                 latestPrice.put(order.ticker, order.price);
                 order.volume = 0;
@@ -315,7 +325,11 @@ public class MatchingEngine {
             else if (order.volume > aggressor.volume) {
                 double volumeTraded = aggressor.volume;
                 updateVolume(bidVolumes, order.price, -volumeTraded, order.ticker, Side.BID);
+                userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
+
                 userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
+                userList.adjustUserBalance(order.name, -volumeTraded * order.price);
+
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                 latestPrice.put(order.ticker, order.price);
@@ -326,7 +340,11 @@ public class MatchingEngine {
             } else {
                 double volumeTraded = order.volume;
                 updateVolume(bidVolumes, order.price, -volumeTraded, order.ticker, Side.BID);
+                userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
+
                 userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
+                userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
+
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                 latestPrice.put(order.ticker, order.price);
@@ -359,7 +377,8 @@ public class MatchingEngine {
             order.status = Status.ACTIVE;
             bids.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             updateVolume(bidVolumes, order.price, order.volume, order.ticker, Side.BID);
-            userList.adjustUserBalance(name, -order.price * order.volume);
+            //userList.adjustUserBalance(name, -order.price * order.volume);
+            userList.adjustUserBidBalance(name, order.ticker, order.volume);
             orderID++;
             if (userOrders.containsKey(order.name)) {
                 userOrders.get(order.name).put(orderID, order);
@@ -398,7 +417,8 @@ public class MatchingEngine {
             order.status = Status.ACTIVE;
             bids.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             updateVolume(bidVolumes, order.price, order.volume, order.ticker, Side.BID);
-            userList.adjustUserBalance(name, -order.price * order.volume);
+            //userList.adjustUserBalance(name, -order.price * order.volume);
+            userList.adjustUserBidBalance(name, order.ticker, order.volume);
             orderID++;
             if (userOrders.containsKey(order.name)) {
                 userOrders.get(order.name).put(orderID, order);
@@ -436,8 +456,8 @@ public class MatchingEngine {
             asks.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             orderID++;
             updateVolume(askVolumes, order.price, order.volume, order.ticker, Side.ASK);
-            userList.adjustUserTickerBalance(order.name, order.ticker, -order.volume);
-
+            //userList.adjustUserTickerBalance(order.name, order.ticker, -order.volume);
+            userList.adjustUserAskBalance(order.name, order.ticker, order.volume);
             if (userOrders.containsKey(order.name)) {
                 userOrders.get(order.name).put(orderID, order);
             }
@@ -475,8 +495,8 @@ public class MatchingEngine {
             asks.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             orderID++;
             updateVolume(askVolumes, order.price, order.volume, order.ticker, Side.ASK);
-            userList.adjustUserTickerBalance(order.name, order.ticker, -order.volume);
-
+            //userList.adjustUserTickerBalance(order.name, order.ticker, -order.volume);
+            userList.adjustUserAskBalance(order.name, order.ticker, order.volume);
             if (userOrders.containsKey(order.name)) {
                 userOrders.get(order.name).put(orderID, order);
             }
@@ -539,12 +559,14 @@ public class MatchingEngine {
                 Order order = orders.get(orderId);
                 orders.get(orderId).status = Status.CANCELLED;
                 if (order.side == Side.BID) {
-                    userList.adjustUserBalance(userId, order.price * order.volume);
+                    //userList.adjustUserBalance(userId, order.price * order.volume);
+                    userList.adjustUserBidBalance(userId, order.ticker, -order.volume);
                     Map<Double, Double> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
                     updateVolume(bidVolumes, order.price, -order.volume, order.ticker, Side.BID);
                 }
                 else {
-                    userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
+                    //userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
+                    userList.adjustUserAskBalance(userId, order.ticker, -order.volume);
                     Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
                     updateVolume(askVolumes, order.price, -order.volume, order.ticker, Side.ASK);
                 }
@@ -566,12 +588,14 @@ public class MatchingEngine {
                 Order order = orders.get(orderId);
                 orders.get(orderId).status = Status.CANCELLED;
                 if (order.side == Side.BID) {
-                    userList.adjustUserBalance(userId, order.price * order.volume);
+                    //userList.adjustUserBalance(userId, order.price * order.volume);
+                    userList.adjustUserBidBalance(userId, order.ticker, -order.volume);
                     Map<Double, Double> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
                     updateVolume(bidVolumes, order.price, -order.volume, order.ticker, Side.BID);
                 }
                 else {
-                    userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
+                    // userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
+                    userList.adjustUserAskBalance(userId, order.ticker, -order.volume);
                     Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
                     updateVolume(askVolumes, order.price, -order.volume, order.ticker, Side.ASK);
                 }
@@ -646,20 +670,28 @@ public class MatchingEngine {
                 double volumeTraded = aggressorVolume;
                 double tradePrice = order.price;
                 if (side == Side.BID) {
+                    userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
+
                     userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, volumeTraded * order.price);
                     //Add volume to the aggressor's ticker balance, since it is buying
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
+                    userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
                     //Update the ask volume map and the ask if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
+                    System.out.println("Cond1");
                 }
                 else {
+                    userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
+
                     userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
+                    userList.adjustUserBalance(order.name, -volumeTraded * order.price);
                     //Remove volume from the aggressor's ticker balance and add to the order's balance
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                     //Update the bid volume map and the bid if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
+                    System.out.println("Cond2");
                 }
                 latestPrice.put(order.ticker, tradePrice);
                 order.volume -= aggressorVolume;
@@ -670,16 +702,24 @@ public class MatchingEngine {
                 double volumeTraded = order.volume;
                 double tradePrice = order.price;
                 if (side == Side.BID) {
+                    userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
+
                     userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, volumeTraded * order.price);
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
+                    userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
+                    System.out.println("Cond 3");
                 }
                 else {
+                    userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
+
                     userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
+                    userList.adjustUserBalance(order.name, -volumeTraded * order.price);
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
+                    System.out.println("Cond 4");
                 }
                 latestPrice.put(order.ticker, tradePrice);
                 overallVolume += order.volume;

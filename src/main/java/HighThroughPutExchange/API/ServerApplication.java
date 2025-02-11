@@ -194,6 +194,7 @@ public class ServerApplication {
         return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
     }
 
+
     @CrossOrigin(origins = "*")
     @PostMapping("/shutdown")
     public ResponseEntity<ShutdownResponse> shutdown(@Valid @RequestBody ShutdownRequest form) {

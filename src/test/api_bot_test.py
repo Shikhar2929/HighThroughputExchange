@@ -84,14 +84,14 @@ def trading_bot(username, session_token, ticker, initial_balance=100000, max_pos
 # Main script
 if __name__ == "__main__":
     bot_count = 5  # Number of bots
-    ticker = 'AAPL'  # Stock ticker to trade
+    ticker = 'A'  # Stock ticker to trade
     bot_sessions = []
 
     try:
         # Create bots
         for i in range(bot_count):
-            username = f"tradingbotdemo{i + 1}"
-            name = f"Trading BotDEMO{i + 1}"
+            username = f"tradingbot{i + 1}"
+            name = f"Trading Bot{i + 1}"
             email = f"bot{i + 1}demo@example.com"
 
             # Step 1: Admin creates a bot user
