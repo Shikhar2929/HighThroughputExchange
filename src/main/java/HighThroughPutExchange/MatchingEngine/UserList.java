@@ -74,7 +74,7 @@ public class UserList {
             double returnVal = positionLimit - getUserVolume(username, ticker) - bidSize.get(username).getOrDefault(ticker, 0.0);
             System.out.printf("Return Value: %f\n", returnVal);
             System.out.printf("Volume: %f\n", getUserVolume(username, ticker));
-            System.out.printf("Bid Size %f", bidSize.get(username).getOrDefault(ticker, 0.0));
+            System.out.printf("Bid Size %f\n", bidSize.get(username).getOrDefault(ticker, 0.0));
             return returnVal;
         }
         double currentBalance = getUserBalance(username);

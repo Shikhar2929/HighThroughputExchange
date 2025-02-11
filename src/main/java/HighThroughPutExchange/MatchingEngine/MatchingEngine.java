@@ -326,7 +326,7 @@ public class MatchingEngine {
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
-                orderData.volume += volumeTraded;
+                orderData.linearCombination(order.price, volumeTraded);
             } else {
                 double volumeTraded = order.volume;
                 updateVolume(askVolumes, order.price, -volumeTraded, order.ticker, Side.ASK);
@@ -342,9 +342,8 @@ public class MatchingEngine {
                 order.volume = 0;
                 order.status = Status.FILLED;
                 orders.poll();
-                orderData.volume += volumeTraded;
+                orderData.linearCombination(order.price, volumeTraded);
             }
-            orderData.price += order.price;
         }
         return orderData;
     }
@@ -370,7 +369,7 @@ public class MatchingEngine {
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
-                orderData.volume += volumeTraded;
+                orderData.linearCombination(order.price, volumeTraded);
             } else {
                 double volumeTraded = order.volume;
                 updateVolume(bidVolumes, order.price, -volumeTraded, order.ticker, Side.BID);
@@ -386,9 +385,8 @@ public class MatchingEngine {
                 order.volume = 0;
                 order.status = Status.FILLED;
                 orders.poll();
-                orderData.volume += volumeTraded;
+                orderData.linearCombination(order.price, volumeTraded);
             }
-            orderData.price += order.price;
         }
         return orderData;
     }
@@ -466,6 +464,7 @@ public class MatchingEngine {
         }
         System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
         if (orderData.volume > 0) {
+            System.out.printf("Ask OrderData.price %f\n", orderData.price);
             orderData.price /= orderData.volume;
         }
         if (order.volume > 0) {
@@ -688,7 +687,7 @@ public class MatchingEngine {
                 }
                 latestPrice.put(order.ticker, tradePrice);
                 order.volume -= aggressorVolume;
-                orderData.add(tradePrice, volumeTraded);
+                orderData.linearCombination(tradePrice, volumeTraded);
                 overallVolume += aggressorVolume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
@@ -716,7 +715,7 @@ public class MatchingEngine {
                     System.out.println("Cond 4");
                 }
                 latestPrice.put(order.ticker, tradePrice);
-                orderData.add(tradePrice, volumeTraded);
+                orderData.linearCombination(tradePrice, volumeTraded);
                 overallVolume += order.volume;
                 aggressor.volume -= order.volume;
                 order.volume = 0;

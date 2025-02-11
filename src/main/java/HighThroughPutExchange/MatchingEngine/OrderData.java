@@ -11,8 +11,8 @@ public class OrderData {
         this.price += newData.price;
         this.volume += newData.volume;
     }
-    public void add(double price, double volume) {
-        this.price += price;
+    public void linearCombination(double price, double volume) {
+        this.price += price * volume;
         this.volume += volume;
     }
 }
