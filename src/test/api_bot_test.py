@@ -6,25 +6,24 @@ import time
 #URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
 URL = 'http://localhost:8080'
 # Admin creates multiple users (bots)
-def create_user(username, name, email):
+def create_bot(username, name, email):
     form_data = {
         'adminUsername': 'trading_club_admin',
         'adminPassword': 'abcxyz',
         'username': username,
         'name': name,
-        'email': email
     }
-    req = urllib.request.Request(URL + '/add_user', data=json.dumps(form_data).encode('utf-8'), method='POST')
+    req = urllib.request.Request(URL + '/add_bot', data=json.dumps(form_data).encode('utf-8'), method='POST')
     req.add_header('Content-Type', 'application/json')
     return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 
 # User buildup
-def user_buildup(username, api_key):
+def bot_buildup(username, api_key):
     form_data = {
         'username': username,
         'apiKey': api_key
     }
-    req = urllib.request.Request(URL + '/buildup', data=json.dumps(form_data).encode('utf-8'), method='POST')
+    req = urllib.request.Request(URL + '/bot_buildup', data=json.dumps(form_data).encode('utf-8'), method='POST')
     req.add_header('Content-Type', 'application/json')
     return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 
@@ -38,7 +37,7 @@ def place_trade(username, session_token, ticker, volume, price, is_bid):
         'price': price,
         'isBid': is_bid
     }
-    req = urllib.request.Request(URL + '/limit_order', data=json.dumps(form_data).encode('utf-8'), method='POST')
+    req = urllib.request.Request(URL + '/bot_limit_order', data=json.dumps(form_data).encode('utf-8'), method='POST')
     req.add_header('Content-Type', 'application/json')
     return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 
@@ -84,22 +83,22 @@ def trading_bot(username, session_token, ticker, initial_balance=100000, max_pos
 # Main script
 if __name__ == "__main__":
     bot_count = 5  # Number of bots
-    ticker = 'AAPL'  # Stock ticker to trade
+    ticker = 'A'  # Stock ticker to trade
     bot_sessions = []
 
     try:
         # Create bots
         for i in range(bot_count):
-            username = f"tradingbotdemo{i + 1}"
-            name = f"Trading BotDEMO{i + 1}"
+            username = f"tradingbot{i + 1}"
+            name = f"Trading Bot{i + 1}"
             email = f"bot{i + 1}demo@example.com"
 
             # Step 1: Admin creates a bot user
-            user_data = create_user(username, name, email)
+            user_data = create_bot(username, name, email)
             print(f"Created bot user: {user_data}")
 
             # Step 2: User gets session token
-            session_data = user_buildup(username, user_data['apiKey'])
+            session_data = bot_buildup(username, user_data['apiKey'])
             print(f"Bot {username} session established: {session_data}")
             bot_sessions.append({
                 "username": username,

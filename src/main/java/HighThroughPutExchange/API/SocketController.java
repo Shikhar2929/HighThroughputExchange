@@ -44,7 +44,7 @@ public class SocketController {
         }
          */
     }
-    @Scheduled(fixedRate = 500) // sends an update every 500 milliseconds
+    @Scheduled(fixedRate = 200) // sends an update every 500 milliseconds
     public void sendRecentTrades() {
         String recentTradesJson = RecentTrades.getRecentTradesAsJson();
         if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[]")) { // Ensure JSON is not empty
@@ -53,7 +53,7 @@ public class SocketController {
             sendMessage(new SocketResponse("No recent trades"));
         }
     }
-    @Scheduled(fixedRate = 2000)
+    @Scheduled(fixedRate = 200)
     public void sendUserBalances() {
         TaskQueue.addTask(() -> {
             for (SimpUser user : simpUserRegistry.getUsers()) {
