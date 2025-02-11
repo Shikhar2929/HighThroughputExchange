@@ -13,8 +13,16 @@ public class Auction {
         bestBid = 0.0;
         bestUser = "";
     }
-    public boolean placeBid(String user, double bid) {
+
+    public boolean isValid(String user, double bid) {
         if (matchingEngine.getUserBalance(user) < bid) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean placeBid(String user, double bid) {
+        if (!isValid(user, bid)) {
             return false;
         }
         if (bid > bestBid) {
@@ -24,4 +32,13 @@ public class Auction {
         return true;
     }
 
+    public String getBestUser() {return bestUser;}
+
+    public double getBestBid() {
+        return bestBid;
+    }
+
+    public void executeAuction() {
+        matchingEngine.executeAuction(bestUser, bestBid);
+    }
 }
