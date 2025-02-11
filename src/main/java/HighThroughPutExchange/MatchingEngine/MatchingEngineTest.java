@@ -1138,5 +1138,25 @@
             assertNotEquals(-1, orderId2, "Order should now go through");
         }
 
+        @Test
+        public void testBots() {
+            String ticker = "A";
+            double positionLimit = 100.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            String user1 = "u1";
+            String user2 = "u2";
+            engine.initializeTicker(ticker);
+            engine.initializeUserTickerVolume(user1, ticker, 0.0);
+            engine.initializeUserTickerVolume(user2, ticker, 0.0);
+            engine.initializeUserBalance(user1, 0.0);
+            engine.initializeUserBalance(user2, 0.0);
 
+            String bot1 = "b1";
+            engine.initializeBot(bot1);
+            long orderId = engine.bidLimitOrder(bot1, new Order(bot1, ticker, 10.0, 1000.0, Side.BID, Status.ACTIVE));
+            assertNotEquals(-1, orderId);
+            orderId = engine.askLimitOrder(bot1, new Order(bot1, ticker, 15.0, 1000.0, Side.ASK, Status.ACTIVE));
+            assertNotEquals(-1, orderId);
+
+        }
     }

@@ -3,6 +3,7 @@ package HighThroughPutExchange.API;
 import HighThroughPutExchange.API.api_objects.requests.*;
 import HighThroughPutExchange.API.api_objects.responses.*;
 import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
+import HighThroughPutExchange.API.authentication.BotAuthenticator;
 import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.authentication.RateLimiter;
 import HighThroughPutExchange.API.database_objects.Session;
@@ -52,9 +53,12 @@ public class ServerApplication {
     private State state;
     private LocalDBClient dbClient;
     private LocalDBTable<User> users;
+    private LocalDBTable<User> bots;
+    private LocalDBTable<Session> botSessions;
     private LocalDBTable<Session> sessions;
     private PrivatePageAuthenticator privatePageAuthenticator;
     private AdminPageAuthenticator adminPageAuthenticator;
+    private BotAuthenticator botAuthenticator;
     private RateLimiter rateLimiter;
 
     private Auction auction;
@@ -96,6 +100,21 @@ public class ServerApplication {
             }
         }
         try {
+            bots = dbClient.getTable("bots");
+            Iterable<String> iterable = bots.getAllKeys();
+            for (String bot : iterable) {
+                matchingEngine.initializeBot(bot);
+            }
+
+        } catch (NotFoundException e) {
+            try {
+                dbClient.createTable("bots");
+                bots = dbClient.getTable("bots");
+            } catch (AlreadyExistsException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        try {
             sessions = dbClient.getTable("sessions");
         } catch (NotFoundException e) {
             try {
@@ -105,11 +124,23 @@ public class ServerApplication {
                 throw new RuntimeException(ex);
             }
         }
+        try {
+            botSessions = dbClient.getTable("botSessions");
+        } catch(NotFoundException e) {
+            try {
+                dbClient.createTable("botSessions");
+                botSessions = dbClient.getTable("botSessions");
+            } catch (AlreadyExistsException existsException) {
+                throw new RuntimeException(existsException);
+            }
+        }
 
         // PrivatePageAuthenticator privatePageAuthenticator = new PrivatePageAuthenticator(sessions);
         adminPageAuthenticator = AdminPageAuthenticator.getInstance();
         PrivatePageAuthenticator.buildInstance(sessions);
         privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
+        BotAuthenticator.buildInstance(botSessions);
+        botAuthenticator = BotAuthenticator.getInstance();
         rateLimiter = new RateLimiter();
         auction = new Auction(matchingEngine);
     }
@@ -128,12 +159,12 @@ public class ServerApplication {
      */
 
     // -------------------- public pages --------------------
-
+    /*
     @CrossOrigin(origins = "*")
     @GetMapping("/")
     public ResponseEntity<String> home() {
         return new ResponseEntity<>("Welcome to GT Trading Club's High Throughput Exchange!", HttpStatus.OK);
-    }
+    } */
 
     /*@PostMapping("/test")
     public CompletableFuture<String> test(@RequestBody PrivatePageRequest form) {
@@ -169,6 +200,31 @@ public class ServerApplication {
         }
 
         return new ResponseEntity<>(new AdminDashboardResponse(Message.SUCCESS.toString(), ""), HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/add_bot")
+    public ResponseEntity<AddUserResponse> addBot(@Valid @RequestBody AddBotRequest form) {
+        if (!adminPageAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new AddUserResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
+        }
+        if (users.containsItem(form.getUsername())) {
+            return new ResponseEntity<>(new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
+        }
+        try {
+            String key = generateKey();
+            users.putItem(new User(form.getUsername(), "", key, ""));
+            bots.putItem(new User(form.getUsername(), "", key, ""));
+            TaskQueue.addTask(() -> {
+                        System.out.println("Bot Initialized");
+                        matchingEngine.initializeBot(form.getUsername());
+                    }
+            );
+        }
+        catch(AlreadyExistsException e) {
+            throw new RuntimeException(e);
+        }
+        return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -273,6 +329,36 @@ public class ServerApplication {
         }
         return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
     }
+    @CrossOrigin(origins = "*")
+    @PostMapping("/bot_buildup")
+    public ResponseEntity<BuildupResponse> botBuildup(@Valid @RequestBody BuildupRequest form) {
+        /*
+        Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as oppsed to session token.
+         */
+        // if username not found
+        if (!bots.containsItem(form.getUsername())) {
+            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
+        }
+
+        User u = bots.getItem(form.getUsername());
+        // if username and api key mismatch
+        if (!u.getApiKey().equals(form.getApiKey())) {
+            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
+        }
+
+        Session s = new Session(generateKey(), u.getUsername());
+        if (botSessions.containsItem(s.getUsername())) {
+            botSessions.deleteItem(s.getUsername());
+        }
+        try {
+            botSessions.putItem(s);
+        } catch (AlreadyExistsException e) {
+            throw new RuntimeException(e);
+        }
+        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
+    }
+
+
 
     @CrossOrigin(origins = "*")
     @PostMapping("/teardown")
@@ -327,11 +413,54 @@ public class ServerApplication {
         // todo set message to volume filled
         return new ResponseEntity<>(new LimitOrderResponse(future.getData()), HttpStatus.OK);
     }
+    @CrossOrigin(origins="*")
+    @PostMapping("/bot_limit_order")
+    public ResponseEntity<LimitOrderResponse> botLimitOrder(@Valid @RequestBody LimitOrderRequest form) {
+        if (!botAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+        }
+        TaskFuture<String> future = new TaskFuture<>();
+        TaskQueue.addTask(() -> {
+            Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
+                    form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
+            System.out.println("Adding Limit Order");
+            if (form.getBid())
+                matchingEngine.bidLimitOrder(form.getUsername(), order, future);
+            else
+                matchingEngine.askLimitOrder(form.getUsername(), order, future);
+            future.markAsComplete();
+        });
+        future.waitForCompletion();
+        // todo set message to volume filled
+        return new ResponseEntity<>(new LimitOrderResponse(future.getData()), HttpStatus.OK);
+    }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/remove_all")
     public ResponseEntity<RemoveAllResponse> removeAll(@Valid @RequestBody RemoveAllRequest form) {
-        if (!privatePageAuthenticator.authenticate(form)) {
+        if (!botAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+        }
+        if (form.getUsername() == null)
+            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        TaskFuture<String> future = new TaskFuture<>();
+        TaskQueue.addTask(() -> {
+            matchingEngine.removeAll(form.getUsername(), future);
+            future.markAsComplete();
+        });
+        future.waitForCompletion();
+        // todo set message to volume filled
+        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
+    }
+    @PostMapping("/bot_remove_all")
+    public ResponseEntity<RemoveAllResponse> botRemoveAll(@Valid @RequestBody RemoveAllRequest form) {
+        if (!botAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
@@ -351,6 +480,8 @@ public class ServerApplication {
         // todo set message to volume filled
         return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
     }
+
+
     @CrossOrigin(origins = "*")
     @PostMapping("/remove")
     public ResponseEntity<RemoveAllResponse> remove(@Valid @RequestBody RemoveRequest form) {
@@ -376,6 +507,30 @@ public class ServerApplication {
         // todo set message to volume filled
         return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
     }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/bot_remove")
+    public ResponseEntity<RemoveAllResponse> botRemove(@Valid @RequestBody RemoveRequest form) {
+        if (!botAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+        }
+        if (form.getUsername() == null)
+            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        System.out.println("Removing Order");
+        System.out.println(form.getOrderID());
+        TaskFuture<String> future = new TaskFuture<>();
+        TaskQueue.addTask(() -> {
+            matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
+            future.markAsComplete();
+        });
+        future.waitForCompletion();
+        // todo set message to volume filled
+        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
+    }
+
     @CrossOrigin(origins = "*")
     @PostMapping("/market_order")
     public ResponseEntity<MarketOrderResponse> marketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
@@ -401,6 +556,30 @@ public class ServerApplication {
         // todo set message to volume filled
         return new ResponseEntity<>(new MarketOrderResponse(future.getData()), HttpStatus.OK);
     }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/bot_market_order")
+    public ResponseEntity<MarketOrderResponse> botMarketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
+        if (!botAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+        }
+        TaskFuture<String> future = new TaskFuture<>();
+        TaskQueue.addTask(() -> {
+            System.out.println("Adding Market Order: " + form);
+            if (form.getBid())
+                matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
+            else
+                matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
+            future.markAsComplete();
+        });
+        future.waitForCompletion();
+        // todo set message to volume filled
+        return new ResponseEntity<>(new MarketOrderResponse(future.getData()), HttpStatus.OK);
+    }
+
 
     @CrossOrigin(origins = "*")
     @PostMapping("/get_details")

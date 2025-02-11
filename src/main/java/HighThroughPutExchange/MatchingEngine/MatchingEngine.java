@@ -16,7 +16,7 @@ public class MatchingEngine {
     private Map<String, OrderBook> orderBooks = new HashMap<>();
     private Map<String, Map<Long, Order>> userOrders = new HashMap<>(); // UserName, OrderId, Order
     private Map<String, Double> latestPrice = new HashMap<>(); // For PnL
-
+    private Map<String, Double> bots = new HashMap<>();
 
     private UserList userList = new UserList();
     private long orderID = 0;
@@ -69,8 +69,14 @@ public class MatchingEngine {
             e.printStackTrace();
         }
     }
-
-
+    public boolean initializeBot(String username) {
+        bots.put(username, 0.0);
+        initializeUserBalance(username, 0.0);
+        for (String ticker : orderBooks.keySet()) {
+            initializeUserTickerVolume(username, ticker, 0.0);
+        }
+        return true;
+    }
 
     public boolean initializeUserBalance(String username, double balance) {
         System.out.println("Initializing: " + username);
@@ -242,6 +248,9 @@ public class MatchingEngine {
         RecentTrades.addTrade(ticker, price, newQuantity, side);
     }
     private boolean validateBidOrder(String user, Order order) {
+        if (bots.containsKey(user)) {
+            return true;
+        }
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
             return false;
         }
@@ -260,6 +269,9 @@ public class MatchingEngine {
         return true;
     }
     private boolean validateAskOrder(String user, Order order) {
+        if (bots.containsKey(user)) {
+            return true;
+        }
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
             return false;
         }
@@ -733,7 +745,7 @@ public class MatchingEngine {
     }
 
     public double bidMarketOrder(String name, String ticker, double volume) {
-        if (!userList.validUser(name)) {
+        if (!userList.validUser(name) && !bots.containsKey(name)) {
             System.out.println("Invalid");
             return 0.0;
         }
@@ -787,7 +799,7 @@ public class MatchingEngine {
     }
 
     public double askMarketOrder(String name, String ticker, double volume) {
-        if (!userList.validUser(name)) {
+        if (!userList.validUser(name) && !bots.containsKey(name)) {
             System.out.println("Invalid User");
             return 0.0;
         }
