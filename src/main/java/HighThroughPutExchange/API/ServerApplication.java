@@ -299,59 +299,6 @@ public class ServerApplication {
         return new ResponseEntity<>(new SetStateResponse(Message.SUCCESS.toString(), state.ordinal()), HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "*")
-    @PostMapping("/get_leading_auction_bid")
-    public ResponseEntity<GetLeadingAuctionBidResponse> getLeadingAuctionBid(@Valid @RequestBody BaseAdminRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-
-        TaskFuture<GetLeadingAuctionBidResponse> future = new TaskFuture<>();
-        future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
-        TaskQueue.addTask(() -> {
-            future.getData().setUser(auction.getBestUser());
-            future.getData().setBid(auction.getBestBid());
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        return new ResponseEntity<>(future.getData(), HttpStatus.OK);
-    }
-
-    /*
-    Method with the following behavior:
-        1. sets state to STOP, stopping the auctioning phase
-        2. gets best bid by best user
-        3. executes auction
-        4. resets auction object
-        5. returns who won auction and at what amount
-     */
-    @CrossOrigin(origins = "*")
-    @PostMapping("/terminate_auction")
-    public ResponseEntity<GetLeadingAuctionBidResponse> terminateAuction(@Valid @RequestBody BaseAdminRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-
-        if (state != State.AUCTION) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.LOCKED);
-        }
-
-        state = State.STOP;
-
-        TaskFuture<GetLeadingAuctionBidResponse> future = new TaskFuture<>();
-        future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
-
-        TaskQueue.addTask(() -> {
-            future.getData().setUser(auction.getBestUser());
-            future.getData().setBid(auction.getBestBid());
-            auction.executeAuction();
-            auction.reset();
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        return new ResponseEntity<>(future.getData(), HttpStatus.OK);
-    }
-
     // -------------------- private pages --------------------
 
     @CrossOrigin(origins = "*")
@@ -644,29 +591,5 @@ public class ServerApplication {
             return new ResponseEntity<>(new GetDetailsResponse(Message.RATE_LIMITED.toString(), ""), HttpStatus.TOO_MANY_REQUESTS);
         }
         return new ResponseEntity<>(new GetDetailsResponse(Message.SUCCESS.toString(), matchingEngine.getUserDetails(form.getUsername())), HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/bid_auction")
-    public ResponseEntity<BidAuctionResponse> bidAuction(@Valid @RequestBody BidAuctionRequest form) {
-        if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-        if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
-        }
-        if (state != State.AUCTION) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.AUCTION_LOCKED.toString()), HttpStatus.LOCKED);
-        }
-
-        if (!auction.isValid(form.getUsername(), form.getBid())) {
-            return new ResponseEntity<>(new BidAuctionResponse("Bid amount cannot exceed balance."), HttpStatus.BAD_REQUEST);
-        }
-
-        TaskQueue.addTask(() -> {
-            auction.placeBid(form.getUsername(), form.getBid());
-        });
-
-        return new ResponseEntity<>(new BidAuctionResponse(Message.SUCCESS.toString()), HttpStatus.OK);
     }
 }
