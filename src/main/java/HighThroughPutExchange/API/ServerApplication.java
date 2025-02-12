@@ -355,6 +355,14 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
+        if (sessions.containsItem(s.getUsername())) {
+            sessions.deleteItem(s.getUsername());
+        }
+        try {
+            sessions.putItem(s);
+        } catch (AlreadyExistsException e) {
+            throw new RuntimeException(e);
+        }
         return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
     }
 
@@ -441,8 +449,11 @@ public class ServerApplication {
     @CrossOrigin(origins = "*")
     @PostMapping("/remove_all")
     public ResponseEntity<RemoveAllResponse> removeAll(@Valid @RequestBody RemoveAllRequest form) {
-        if (!botAuthenticator.authenticate(form)) {
+        if (!privatePageAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        }
+        if (!rateLimiter.processRequest(form)) {
+            return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state != State.TRADE) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
