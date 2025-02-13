@@ -23,8 +23,8 @@ public class LimitOrderRequest extends BasePrivateRequest {
     public LimitOrderRequest(String username, String sessionToken, String ticker, double volume, double price, boolean isBid) {
         super(username, sessionToken);
         this.ticker = ticker;
-        this.volume = volume;
-        this.price = price;
+        this.volume = Preprocessing.preprocessVolume(volume);
+        this.price = Preprocessing.preprocessPrice(price);
         this.isBid = isBid;
     }
 
@@ -41,7 +41,7 @@ public class LimitOrderRequest extends BasePrivateRequest {
     }
 
     public void setVolume(double volume) {
-        this.volume = volume;
+        this.volume = Preprocessing.preprocessVolume(volume);
     }
 
     public double getPrice() {
@@ -49,6 +49,6 @@ public class LimitOrderRequest extends BasePrivateRequest {
     }
 
     public void setPrice(float price) {
-        this.price = price;
+        this.price = Preprocessing.preprocessPrice(price);
     }
 }

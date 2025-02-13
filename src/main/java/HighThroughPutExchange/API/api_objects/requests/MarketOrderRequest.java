@@ -12,7 +12,7 @@ public class MarketOrderRequest extends BasePrivateRequest {
     public MarketOrderRequest(String username, String sessionToken, String ticker, double volume, boolean isBid) {
         super(username, sessionToken);
         this.ticker = ticker;
-        this.volume = volume;
+        this.volume = Preprocessing.preprocessVolume(volume);
         this.isBid = isBid;
     }
     public String getTicker() {
@@ -30,6 +30,6 @@ public class MarketOrderRequest extends BasePrivateRequest {
     }
 
     public void setVolume(double volume) {
-        this.volume = volume;
+        this.volume = Preprocessing.preprocessVolume(volume);
     }
 }
