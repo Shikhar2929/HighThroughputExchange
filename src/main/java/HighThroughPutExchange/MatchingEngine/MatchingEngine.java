@@ -854,4 +854,7 @@ public class MatchingEngine {
         future.setData(userList.getLeaderboard(latestPrice));
         future.markAsComplete();
     }
+    public void executeAuction(String user, double bid) {
+        userList.adjustUserBalance(user, -bid);
+    }
 }
