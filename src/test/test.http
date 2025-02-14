@@ -71,3 +71,24 @@ Content-Type: application/json
   "username": "test1",
   "sessionToken": "test"
 }
+
+### Auctions testing
+POST http://localhost:8080/set_state
+Content-Type: application/json
+
+{
+  "adminUsername": "trading_club_admin",
+  "adminPassword": "abcxyz",
+  "targetState": 2
+}
+
+###
+POST http://localhost:8080/bid_auction
+Content-Type: application/json
+
+{
+  "username": "team49",
+  "sessionToken": "CMBOMINJRQUMVADW",
+  "bid": 0
+}
+
