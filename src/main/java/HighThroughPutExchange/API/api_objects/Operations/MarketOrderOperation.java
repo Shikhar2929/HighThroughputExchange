@@ -31,7 +31,7 @@ public class MarketOrderOperation extends Operation{
         this.volume = volume;
     }
 
-    public boolean isBid() {
+    public boolean getBid() {
         return isBid;
     }
     public void setBid(boolean isBid) {

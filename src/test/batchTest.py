@@ -86,8 +86,8 @@ def test_batch(username, session_token, ticker):
         'operations': [
             {"type": "limit_order", "ticker": "A", "price": 150.0, "volume": 10, "bid": True},
             {"type": "limit_order", "ticker": "A", "price": 200.0, "volume": 10, "bid": False},
-            #   {"type": "market_order", "ticker": "A", "volume": 5, "bid": True },
-            #{"type": "remove_all"}
+            {"type": "market_order", "ticker": "A", "volume": 5, "bid": True },
+            {"type": "remove_all"}
         ]
     }
 
@@ -101,24 +101,16 @@ if __name__ == "__main__":
     bot_count = 1  # Number of bots
     ticker = 'A'  # Stock ticker to trade
     bot_sessions = []
-    for i in range(bot_count):
-        username = f"tradingbot{i + 1}"
-        name = f"Trading Bot{i + 1}"
-        email = f"bot{i + 1}demo@example.com"
 
-        # Step 1: Admin creates a bot user
-        try:
-            user_data = create_bot(username, name, email)
-            print(f"Created bot user: {user_data}")
-        except:
-            pass
-        # Step 2: User gets session token
-        session_data = bot_buildup(username, user_data['apiKey'])
-        print(f"Bot {username} session established: {session_data}")
-        bot_sessions.append({
-            "username": username,
-            "session_token": session_data['sessionToken'],
-            "balance": 100000,  # Initial balance
-            "position": 100     # Maximum position
-        })
-        test_batch(username, session_data['sessionToken'], ticker)
+    username = "tradingbot1"
+    apiKey = "PRDXTXSRQQZHNSFH"
+
+    session_data = bot_buildup(username, apiKey)
+    print(f"Bot {username} session established: {session_data}")
+    bot_sessions.append({
+        "username": username,
+        "session_token": session_data['sessionToken'],
+        "balance": 100000,  # Initial balance
+        "position": 100     # Maximum position
+    })
+    test_batch(username, session_data['sessionToken'], ticker)

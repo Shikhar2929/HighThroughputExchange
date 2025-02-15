@@ -1,7 +1,6 @@
 package HighThroughPutExchange.API;
 
-import HighThroughPutExchange.API.api_objects.Operations.LimitOrderOperation;
-import HighThroughPutExchange.API.api_objects.Operations.Operation;
+import HighThroughPutExchange.API.api_objects.Operations.*;
 import HighThroughPutExchange.API.api_objects.requests.*;
 import HighThroughPutExchange.API.api_objects.responses.*;
 import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
@@ -87,6 +86,8 @@ public class ServerApplication {
         matchingEngine.initializeAllTickers();
         mapping.put("users", User.class);
         mapping.put("sessions", Session.class);
+        mapping.put("bots", User.class);
+        mapping.put("botSessions", Session.class);
         dbClient = new LocalDBClient("data.json", mapping);
         try {
             users = dbClient.getTable("users");
@@ -653,6 +654,10 @@ public class ServerApplication {
         if (!botAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new BatchResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
         }
+        if (state != State.TRADE) {
+            return new ResponseEntity<>(new BatchResponse(Message.TRADE_LOCKED.toString(), null), HttpStatus.LOCKED);
+        }
+
         if (form.getOperations().size() > MAX_OPERATIONS) {
             return new ResponseEntity<>(new BatchResponse("EXCEEDED_OPERATION_LIMIT", null), HttpStatus.BAD_REQUEST);
         }
@@ -671,13 +676,41 @@ public class ServerApplication {
                     temporaryTaskQueue.add(() -> {
                         Order order = new Order(form.getUsername(), limitOrderOperation.getTicker(), limitOrderOperation.getPrice(),
                                 limitOrderOperation.getVolume(), limitOrderOperation.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-                        System.out.println("Adding Limit Order");
+                        System.out.println("Batch - Adding Limit Order");
                         if (limitOrderOperation.getBid())
                             matchingEngine.bidLimitOrder(form.getUsername(), order, future);
                         else
                             matchingEngine.askLimitOrder(form.getUsername(), order, future);
                         future.markAsComplete();
                         });
+                    break;
+                case "market_order":
+                    MarketOrderOperation marketOrderOperation = (MarketOrderOperation) operation;
+                    temporaryTaskQueue.add(() -> {
+                        System.out.println("Batch - Adding Market Order");
+                        if (marketOrderOperation.getBid()) {
+                            matchingEngine.bidMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume());
+                        }
+                        else
+                            matchingEngine.askMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume());
+                        future.markAsComplete();
+                    });
+                    break;
+                case "remove":
+                    RemoveOperation removeOperation = (RemoveOperation) operation;
+                    temporaryTaskQueue.add(() -> {
+                        System.out.println("Batch - Remove Processing");
+                        matchingEngine.removeOrder(form.getUsername(), removeOperation.getOrderId());
+                    });
+                    future.markAsComplete();
+                    break;
+                case "remove_all":
+                    RemoveAllOperation removeAllOperation = (RemoveAllOperation) operation;
+                    temporaryTaskQueue.add(() -> {
+                        System.out.println("Batch - Remove All");
+                        matchingEngine.removeAll(form.getUsername());
+                    });
+                    future.markAsComplete();
                     break;
                 default:
                     success = false;
