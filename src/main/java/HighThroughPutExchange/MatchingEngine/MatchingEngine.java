@@ -252,6 +252,7 @@ public class MatchingEngine {
             return true;
         }
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
+            System.out.println("Bad Bid Parameters");
             return false;
         }
         if (!orderBooks.containsKey(order.ticker)) {
@@ -273,6 +274,7 @@ public class MatchingEngine {
             return true;
         }
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
+            System.out.println("Bad Ask Parameters");
             return false;
         }
         if (!orderBooks.containsKey(order.ticker)) {
@@ -376,7 +378,7 @@ public class MatchingEngine {
                 userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
 
                 userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
-                userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
+                userList.adjustUserBalance(order.name, -volumeTraded * order.price);
 
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
@@ -392,6 +394,7 @@ public class MatchingEngine {
     }
     public Map<String, Object> bidLimitOrderHandler(String name, Order order) {
         if (!validateBidOrder(name, order)) {
+            System.out.println("BAD PARAMETERS");
             return createLimitOrderResponse(0.0, 0.0, "BAD PARAMETERS", -1);
         }
         TreeMap<Double, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
@@ -671,7 +674,6 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
                     //Update the ask volume map and the ask if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
-                    System.out.println("Cond1");
                 }
                 else {
                     userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
@@ -683,8 +685,7 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                     //Update the bid volume map and the bid if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
-                    System.out.println("Cond2");
-                }
+                    }
                 latestPrice.put(order.ticker, tradePrice);
                 order.volume -= aggressorVolume;
                 orderData.linearCombination(tradePrice, volumeTraded);
@@ -702,7 +703,6 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
                     userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
-                    System.out.println("Cond 3");
                 }
                 else {
                     userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
@@ -712,7 +712,6 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
-                    System.out.println("Cond 4");
                 }
                 latestPrice.put(order.ticker, tradePrice);
                 orderData.linearCombination(tradePrice, volumeTraded);

@@ -1242,8 +1242,32 @@
             engine.bidLimitOrder(user2, new Order(user2, ticker, 30.0, 10.0, Side.BID, Status.ACTIVE));
             engine.bidLimitOrder(user2, new Order(user2, ticker, 29.0, 3.0, Side.BID, Status.ACTIVE));
             Map<String, Object> message = engine.askLimitOrderHandler(user1, new Order(user1, ticker, 27.0, 11.0, Side.ASK, Status.ACTIVE));
-            assertEquals((30.0 * 10.0 + 29.0 * 1.0) / 11.0, (double) message.get("price"));
+            double price = (30.0 * 10.0 + 29.0 * 1.0) / 11.0;
+            assertEquals(price, (double) message.get("price"));
             assertEquals(11.0, message.get("volumeFilled"));
+            assertEquals(-(30.0 * 10.0 + 29.0 * 1.0), engine.getUserBalance(user2));
+            assertEquals((30 * 10.0 + 29.0 * 1.0), engine.getUserBalance(user1));
         }
+        // Place Bid LimitOrder and its filled
+        // askLimitOrder
+        @Test
+        public void infiniteBrokenTest() {
+            String ticker = "D";
+            double positionLimit = 100.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            String user1 = "u1";
+            String user2 = "u2";
+            engine.initializeTicker(ticker);
+            engine.initializeUserTickerVolume(user1, ticker, 0.0);
+            engine.initializeUserTickerVolume(user2, ticker, 0.0);
+            engine.initializeUserBalance(user1, 0.0);
+            engine.initializeUserBalance(user2, 0.0);
 
+            engine.bidLimitOrder(user2, new Order(user2, ticker, 101.0, 10.0, Side.BID, Status.ACTIVE));
+            engine.askLimitOrder(user1, new Order(user1, ticker, 101.0, 10.0, Side.ASK, Status.ACTIVE));
+            assertEquals(101.0 * 10, engine.getUserBalance(user1));
+            assertEquals(-101.0 * 10, engine.getUserBalance(user2));
+            assertEquals(-10, engine.getTickerBalance(user1, ticker));
+            assertEquals(10, engine.getTickerBalance(user2, ticker));
+        }
     }

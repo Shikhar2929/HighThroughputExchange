@@ -11,9 +11,11 @@ public class Preprocessing {
         return ((double) ((int) (x * 100))) / 100;
     }
     public static double preprocessPrice(double price) {
-        return Math.min(MAX_PRICE, Math.min(MIN_PRICE, truncate(price)));
+        //return price;//
+        return Math.min(MAX_PRICE, Math.max(MIN_PRICE, truncate(price)));
     }
     public static double preprocessVolume(double volume) {
-        return Math.min(MAX_VOLUME, Math.min(MIN_VOLUME, truncate(volume)));
+        return Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, truncate(volume)));
+        //return volume;
     }
 }

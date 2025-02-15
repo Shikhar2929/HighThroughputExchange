@@ -149,7 +149,7 @@ public class UserList {
         double balance = getUserBalance(username);
         userJson.put("username", username);
         userJson.put("balance", balance);
-        userJson.put("pnl", getRealizedPnl(username, prices));
+        userJson.put("pnl", getUnrealizedPnl(username, prices));
         // Add positions to JSON
         Map<String, Double> userPositions = quantities.getOrDefault(username, new HashMap<>());
         JSONObject positionsJson = new JSONObject(userPositions);
@@ -157,7 +157,7 @@ public class UserList {
 
         return userJson;
     }
-    public double getRealizedPnl(String username, Map<String, Double> prices) {
+    public double getUnrealizedPnl(String username, Map<String, Double> prices) {
         double pnl = getUserBalance(username);
         for (Map.Entry<String, Double> entry : prices.entrySet()) {
             pnl += quantities.get(username).get(entry.getKey()) * entry.getValue();
@@ -169,7 +169,7 @@ public class UserList {
     public ArrayList<LeaderboardEntry> getLeaderboard(Map<String, Double> prices) {
         ArrayList<LeaderboardEntry> output = new ArrayList<>();
         for (String username: userBalances.keySet()) {
-            output.add(new LeaderboardEntry(username, getRealizedPnl(username, prices)));
+            output.add(new LeaderboardEntry(username, getUnrealizedPnl(username, prices)));
         }
         Collections.sort(output);
         return output;

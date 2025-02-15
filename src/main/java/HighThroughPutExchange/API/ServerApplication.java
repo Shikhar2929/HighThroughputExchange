@@ -1,5 +1,7 @@
 package HighThroughPutExchange.API;
 
+import HighThroughPutExchange.API.api_objects.Operations.LimitOrderOperation;
+import HighThroughPutExchange.API.api_objects.Operations.Operation;
 import HighThroughPutExchange.API.api_objects.requests.*;
 import HighThroughPutExchange.API.api_objects.responses.*;
 import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
@@ -29,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.config.Task;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -63,6 +66,7 @@ public class ServerApplication {
 
     private Auction auction;
     private static final int KEY_LENGTH = 16;
+    private static final int MAX_OPERATIONS = 20;
     private MatchingEngine matchingEngine;
 
     private static char randomChar() {
@@ -642,6 +646,62 @@ public class ServerApplication {
         future.waitForCompletion();
         // todo set message to volume filled
         return new ResponseEntity<>(new MarketOrderResponse(future.getData()), HttpStatus.OK);
+    }
+    @CrossOrigin(origins = "*")
+    @PostMapping("/batch")
+    public ResponseEntity<BatchResponse> processBatch(@Valid @RequestBody BatchRequest form) {
+        if (!botAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new BatchResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
+        }
+        if (form.getOperations().size() > MAX_OPERATIONS) {
+            return new ResponseEntity<>(new BatchResponse("EXCEEDED_OPERATION_LIMIT", null), HttpStatus.BAD_REQUEST);
+        }
+        List<Runnable> temporaryTaskQueue = new ArrayList<>();
+        List<OperationResponse> responses = new ArrayList<>();
+        List<TaskFuture<String>> futures = new ArrayList<>();
+        boolean success = true;
+        for (Operation operation : form.getOperations()) {
+            TaskFuture<String> future = new TaskFuture<>();
+            futures.add(future);
+            responses.add(new OperationResponse(operation.getType(), null));
+            System.out.println(operation.toString());
+            switch (operation.getType()) {
+                case "limit_order":
+                    LimitOrderOperation limitOrderOperation = (LimitOrderOperation) operation;
+                    temporaryTaskQueue.add(() -> {
+                        Order order = new Order(form.getUsername(), limitOrderOperation.getTicker(), limitOrderOperation.getPrice(),
+                                limitOrderOperation.getVolume(), limitOrderOperation.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
+                        System.out.println("Adding Limit Order");
+                        if (limitOrderOperation.getBid())
+                            matchingEngine.bidLimitOrder(form.getUsername(), order, future);
+                        else
+                            matchingEngine.askLimitOrder(form.getUsername(), order, future);
+                        future.markAsComplete();
+                        });
+                    break;
+                default:
+                    success = false;
+                    break;
+            }
+        }
+        if (!success) {
+            return new ResponseEntity<>(new BatchResponse("UNKNOWN OPERATION", null), HttpStatus.BAD_REQUEST);
+        }
+        for (Runnable task : temporaryTaskQueue) {
+            TaskQueue.addTask(task);
+        }
+        System.out.println("Batch Tasks Added to the Queue Successfully!");
+        for (int i = 0; i < futures.size(); i++) {
+            TaskFuture<String> future = futures.get(i);
+            future.waitForCompletion();
+            String message = future.getData();
+            System.out.printf("Batch %d Message: %s\n", i, message);
+            OperationResponse response = responses.get(i);
+            response.setMessage(message);
+        }
+        System.out.println("All Messages Received From Batch Tasks, Returning!");
+        return new ResponseEntity<>(new BatchResponse("SUCCESS", responses), HttpStatus.OK);
+
     }
 
 
