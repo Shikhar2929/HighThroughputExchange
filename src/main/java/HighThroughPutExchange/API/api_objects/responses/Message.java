@@ -4,21 +4,33 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Message {
 
-    SUCCESS("Success!"),
-    RATE_LIMITED("Rate Limited. Please stop spamming."),
-    AUTHENTICATION_FAILED("Authentication failed."),
-    TRADE_LOCKED("Trading is currently locked"),
-    BAD_INPUT("Bad input. Please check your parameters."),
-    AUCTION_LOCKED("Auctioning is currently locked.");
+    SUCCESS(0, "Success!"),
+    AUTHENTICATION_FAILED(1,"Authentication failed."),
+    RATE_LIMITED(2, "Rate Limited. Please stop spamming."),
+    TRADE_LOCKED(3, "Trading is currently locked"),
+    BAD_INPUT(4, "Bad input. Please check your parameters."),
+    AUCTION_LOCKED(5, "Auctioning is currently locked."),
+    POSITION_LIMIT_EXCEEDED(6, "Position limit has been exceeded."),
+    INSUFFICIENT_BALANCE(7, "Insufficient balance.");
 
-    private final String message;
+    public int getErrorCode() {
+        return errorCode;
+    }
 
-    Message(String message) {
-        this.message = message;
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    private final int errorCode;
+    private final String errorMessage;
+
+    Message(int errorCode, String errorMessage) {
+        this.errorCode = errorCode;
+        this.errorMessage = errorMessage;
     }
 
     @Override
     public String toString() {
-        return message;
+        return String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", errorCode, errorMessage);
     }
 }
