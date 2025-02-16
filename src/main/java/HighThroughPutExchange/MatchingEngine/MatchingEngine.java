@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.Iterator;
 
+import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -291,19 +292,21 @@ public class MatchingEngine {
         }
         return true;
     }
-    private Map<String, Object> createLimitOrderResponse(double price, double volumeFilled, String error, long orderId) {
+    private Map<String, Object> createLimitOrderResponse(double price, double volumeFilled, Message error, long orderId) {
         Map<String, Object> response = new HashMap<>();
         response.put("price", price);
         response.put("volumeFilled", volumeFilled);
-        response.put("error", error);
+        response.put("errorCode", error.getErrorCode());
+        response.put("errorMessage", error.getErrorMessage());
         response.put("orderId", orderId);
         return response;
     }
-    private Map<String, Object> createMarketOrderResponse(double price, double volumeFilled, String error) {
+    private Map<String, Object> createMarketOrderResponse(double price, double volumeFilled, Message error) {
         Map<String, Object> response = new HashMap<>();
         response.put("price", price);
         response.put("volumeFilled", volumeFilled);
-        response.put("error", error);
+        response.put("errorCode", error.getErrorCode());
+        response.put("errorMessage", error.getErrorMessage());
         return response;
     }
     private OrderData processBid(Deque<Order> orders, Map<Double, Double> askVolumes, Order aggressor) {
@@ -395,7 +398,7 @@ public class MatchingEngine {
     public Map<String, Object> bidLimitOrderHandler(String name, Order order) {
         if (!validateBidOrder(name, order)) {
             System.out.println("BAD PARAMETERS");
-            return createLimitOrderResponse(0.0, 0.0, "BAD PARAMETERS", -1);
+            return createLimitOrderResponse(0.0, 0.0, Message.BAD_INPUT, -1);
         }
         TreeMap<Double, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
         Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
@@ -428,12 +431,12 @@ public class MatchingEngine {
                 userOrders.put(order.name, new HashMap<>());
                 userOrders.get(order.name).put(orderID, order);
             }
-            return createLimitOrderResponse(orderData.price, orderData.volume, "", orderID);
+            return createLimitOrderResponse(orderData.price, orderData.volume, Message.SUCCESS, orderID);
         }
         else {
             order.status = Status.FILLED;
         }
-        return createLimitOrderResponse(orderData.price, orderData.volume, "", 0);
+        return createLimitOrderResponse(orderData.price, orderData.volume, Message.SUCCESS, 0);
     }
 
     public long bidLimitOrder(String name, Order order) {
@@ -451,7 +454,7 @@ public class MatchingEngine {
     }
     public Map<String, Object> askLimitOrderHandler(String name, Order order) {
         if (!validateAskOrder(name, order)) {
-            return createLimitOrderResponse(0.0, 0.0, "", -1);
+            return createLimitOrderResponse(0.0, 0.0, Message.BAD_INPUT, -1);
         }
         TreeMap<Double, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
         Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
@@ -484,12 +487,12 @@ public class MatchingEngine {
                 userOrders.put(order.name, new HashMap<>());
                 userOrders.get(order.name).put(orderID, order);
             }
-            return createLimitOrderResponse(orderData.price, orderData.volume, "", orderID);
+            return createLimitOrderResponse(orderData.price, orderData.volume, Message.SUCCESS, orderID);
         }
         else {
             order.status = Status.FILLED;
         }
-        return createLimitOrderResponse(orderData.price, orderData.volume, "", 0);
+        return createLimitOrderResponse(orderData.price, orderData.volume, Message.SUCCESS, 0);
     }
 
 
@@ -727,7 +730,7 @@ public class MatchingEngine {
     public Map<String, Object> bidMarketOrderHandler(String name, String ticker, double volume) {
         if (!userList.validUser(name) && !bots.containsKey(name)) {
             System.out.println("Invalid");
-            return createMarketOrderResponse(0.0, 0.0, "INVALID");
+            return createMarketOrderResponse(0.0, 0.0, Message.AUTHENTICATION_FAILED);
         }
         OrderData orderData = new OrderData();
         Order marketOrder = new Order(name, ticker, 0, volume, Side.BID, Status.ACTIVE); // Price is 0 for market orders
@@ -751,7 +754,7 @@ public class MatchingEngine {
         } else {
             marketOrder.status = Status.FILLED;
         }
-        return createMarketOrderResponse(orderData.price, orderData.volume, "");
+        return createMarketOrderResponse(orderData.price, orderData.volume, Message.SUCCESS);
     }
 
 
@@ -771,10 +774,10 @@ public class MatchingEngine {
     }
     public Map<String, Object> askMarketOrderHandler(String name, String ticker, double volume) {
         if (!userList.validUser(name) && !bots.containsKey(name)) {
-            return createMarketOrderResponse(0.0, 0.0, "Invalid User");
+            return createMarketOrderResponse(0.0, 0.0, Message.AUTHENTICATION_FAILED);
         }
         if (!userList.validAskQuantity(name, ticker, volume) && !bots.containsKey(name)) {
-            return createMarketOrderResponse(0.0, 0.0, "Invalid Parameters");
+            return createMarketOrderResponse(0.0, 0.0, Message.BAD_INPUT);
         }
         OrderData orderData = new OrderData();
         Order marketOrder = new Order(name, ticker, 0, volume, Side.ASK, Status.ACTIVE); // Price is 0 for market orders
@@ -798,7 +801,7 @@ public class MatchingEngine {
         } else {
             marketOrder.status = Status.FILLED;
         }
-        return createMarketOrderResponse(orderData.price, orderData.volume, "");
+        return createMarketOrderResponse(orderData.price, orderData.volume, Message.SUCCESS);
     }
     public double askMarketOrder(String name, String ticker, double volume) {
         return (double) askMarketOrderHandler(name, ticker, volume).get("volumeFilled");

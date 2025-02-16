@@ -10,6 +10,7 @@ import HighThroughPutExchange.API.authentication.RateLimiter;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
 import HighThroughPutExchange.Common.MatchingEngineSingleton;
+import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.Database.entry.DBEntry;
@@ -26,15 +27,12 @@ import HighThroughPutExchange.Auction.Auction;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import jakarta.validation.Valid;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.config.Task;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.concurrent.CompletableFuture;
 import java.util.HashMap;
 import java.util.List;
 /*
