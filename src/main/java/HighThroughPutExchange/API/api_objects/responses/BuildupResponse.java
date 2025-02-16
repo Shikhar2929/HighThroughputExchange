@@ -1,6 +1,9 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+
 public class BuildupResponse {
+    @JsonRawValue
     private String message;
     private String sessionToken;
     private String orderBookData;

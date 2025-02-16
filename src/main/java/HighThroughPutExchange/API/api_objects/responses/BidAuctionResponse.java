@@ -1,7 +1,10 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+
 public class BidAuctionResponse {
 
+    @JsonRawValue
     private String message;
 
     public BidAuctionResponse(String message) {
