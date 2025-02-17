@@ -18,4 +18,7 @@ public class Preprocessing {
         return Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, truncate(volume)));
         //return volume;
     }
+    public static double botPreprocessVolume(double volume) {
+        return Math.max(truncate(volume), 0.0);
+    }
 }

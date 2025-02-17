@@ -17,7 +17,7 @@ public class LimitOrderOperation extends Operation{
         super("limit_order");
         this.ticker = ticker;
         this.price = Preprocessing.preprocessPrice(price);
-        this.volume = Preprocessing.preprocessVolume(volume);
+        this.volume = Preprocessing.botPreprocessVolume(volume);
         this.isBid = isBid;
     }
 

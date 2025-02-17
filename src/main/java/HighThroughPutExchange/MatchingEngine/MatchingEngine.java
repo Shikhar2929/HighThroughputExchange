@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.Iterator;
 
+import HighThroughPutExchange.Common.ChartTrackerSingleton;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +19,7 @@ public class MatchingEngine {
     private Map<String, Map<Long, Order>> userOrders = new HashMap<>(); // UserName, OrderId, Order
     private Map<String, Double> latestPrice = new HashMap<>(); // For PnL
     private Map<String, Double> bots = new HashMap<>();
-
+    private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
     private UserList userList = new UserList();
     private long orderID = 0;
     public MatchingEngine() {
@@ -222,6 +223,7 @@ public class MatchingEngine {
     }
     public void setPrice(String ticker, double price) {
         latestPrice.put(ticker, price);
+        chartTrackerSingleton.updatePrice(ticker, price);
     }
     public double getHighestBid(String ticker) {
         if (!orderBooks.containsKey(ticker)) return 0.0;
@@ -327,7 +329,7 @@ public class MatchingEngine {
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
                 //Update OrderBook to reflect new price of the ticker
-                latestPrice.put(order.ticker, order.price);
+                setPrice(order.ticker, order.price);
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
@@ -343,7 +345,8 @@ public class MatchingEngine {
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
                 aggressor.volume = aggressor.volume - order.volume;
-                latestPrice.put(order.ticker, order.price);
+
+                setPrice(order.ticker, order.price);
                 order.volume = 0;
                 order.status = Status.FILLED;
                 orders.poll();
@@ -369,7 +372,7 @@ public class MatchingEngine {
 
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
-                latestPrice.put(order.ticker, order.price);
+                setPrice(order.ticker, order.price);
                 //RecentTrades.addTrade(order.name, aggressor.name, order.ticker, order.price, volumeTraded);
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
@@ -385,7 +388,7 @@ public class MatchingEngine {
 
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
-                latestPrice.put(order.ticker, order.price);
+                setPrice(order.ticker, order.price);
                 aggressor.volume = aggressor.volume - order.volume;
                 order.volume = 0;
                 order.status = Status.FILLED;
@@ -690,7 +693,7 @@ public class MatchingEngine {
                     //Update the bid volume map and the bid if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
                     }
-                latestPrice.put(order.ticker, tradePrice);
+                setPrice(order.ticker, tradePrice);
                 order.volume -= aggressorVolume;
                 orderData.linearCombination(tradePrice, volumeTraded);
                 overallVolume += aggressorVolume;
@@ -717,7 +720,7 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
                 }
-                latestPrice.put(order.ticker, tradePrice);
+                setPrice(order.ticker, tradePrice);
                 orderData.linearCombination(tradePrice, volumeTraded);
                 overallVolume += order.volume;
                 aggressor.volume -= order.volume;

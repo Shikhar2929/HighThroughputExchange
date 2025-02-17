@@ -479,7 +479,7 @@ public class ServerApplication {
     }
     @CrossOrigin(origins="*")
     @PostMapping("/bot_limit_order")
-    public ResponseEntity<LimitOrderResponse> botLimitOrder(@Valid @RequestBody LimitOrderRequest form) {
+    public ResponseEntity<LimitOrderResponse> botLimitOrder(@Valid @RequestBody BotLimitOrderRequest form) {
         if (!botAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
@@ -626,7 +626,7 @@ public class ServerApplication {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/bot_market_order")
-    public ResponseEntity<MarketOrderResponse> botMarketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
+    public ResponseEntity<MarketOrderResponse> botMarketOrderResponse(@Valid @RequestBody BotMarketOrderRequest form) {
         if (!botAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }

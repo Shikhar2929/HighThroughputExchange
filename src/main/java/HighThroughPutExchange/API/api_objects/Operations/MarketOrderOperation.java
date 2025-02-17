@@ -13,7 +13,7 @@ public class MarketOrderOperation extends Operation{
     public MarketOrderOperation(String type, String ticker, double volume, boolean isBid) {
         super("market_order");
         this.ticker = ticker;
-        this.volume = Preprocessing.preprocessVolume(volume);
+        this.volume = Preprocessing.botPreprocessVolume(volume);
         this.isBid = isBid;
     }
 

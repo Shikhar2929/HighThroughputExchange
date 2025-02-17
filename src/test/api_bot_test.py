@@ -57,7 +57,7 @@ def trading_bot(username, session_token, ticker, initial_balance=100000, max_pos
     position = max_position
 
     while balance > 0 and position > 0:
-        max_volume = min(5, position)  # Trade a max of 5 shares per trade
+        max_volume = max(100000000, position)  # Trade a max of 5 shares per trade
         volume = random.randint(1, max_volume)
         price = round(random.uniform(100, 300), 2)  # Keep price range modest
         cost = volume * price
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     try:
         # Create bots
         for i in range(bot_count):
-            username = f"tradingbot{i + 1}"
+            username = f"tradingbotadf{i + 1}"
             name = f"Trading Bot{i + 1}"
             email = f"bot{i + 1}demo@example.com"
 
