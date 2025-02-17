@@ -577,7 +577,7 @@ public class MatchingEngine {
     // todo: verify correctness of messaging
     public boolean removeOrder(String userId, long orderId, TaskFuture<String> future) {
         if (!userList.validUser(userId)) {
-            future.setData("Invalid Username");
+            future.setData(Message.AUTHENTICATION_FAILED.toString());
             return false;
         }
         Map<Long, Order> orders = userOrders.get(userId);
@@ -597,11 +597,12 @@ public class MatchingEngine {
                     Map<Double, Double> askVolumes = orderBooks.get(order.ticker).askVolumes;
                     updateVolume(askVolumes, order.price, -order.volume, order.ticker, Side.ASK);
                 }
-                future.setData(String.format("removed order with properties - id: %d, volume: %f, ", orderId, orders.remove(orderId).volume));
+                future.setData(String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(), String.format("removed order with properties - id: %d, volume: %f, ", orderId, orders.remove(orderId).volume)));
                 return true;
             }
         }
-        future.setData("Invalid OrderID");
+        future.setData(Message.BAD_INPUT.toString());
+        // future.setData("Invalid OrderID");
         return false;
     }
     public void removeAll(String userId) {
@@ -645,7 +646,7 @@ public class MatchingEngine {
             }
         }
 
-        future.setData(String.format("Removed total volume of %f", volumeRemoved));
+        future.setData(String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(), String.format("Removed total volume of %f", volumeRemoved)));
     }
     public OrderData processMarketOrder(Deque<Order> orders, Map<Double, Double> volumeMap, Order aggressor, Side side) {
         double overallVolume = 0.0;
