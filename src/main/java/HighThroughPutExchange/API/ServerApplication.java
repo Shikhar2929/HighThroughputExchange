@@ -687,10 +687,10 @@ public class ServerApplication {
                     temporaryTaskQueue.add(() -> {
                         System.out.println("Batch - Adding Market Order");
                         if (marketOrderOperation.getBid()) {
-                            matchingEngine.bidMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume());
+                            matchingEngine.bidMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
                         }
                         else
-                            matchingEngine.askMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume());
+                            matchingEngine.askMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
                         future.markAsComplete();
                     });
                     break;
@@ -698,17 +698,17 @@ public class ServerApplication {
                     RemoveOperation removeOperation = (RemoveOperation) operation;
                     temporaryTaskQueue.add(() -> {
                         System.out.println("Batch - Remove Processing");
-                        matchingEngine.removeOrder(form.getUsername(), removeOperation.getOrderId());
+                        matchingEngine.removeOrder(form.getUsername(), removeOperation.getOrderId(), future);
+                        future.markAsComplete();
                     });
-                    future.markAsComplete();
                     break;
                 case "remove_all":
                     RemoveAllOperation removeAllOperation = (RemoveAllOperation) operation;
                     temporaryTaskQueue.add(() -> {
                         System.out.println("Batch - Remove All");
-                        matchingEngine.removeAll(form.getUsername());
+                        matchingEngine.removeAll(form.getUsername(), future);
+                        future.markAsComplete();
                     });
-                    future.markAsComplete();
                     break;
                 default:
                     success = false;
@@ -728,7 +728,7 @@ public class ServerApplication {
             String message = future.getData();
             System.out.printf("Batch %d Message: %s\n", i, message);
             OperationResponse response = responses.get(i);
-            response.setMessage(message);
+            response.setMessage(future.getData());
         }
         System.out.println("All Messages Received From Batch Tasks, Returning!");
         return new ResponseEntity<>(new BatchResponse("SUCCESS", responses), HttpStatus.OK);

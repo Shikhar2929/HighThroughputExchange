@@ -82,7 +82,7 @@ if __name__ == "__main__":
     session_token = session_data['sessionToken'] if 'sessionToken' in session_data else exit("Failed to buildup.")
 
     # Place a single trade for demonstration
-    trade_response = place_trade(username, session_token, 'AAPL', 10, 100.0, True)
+    trade_response = place_trade(username, session_token, 'A', 10, 100.0, True)
 
     # Remove all trades/sessions
     remove_all_response = remove_all(session_token)
