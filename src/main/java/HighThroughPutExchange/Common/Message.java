@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API.api_objects.responses;
+package HighThroughPutExchange.Common;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

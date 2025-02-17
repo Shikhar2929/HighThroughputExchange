@@ -1,7 +1,10 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+
 public class GetLeadingAuctionBidResponse {
 
+    @JsonRawValue
     private String message;
     private String user;
     private double bid;

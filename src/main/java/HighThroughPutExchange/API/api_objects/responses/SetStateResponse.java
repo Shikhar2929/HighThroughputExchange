@@ -1,6 +1,9 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+
 public class SetStateResponse {
+    @JsonRawValue
     private String message;
     private int newState;
     public SetStateResponse(String message, int newState) {

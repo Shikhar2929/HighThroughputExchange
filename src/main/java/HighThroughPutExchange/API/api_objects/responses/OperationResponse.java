@@ -1,7 +1,10 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+
 public class OperationResponse {
     private String type;
+    @JsonRawValue
     private String message;
     public OperationResponse(String type, String message) {
         this.type = type;
