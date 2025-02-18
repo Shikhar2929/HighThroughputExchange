@@ -113,3 +113,14 @@ Content-Type: application/json
   "adminPassword": "abcxyz",
   "targetState": 1
 }
+
+
+### enable trading
+POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/set_state
+Content-Type: application/json
+
+{
+  "adminUsername": "trading_club_admin",
+  "adminPassword": "abcxyz",
+  "targetState": 1
+}
