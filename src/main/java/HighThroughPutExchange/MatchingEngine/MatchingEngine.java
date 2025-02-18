@@ -91,6 +91,9 @@ public class MatchingEngine {
     public double getUserBalance(String username) {
         return userList.getUserBalance(username);
     }
+    public double getPnl(String username) {
+        return userList.getUnrealizedPnl(username, latestPrice);
+    }
     public ArrayList getRecentTrades() {
         ArrayList<PriceChange> recentTrades = RecentTrades.getRecentTrades();
         //for (Trade trade : recentTrades)
@@ -225,6 +228,22 @@ public class MatchingEngine {
         latestPrice.put(ticker, price);
         chartTrackerSingleton.updatePrice(ticker, price);
     }
+    public void setPriceClearOrderBook(Map<String, Double> updatedPrices, TaskFuture<String> future) {
+        for (String ticker : updatedPrices.keySet()) {
+            if (!orderBooks.containsKey(ticker)) {
+                future.setData("BAD TICKER");
+            }
+        }
+        for (Map.Entry<String, Double> entry : updatedPrices.entrySet()) {
+            setPrice(entry.getKey(), entry.getValue());
+            zeroVolume(orderBooks.get(entry.getKey()), entry.getKey());
+        }
+        for (String user : userOrders.keySet()) {
+            userOrders.get(user).clear();
+        }
+        future.setData("SUCCESS ALL CLEARED");
+    }
+
     public double getHighestBid(String ticker) {
         if (!orderBooks.containsKey(ticker)) return 0.0;
         TreeMap<Double, Deque<Order>> bids = orderBooks.get(ticker).bids;
@@ -249,6 +268,13 @@ public class MatchingEngine {
         double newQuantity = volumeMap.getOrDefault(price, 0.0);
         //System.out.printf("Price: %f Quantity: %f\n", price, newQuantity);
         RecentTrades.addTrade(ticker, price, newQuantity, side);
+    }
+    private void zeroVolume(OrderBook orderBook, String ticker) {
+        for (double price : orderBook.bidVolumes.keySet())
+            RecentTrades.addTrade(ticker, price, 0.0, Side.BID);
+        for (double price : orderBook.askVolumes.keySet())
+            RecentTrades.addTrade(ticker, price, 0.0, Side.ASK);
+        orderBook.clearOrderBook();
     }
     private boolean validateBidOrder(String user, Order order) {
         if (bots.containsKey(user)) {

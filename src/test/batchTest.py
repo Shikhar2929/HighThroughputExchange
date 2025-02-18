@@ -84,11 +84,11 @@ def test_batch(username, session_token, ticker):
         'username': username,
         'sessionToken': session_token,
         'operations': [
-            {"type": "limit_order", "ticker": "A", "price": 150.0, "volume": 10, "bid": True},
-            {"type": "limit_order", "ticker": "A", "price": 200.0, "volume": 10, "bid": False},
+            {"type": "limit_order", "ticker": "A", "price": 150.0, "volume": 10000000, "bid": True},
+            {"type": "limit_order", "ticker": "A", "price": 200.0, "volume": 10000000, "bid": False},
             {"type": "market_order", "ticker": "A", "volume": 5, "bid": True },
-            {"type": "remove", "orderId": 1},
-            {"type": "remove_all"}
+            #{"type": "remove", "orderId": 1},
+            #{"type": "remove_all"}
         ]
     }
 

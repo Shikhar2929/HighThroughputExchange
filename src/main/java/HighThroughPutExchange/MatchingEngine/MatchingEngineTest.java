@@ -1270,4 +1270,50 @@
             assertEquals(-10, engine.getTickerBalance(user1, ticker));
             assertEquals(10, engine.getTickerBalance(user2, ticker));
         }
+        @Test
+        public void testMarketOrdersRigorously() {
+            String ticker = "D";
+            double positionLimit = 1000.0;
+            MatchingEngine engine = new MatchingEngine(positionLimit);
+            String user1 = "u1";
+            String user2 = "u2";
+            String user3 = "u3";
+            engine.initializeTicker(ticker);
+            engine.initializeUserTickerVolume(user1, ticker, 0.0);
+            engine.initializeUserTickerVolume(user2, ticker, 0.0);
+            engine.initializeUserTickerVolume(user3, ticker, 0.0);
+            engine.initializeUserBalance(user1, 0.0);
+            engine.initializeUserBalance(user2, 0.0);
+            engine.initializeUserBalance(user3, 0.0);
+            long orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 200.0, 1000.0, Side.BID, Status.ACTIVE));
+            assertEquals(1, orderId);
+            orderId = engine.askLimitOrder(user1, new Order(user1, ticker, 250.0, 1000.0, Side.BID, Status.ACTIVE));
+            assertEquals(2, orderId);
+
+            //User 2 will buy a market order and then user 3 will provide multiple levels to sell it at
+            double volumeFilled = engine.bidMarketOrder(user2, ticker, 1000.0);
+            assertEquals(1000.0, engine.getTickerBalance(user2, ticker));
+            assertEquals(-1000.0, engine.getTickerBalance(user1, ticker));
+            assertEquals(-1000.0 * 250.0, engine.getUserBalance(user2));
+            assertEquals(1000.0 * 250.0, engine.getUserBalance(user1));
+            assertEquals(250.0, engine.getPrice(ticker));
+            assertEquals(0.0, engine.getPnl(user1));
+            assertEquals(0.0, engine.getPnl(user2));
+
+            // User 3 will now insert orders
+            orderId = engine.bidLimitOrder(user3, new Order(user3, ticker, 235.0, 200.0, Side.BID, Status.ACTIVE));
+            assertEquals(3, orderId);
+            orderId = engine.bidLimitOrder(user3, new Order(user3, ticker, 240.0, 200.0, Side.BID, Status.ACTIVE));
+            assertEquals(4, orderId);
+
+            engine.askMarketOrder(user2, ticker, 400.0);
+            assertEquals(235.0, engine.getPrice(ticker));
+            assertEquals(400.0, engine.getTickerBalance(user3, ticker));
+            assertEquals(-235 * 200.0 - 240.0 * 200.0, engine.getUserBalance(user3));
+            assertEquals(-5.0 * 200.0, engine.getPnl(user3));
+            assertEquals(15.0 * 1000.0, engine.getPnl(user1));
+            assertEquals(-14.0 * 1000.0, engine.getPnl(user2));
+        }
+
+
     }

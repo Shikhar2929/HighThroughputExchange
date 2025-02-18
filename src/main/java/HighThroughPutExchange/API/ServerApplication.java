@@ -301,6 +301,22 @@ public class ServerApplication {
 
         return new ResponseEntity<>(new SetStateResponse(Message.SUCCESS.toString(), state.ordinal()), HttpStatus.OK);
     }
+    @CrossOrigin(origins="*")
+    @PostMapping("/set_price")
+    public ResponseEntity<SetPriceResponse> setPrice(@Valid @RequestBody SetPriceRequest form) {
+        if (!adminPageAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new SetPriceResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        }
+        TaskFuture<String> future = new TaskFuture<>();
+        TaskQueue.addTask(() -> {
+            matchingEngine.setPriceClearOrderBook(form.getPrices(), future);
+            future.markAsComplete();
+        });
+        future.waitForCompletion();
+        System.out.println(future.getData());
+        return new ResponseEntity<>(new SetPriceResponse(future.getData()), HttpStatus.OK);
+    }
+
 
     @CrossOrigin(origins = "*")
     @PostMapping("/get_leading_auction_bid")

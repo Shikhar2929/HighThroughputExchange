@@ -36,4 +36,11 @@ public class OrderBook {
         }
         return currentPrice;
     }
+    public void clearOrderBook() {
+        this.bidVolumes.clear();
+        this.askVolumes.clear();
+        this.asks.clear();
+        this.bids.clear();
+    }
+
 }
