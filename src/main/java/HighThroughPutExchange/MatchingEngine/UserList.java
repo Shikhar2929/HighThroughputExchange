@@ -7,6 +7,7 @@ import java.util.*;
 public class UserList {
     private Map<String, Double> userBalances = new HashMap<>(); // UserName -> Balance
     private Map<String, Map<String, Double>> quantities = new HashMap<>(); // Actual Amount Owned
+    private Map<String, Map<String, Double>> sumPrices = new HashMap<>();
     private Map<String, Map<String, Double>> bidSize = new HashMap<>();
     private Map<String, Map<String, Double>> askSize = new HashMap<>();
     private boolean infinite = false;
@@ -54,7 +55,10 @@ public class UserList {
             askSize.put(username, new HashMap<>());
         if (!bidSize.containsKey(username))
             bidSize.put(username, new HashMap<>());
+        if (!sumPrices.containsKey(username))
+            sumPrices.put(username, new HashMap<>());
         quantities.get(username).put(ticker, quantity);
+        sumPrices.get(username).put(ticker, 0.0);
         askSize.get(username).put(ticker, 0.0);
         bidSize.get(username).put(ticker, 0.0);
         return true;
@@ -102,14 +106,38 @@ public class UserList {
         userBalances.put(username, newBalance);
         return true;
     }
-    public boolean adjustUserTickerBalance(String username, String ticker, double delta) {
+    public boolean adjustUserTickerBalance(String username, String ticker, double delta, double price) {
         double currentBalance = getUserVolume(username, ticker);
         double newBalance = currentBalance + delta;
-        if (newBalance < 0 && !infinite) {
-            System.out.println("NEGATIVE AND NOT INFINITE");
-            return false;
-        }
+        System.out.printf("%s: %.2f %.2f\n", username, delta, price);
+        double currSum = sumPrices.get(username).get(ticker);
+        //System.out.println(currSum);
         if (!quantities.containsKey(username)) return false;
+        if (delta < 0 && currentBalance > 0 && Math.abs(currentBalance) > Math.abs(delta)) {
+            double oldPrice = currSum / currentBalance;
+            System.out.println(oldPrice);
+            currSum += oldPrice * delta;
+            sumPrices.get(username).put(ticker, currSum);
+        }
+        else if (delta > 0 && currentBalance < 0 && Math.abs(currentBalance) > Math.abs(delta)) {
+            double oldPrice = currSum / currentBalance;
+            currSum += oldPrice * delta;
+            sumPrices.get(username).put(ticker, currSum);
+        }
+        else if (delta < 0 && currentBalance >= 0 && Math.abs(currentBalance) <= Math.abs(delta)) {
+            currSum = (currentBalance + delta) * price;
+            System.out.printf("New Sum: %.2f\n", currSum);
+            sumPrices.get(username).put(ticker, currSum);
+        }
+        else if (delta > 0 && currentBalance <= 0 && Math.abs(currentBalance) <= Math.abs(delta)) {
+            currSum = (currentBalance + delta) * price;
+            System.out.printf("New Sum: %.2f\n", currSum);
+            sumPrices.get(username).put(ticker, currSum);
+        }
+        else {
+            currSum += delta * price;
+            sumPrices.get(username).put(ticker, currSum);
+        }
         quantities.get(username).put(ticker, newBalance);
         return true;
     }
@@ -152,7 +180,19 @@ public class UserList {
         userJson.put("pnl", getUnrealizedPnl(username, prices));
         // Add positions to JSON
         Map<String, Double> userPositions = quantities.getOrDefault(username, new HashMap<>());
-        JSONObject positionsJson = new JSONObject(userPositions);
+        JSONObject positionsJson = new JSONObject();
+        for (String ticker : quantities.getOrDefault(username, new HashMap<>()).keySet()) {
+            double quantity = quantities.get(username).getOrDefault(ticker, 0.0);
+            double sumPrice = sumPrices.getOrDefault(username, new HashMap<>()).getOrDefault(ticker, 0.0);
+            double avgPrice = quantity != 0.0 ? sumPrice / quantity : 0.0;
+
+            JSONObject tickerDetails = new JSONObject();
+            tickerDetails.put("quantity", quantity);
+            tickerDetails.put("averagePrice", avgPrice);
+
+            positionsJson.put(ticker, tickerDetails);
+        }
+        userJson.put("positions", positionsJson);
         userJson.put("positions", positionsJson);
 
         return userJson;
