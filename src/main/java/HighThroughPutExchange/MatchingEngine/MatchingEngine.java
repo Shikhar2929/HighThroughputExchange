@@ -443,6 +443,8 @@ public class MatchingEngine {
             }
         }
         System.out.printf("BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
+        String msg = String.format("SUCCESS! BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
+        Message e = Message.SUCCESS; e.setErrorMessage(msg);
         if (orderData.volume > 0) {
             orderData.price /= orderData.volume;
         }
@@ -460,12 +462,12 @@ public class MatchingEngine {
                 userOrders.put(order.name, new HashMap<>());
                 userOrders.get(order.name).put(orderID, order);
             }
-            return createLimitOrderResponse(orderData.price, orderData.volume, Message.SUCCESS, orderID);
+            return createLimitOrderResponse(orderData.price, orderData.volume, e, orderID);
         }
         else {
             order.status = Status.FILLED;
         }
-        return createLimitOrderResponse(orderData.price, orderData.volume, Message.SUCCESS, 0);
+        return createLimitOrderResponse(orderData.price, orderData.volume, e, 0);
     }
 
     public long bidLimitOrder(String name, Order order) {
@@ -498,6 +500,8 @@ public class MatchingEngine {
             }
         }
         System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
+        String msg = String.format("SUCCESS! ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %.2f\n", order.volume);
+        Message e = Message.SUCCESS; e.setErrorMessage(msg);
         if (orderData.volume > 0) {
             System.out.printf("Ask OrderData.price %f\n", orderData.price);
             orderData.price /= orderData.volume;
@@ -516,12 +520,12 @@ public class MatchingEngine {
                 userOrders.put(order.name, new HashMap<>());
                 userOrders.get(order.name).put(orderID, order);
             }
-            return createLimitOrderResponse(orderData.price, orderData.volume, Message.SUCCESS, orderID);
+            return createLimitOrderResponse(orderData.price, orderData.volume, e, orderID);
         }
         else {
             order.status = Status.FILLED;
         }
-        return createLimitOrderResponse(orderData.price, orderData.volume, Message.SUCCESS, 0);
+        return createLimitOrderResponse(orderData.price, orderData.volume, e, 0);
     }
 
 
