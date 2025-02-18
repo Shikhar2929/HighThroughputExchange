@@ -21,8 +21,12 @@ public enum Message {
         return errorMessage;
     }
 
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
     private final int errorCode;
-    private final String errorMessage;
+    private String errorMessage;
 
     Message(int errorCode, String errorMessage) {
         this.errorCode = errorCode;
