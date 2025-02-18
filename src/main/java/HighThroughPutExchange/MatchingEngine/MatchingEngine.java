@@ -352,8 +352,8 @@ public class MatchingEngine {
                 userList.adjustUserBalance(order.name, volumeTraded * order.price);
                 userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
 
-                userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
-                userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
+                userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
+                userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
                 //Update OrderBook to reflect new price of the ticker
                 setPrice(order.ticker, order.price);
                 order.volume = order.volume - aggressor.volume;
@@ -368,8 +368,8 @@ public class MatchingEngine {
                 userList.adjustUserBalance(order.name, volumeTraded * order.price);
                 userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
 
-                userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
-                userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
+                userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
+                userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
                 aggressor.volume = aggressor.volume - order.volume;
 
                 setPrice(order.ticker, order.price);
@@ -396,8 +396,8 @@ public class MatchingEngine {
                 userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
                 userList.adjustUserBalance(order.name, -volumeTraded * order.price);
 
-                userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
-                userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
+                userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
+                userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
                 setPrice(order.ticker, order.price);
                 //RecentTrades.addTrade(order.name, aggressor.name, order.ticker, order.price, volumeTraded);
                 order.volume = order.volume - aggressor.volume;
@@ -412,8 +412,8 @@ public class MatchingEngine {
                 userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
                 userList.adjustUserBalance(order.name, -volumeTraded * order.price);
 
-                userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
-                userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
+                userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
+                userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
                 setPrice(order.ticker, order.price);
                 aggressor.volume = aggressor.volume - order.volume;
                 order.volume = 0;
@@ -707,8 +707,8 @@ public class MatchingEngine {
                     userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, volumeTraded * order.price);
                     //Add volume to the aggressor's ticker balance, since it is buying
-                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
-                    userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
+                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
+                    userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
                     //Update the ask volume map and the ask if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
                 }
@@ -718,8 +718,8 @@ public class MatchingEngine {
                     userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, -volumeTraded * order.price);
                     //Remove volume from the aggressor's ticker balance and add to the order's balance
-                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
-                    userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
+                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
+                    userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
                     //Update the bid volume map and the bid if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
                     }
@@ -737,8 +737,8 @@ public class MatchingEngine {
 
                     userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, volumeTraded * order.price);
-                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded);
-                    userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded);
+                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
+                    userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
                 }
                 else {
@@ -746,8 +746,8 @@ public class MatchingEngine {
 
                     userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, -volumeTraded * order.price);
-                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded);
-                    userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded);
+                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
+                    userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
                 }
                 setPrice(order.ticker, tradePrice);
