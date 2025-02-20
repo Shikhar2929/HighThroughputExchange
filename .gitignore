@@ -10,5 +10,5 @@ target
 pom.xml
 *.pyc
 ec2
-data.json
+temp/data.json
 HighThroughputExchange-1.0-SNAPSHOT.jar
