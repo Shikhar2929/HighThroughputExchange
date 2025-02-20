@@ -80,14 +80,14 @@ public class SocketController {
         if (!allCurrentOHLC.isEmpty()) {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, Map<String, Double>> formattedChartData = new HashMap<>();
+                Map<String, Map<String, Integer>> formattedChartData = new HashMap<>();
 
                 for (Map.Entry<String, OHLCData> entry : allCurrentOHLC.entrySet()) {
                     String ticker = entry.getKey();
                     OHLCData ohlc = entry.getValue();
 
                     // Format OHLC data for each ticker
-                    Map<String, Double> ohlcMap = new HashMap<>();
+                    Map<String, Integer> ohlcMap = new HashMap<>();
                     ohlcMap.put("open", ohlc.open());
                     ohlcMap.put("high", ohlc.high());
                     ohlcMap.put("low", ohlc.low());

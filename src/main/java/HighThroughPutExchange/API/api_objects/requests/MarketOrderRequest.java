@@ -5,11 +5,11 @@ public class MarketOrderRequest extends BasePrivateRequest {
     @NotNull
     private String ticker;
     @NotNull
-    private double volume;
+    private int volume;
     @NotNull
     private boolean isBid;
 
-    public MarketOrderRequest(String username, String sessionToken, String ticker, double volume, boolean isBid) {
+    public MarketOrderRequest(String username, String sessionToken, String ticker, int volume, boolean isBid) {
         super(username, sessionToken);
         this.ticker = ticker;
         this.volume = Preprocessing.preprocessVolume(volume);
@@ -25,11 +25,11 @@ public class MarketOrderRequest extends BasePrivateRequest {
         this.ticker = ticker;
     }
 
-    public double getVolume() {
+    public int getVolume() {
         return volume;
     }
 
-    public void setVolume(double volume) {
+    public void setVolume(int volume) {
         this.volume = Preprocessing.preprocessVolume(volume);
     }
 }

@@ -1,27 +1,27 @@
 package HighThroughPutExchange.Auction;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 public class Auction {
-    private double bestBid;
+    private int bestBid;
     private String bestUser;
     private MatchingEngine matchingEngine;
     public Auction(MatchingEngine matchingEngine) {
-        bestBid = 0.0;
+        bestBid = 0;
         bestUser = "";
         this.matchingEngine = matchingEngine;
     }
     public void reset() {
-        bestBid = 0.0;
+        bestBid = 0;
         bestUser = "";
     }
 
-    public boolean isValid(String user, double bid) {
+    public boolean isValid(String user, int bid) {
         if (matchingEngine.getUserBalance(user) < bid) {
             return false;
         }
         return true;
     }
 
-    public boolean placeBid(String user, double bid) {
+    public boolean placeBid(String user, int bid) {
         if (!isValid(user, bid)) {
             return false;
         }
@@ -34,7 +34,7 @@ public class Auction {
 
     public String getBestUser() {return bestUser;}
 
-    public double getBestBid() {
+    public int getBestBid() {
         return bestBid;
     }
 

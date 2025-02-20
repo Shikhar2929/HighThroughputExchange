@@ -8,14 +8,14 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class RecentTrades {
 
-    private static final Map<TradeKey, Double> tradeMap = new ConcurrentHashMap<>();
+    private static final Map<TradeKey, Integer> tradeMap = new ConcurrentHashMap<>();
     private static long tradeCounter = 0;
 
     public RecentTrades() {
     }
 
     // Method to add a new trade to the queue
-    public static void addTrade(String ticker, double price, double volume, Side side) {
+    public static void addTrade(String ticker, int price, int volume, Side side) {
         tradeCounter++;
         TradeKey tradeKey = new TradeKey(ticker, price, side);
         tradeMap.put(tradeKey, volume);

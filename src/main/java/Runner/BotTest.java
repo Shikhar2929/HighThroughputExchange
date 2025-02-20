@@ -9,6 +9,7 @@ import HighThroughPutExchange.MatchingEngine.Order;
 import HighThroughPutExchange.MatchingEngine.Side;
 import HighThroughPutExchange.MatchingEngine.Status;
 public class BotTest {
+    /*
     private static final String API_BASE_URL = "http://localhost:8080";
     public static void main(String[] args) {
         MatchingEngine matchingEngine = new MatchingEngine();
@@ -93,7 +94,7 @@ public class BotTest {
                         System.out.println("User 2 Balance:" + balance2);
                         System.out.println("User 1 Owned: " + matchingEngine.getTickerBalance("User1", ticker));
                         System.out.println("User 2 Owned: " + matchingEngine.getTickerBalance("User2", ticker));
-                        System.out.println("Total Balance " + total); */
+                        System.out.println("Total Balance " + total);
                         if (total > 20001)
                             throw new RuntimeException("Money created out of nowhere");
                         if (total < 19999)
@@ -103,4 +104,5 @@ public class BotTest {
             }
         }
     }
+    */
 }

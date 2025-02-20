@@ -6,9 +6,9 @@ public class BotLimitOrderRequest extends BasePrivateRequest {
     @NotNull
     private String ticker;
     @NotNull
-    private double volume;
+    private int volume;
     @NotNull
-    private double price;
+    private int price;
     @NotNull
     private boolean isBid;
 
@@ -20,7 +20,7 @@ public class BotLimitOrderRequest extends BasePrivateRequest {
         isBid = bid;
     }
 
-    public BotLimitOrderRequest(String username, String sessionToken, String ticker, double volume, double price, boolean isBid) {
+    public BotLimitOrderRequest(String username, String sessionToken, String ticker, int volume, int price, boolean isBid) {
         super(username, sessionToken);
         this.ticker = ticker;
         this.volume = Preprocessing.botPreprocessVolume(volume);
@@ -36,19 +36,19 @@ public class BotLimitOrderRequest extends BasePrivateRequest {
         this.ticker = ticker;
     }
 
-    public double getVolume() {
+    public int getVolume() {
         return volume;
     }
 
-    public void setVolume(double volume) {
+    public void setVolume(int volume) {
         this.volume = Preprocessing.botPreprocessVolume(volume);
     }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(int price) {
         this.price = Preprocessing.preprocessPrice(price);
     }
 }

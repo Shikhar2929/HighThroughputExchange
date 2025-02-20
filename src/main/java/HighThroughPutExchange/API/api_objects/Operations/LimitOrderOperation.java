@@ -8,12 +8,12 @@ public class LimitOrderOperation extends Operation{
     @NotNull
     private String ticker;
     @NotNull
-    private double price;
+    private int price;
     @NotNull
-    private double volume;
+    private int volume;
     @NotNull
     private boolean isBid;
-    public LimitOrderOperation(String ticker, double price, double volume, boolean isBid) {
+    public LimitOrderOperation(String ticker, int price, int volume, boolean isBid) {
         super("limit_order");
         this.ticker = ticker;
         this.price = Preprocessing.preprocessPrice(price);
@@ -28,18 +28,18 @@ public class LimitOrderOperation extends Operation{
     public void setTicker(String ticker) {
         this.ticker = ticker;
     }
-    public double getVolume() {
+    public int getVolume() {
         return volume;
     }
-    public void setVolume(double volume) {
+    public void setVolume(int volume) {
         this.volume = volume;
     }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(int price) {
         this.price = price;
     }
 

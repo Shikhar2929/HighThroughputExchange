@@ -18,7 +18,7 @@ public class ChartTrackerSingleton {
         }
         return instance;
     }
-    public synchronized void updatePrice(String ticker, double price) {
+    public synchronized void updatePrice(String ticker, int price) {
         tickerDataMap.computeIfAbsent(ticker, k -> new TickerData()).updatePrice(price);
     }
     public synchronized void resetAll() {

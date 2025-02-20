@@ -4,8 +4,8 @@ import random
 import time
 
 #URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
-#URL = 'http://localhost:8080'
-URL = 'http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080'
+URL = 'http://localhost:8080'
+#URL = 'http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080'
 
 # Admin creates multiple users (bots)
 def create_bot(username, name, email):

@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TickerData {
-    private double open;
-    private double high;
-    private double low;
-    private double close;
+    private int open;
+    private int high;
+    private int low;
+    private int close;
     private boolean firstTrade = true;
     private final List<OHLCData> historicalData = new ArrayList<>();
 
-    public void updatePrice(double price) {
+    public void updatePrice(int price) {
         if (firstTrade) {
             open = price;
             high = price;
@@ -27,10 +27,10 @@ public class TickerData {
         if (!firstTrade) {
             historicalData.add(new OHLCData(open, high, low, close));
         }
-        open = 0.0;
-        high = 0.0;
-        low = Double.MAX_VALUE;
-        close = 0.0;
+        open = 0;
+        high = 0;
+        low = 0;
+        close = 0;
         firstTrade = true;
     }
 

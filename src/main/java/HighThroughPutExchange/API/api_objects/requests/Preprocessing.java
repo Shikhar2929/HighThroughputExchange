@@ -2,23 +2,23 @@ package HighThroughPutExchange.API.api_objects.requests;
 
 public class Preprocessing {
 
-    public static final double MAX_PRICE = 10000;
-    public static final double MIN_PRICE = 0;
-    public static final double MAX_VOLUME = 10000;
-    public static final double MIN_VOLUME = -10000;
+    public static final int MAX_PRICE = 10000;
+    public static final int MIN_PRICE = 0;
+    public static final int MAX_VOLUME = 10000;
+    public static final int MIN_VOLUME = -10000;
 
-    public static double truncate(double x) {
-        return ((double) ((int) (x * 100))) / 100;
+    public static int truncate(int x) {
+        return ((int) ((int) (x * 100))) / 100;
     }
-    public static double preprocessPrice(double price) {
+    public static int preprocessPrice(int price) {
         //return price;//
         return Math.min(MAX_PRICE, Math.max(MIN_PRICE, truncate(price)));
     }
-    public static double preprocessVolume(double volume) {
+    public static int preprocessVolume(int volume) {
         return Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, truncate(volume)));
         //return volume;
     }
-    public static double botPreprocessVolume(double volume) {
-        return Math.max(truncate(volume), 0.0);
+    public static int botPreprocessVolume(int volume) {
+        return Math.max(truncate(volume), 0);
     }
 }
