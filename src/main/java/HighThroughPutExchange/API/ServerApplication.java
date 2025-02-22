@@ -785,13 +785,17 @@ public class ServerApplication {
         }
 
         if (!auction.isValid(form.getUsername(), form.getBid())) {
-            return new ResponseEntity<>(new BidAuctionResponse("Bid amount cannot exceed balance."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new BidAuctionResponse(
+                    String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.BAD_INPUT.getErrorCode(), String.format("Bad Input! Bid amount cannot exceed %d.", auction.getMaxBid()))
+            ), HttpStatus.BAD_REQUEST);
         }
 
         TaskQueue.addTask(() -> {
             auction.placeBid(form.getUsername(), form.getBid());
         });
 
-        return new ResponseEntity<>(new BidAuctionResponse(Message.SUCCESS.toString()), HttpStatus.OK);
+        return new ResponseEntity<>(new BidAuctionResponse(
+                String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(), String.format("Success! Placed auction bid for %d.", form.getBid()))
+        ), HttpStatus.OK);
     }
 }
