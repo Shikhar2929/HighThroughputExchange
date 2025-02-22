@@ -124,3 +124,14 @@ Content-Type: application/json
   "adminPassword": "abcxyz",
   "targetState": 1
 }
+
+
+### Settling
+POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/set_price
+Content-Type: application/json
+
+{
+  "adminUsername": "trading_club_admin",
+  "adminPassword": "abcxyz",
+  "prices": {"A": 3, "B": 4, "C": 5}
+}
