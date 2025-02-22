@@ -200,7 +200,19 @@ public class UserList {
     public int getUnrealizedPnl(String username, Map<String, Integer> prices) {
         int pnl = getUserBalance(username);
         for (Map.Entry<String, Integer> entry : prices.entrySet()) {
-            pnl += quantities.get(username).get(entry.getKey()) * entry.getValue();
+            try {
+                pnl += quantities.get(username).get(entry.getKey()) * entry.getValue();
+            }
+            catch (Exception e){
+                if (!quantities.containsKey(username)) {
+                    System.out.println("username not found");
+                }
+                else if (!quantities.get(username).containsKey(entry.getKey())) {
+                    System.out.println("Weird as fuck");
+                }
+                else
+                    System.out.println("Java lowkey gayer than Devam");
+            }
         }
         return pnl;
     }

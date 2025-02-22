@@ -24,7 +24,7 @@ public class PrivatePageAuthenticator {
 
         Session s = sessions.getItem(req.getUsername());
         // if username and api key mismatch
-        if (!s.getSessionToken().equals(req.getSessionToken())) {
+        if (!s.getSessionToken().equals(req.getSessionToken()) && !s.getSessionToken2().equals(req.getSessionToken())) {
             return false;
         }
 
