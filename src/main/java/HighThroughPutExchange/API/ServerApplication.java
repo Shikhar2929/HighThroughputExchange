@@ -792,6 +792,8 @@ public class ServerApplication {
             auction.placeBid(form.getUsername(), form.getBid());
         });
 
-        return new ResponseEntity<>(new BidAuctionResponse(Message.SUCCESS.toString()), HttpStatus.OK);
+        return new ResponseEntity<>(new BidAuctionResponse(
+                String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(), String.format("Success! Placed auction bid for %d.", form.getBid()))
+        ), HttpStatus.OK);
     }
 }
