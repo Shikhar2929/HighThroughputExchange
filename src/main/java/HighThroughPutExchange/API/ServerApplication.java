@@ -488,7 +488,7 @@ public class ServerApplication {
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
                     form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-            System.out.println("Adding Limit Order");
+            //System.out.println("Adding Limit Order");
             if (form.getBid())
                 matchingEngine.bidLimitOrder(form.getUsername(), order, future);
             else
@@ -512,7 +512,7 @@ public class ServerApplication {
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
                     form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-            System.out.println("Adding Limit Order");
+            //System.out.println("Adding Limit Order");
             if (form.getBid())
                 matchingEngine.bidLimitOrder(form.getUsername(), order, future);
             else
@@ -585,8 +585,8 @@ public class ServerApplication {
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        System.out.println("Removing Order");
-        System.out.println(form.getOrderID());
+        //System.out.println("Removing Order");
+        //System.out.println(form.getOrderID());
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
@@ -608,8 +608,8 @@ public class ServerApplication {
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        System.out.println("Removing Order");
-        System.out.println(form.getOrderID());
+        //System.out.println("Removing Order");
+        //System.out.println(form.getOrderID());
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
@@ -634,7 +634,7 @@ public class ServerApplication {
         }
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
-            System.out.println("Adding Market Order: " + form);
+            //System.out.println("Adding Market Order: " + form);
             if (form.getBid())
                 matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
             else
@@ -657,7 +657,7 @@ public class ServerApplication {
         }
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
-            System.out.println("Adding Market Order: " + form);
+            //System.out.println("Adding Market Order: " + form);
             if (form.getBid())
                 matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
             else
@@ -689,14 +689,14 @@ public class ServerApplication {
             TaskFuture<String> future = new TaskFuture<>();
             futures.add(future);
             responses.add(new OperationResponse(operation.getType(), null));
-            System.out.println(operation.toString());
+            //System.out.println(operation.toString());
             switch (operation.getType()) {
                 case "limit_order":
                     LimitOrderOperation limitOrderOperation = (LimitOrderOperation) operation;
                     temporaryTaskQueue.add(() -> {
                         Order order = new Order(form.getUsername(), limitOrderOperation.getTicker(), limitOrderOperation.getPrice(),
                                 limitOrderOperation.getVolume(), limitOrderOperation.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-                        System.out.println("Batch - Adding Limit Order");
+                        //System.out.println("Batch - Adding Limit Order");
                         if (limitOrderOperation.getBid())
                             matchingEngine.bidLimitOrder(form.getUsername(), order, future);
                         else
@@ -707,7 +707,7 @@ public class ServerApplication {
                 case "market_order":
                     MarketOrderOperation marketOrderOperation = (MarketOrderOperation) operation;
                     temporaryTaskQueue.add(() -> {
-                        System.out.println("Batch - Adding Market Order");
+                        //System.out.println("Batch - Adding Market Order");
                         if (marketOrderOperation.getBid()) {
                             matchingEngine.bidMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
                         }
@@ -719,7 +719,7 @@ public class ServerApplication {
                 case "remove":
                     RemoveOperation removeOperation = (RemoveOperation) operation;
                     temporaryTaskQueue.add(() -> {
-                        System.out.println("Batch - Remove Processing");
+                        //System.out.println("Batch - Remove Processing");
                         matchingEngine.removeOrder(form.getUsername(), removeOperation.getOrderId(), future);
                         future.markAsComplete();
                     });
@@ -727,7 +727,7 @@ public class ServerApplication {
                 case "remove_all":
                     RemoveAllOperation removeAllOperation = (RemoveAllOperation) operation;
                     temporaryTaskQueue.add(() -> {
-                        System.out.println("Batch - Remove All");
+                        //System.out.println("Batch - Remove All");
                         matchingEngine.removeAll(form.getUsername(), future);
                         future.markAsComplete();
                     });
@@ -744,16 +744,16 @@ public class ServerApplication {
         for (Runnable task : temporaryTaskQueue) {
             TaskQueue.addTask(task);
         }
-        System.out.println("Batch Tasks Added to the Queue Successfully!");
+        //System.out.println("Batch Tasks Added to the Queue Successfully!");
         for (int i = 0; i < futures.size(); i++) {
             TaskFuture<String> future = futures.get(i);
             future.waitForCompletion();
             String message = future.getData();
-            System.out.printf("Batch %d Message: %s\n", i, message);
+            //System.out.printf("Batch %d Message: %s\n", i, message);
             OperationResponse response = responses.get(i);
             response.setMessage(future.getData());
         }
-        System.out.println("All Messages Received From Batch Tasks, Returning!");
+        //System.out.println("All Messages Received From Batch Tasks, Returning!");
         return new ResponseEntity<>(new BatchResponse("SUCCESS", responses), HttpStatus.OK);
 
     }

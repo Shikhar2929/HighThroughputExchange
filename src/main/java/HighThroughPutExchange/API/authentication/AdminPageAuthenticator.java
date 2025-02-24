@@ -6,7 +6,7 @@ public class AdminPageAuthenticator {
     // todo read values from env variables
     private static AdminPageAuthenticator instance;
     private final String adminUsername = "trading_club_admin";
-    private final String adminPassword = "abcxyz";
+    private final String adminPassword = "ZY3yoQL5v8MahcmcWBnG";
 
     private AdminPageAuthenticator() {}
 

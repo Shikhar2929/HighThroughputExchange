@@ -4,7 +4,7 @@ public class Auction {
     private int bestBid;
     private String bestUser;
     private MatchingEngine matchingEngine;
-    private final int MAX_BID = 3000;
+    private final int MAX_BID = 100000;
     public int getMaxBid() {
         return MAX_BID;
     }
@@ -26,9 +26,6 @@ public class Auction {
     }
 
     public boolean placeBid(String user, int bid) {
-        if (!isValid(user, bid)) {
-            return false;
-        }
         if (bid > bestBid) {
             bestBid = bid;
             bestUser = user;

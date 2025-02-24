@@ -4,13 +4,13 @@ import random
 import time
 
 #URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
-URL = 'http://localhost:8080'
-#URL = 'http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080'
+#URL = 'http://localhost:8080'
+URL = 'http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080'
 default = 0
 def create_user(username, name, email):
     form_data = {
         'adminUsername': 'trading_club_admin',
-        'adminPassword': 'abcxyz',
+        'adminPassword': 'ZY3yoQL5v8MahcmcWBnG',
         'username': username,
         'name': name,
         'email': email
@@ -43,7 +43,7 @@ def teardown(username, session_token):
 def set_state(target_state):
     form_data = {
         'adminUsername': 'trading_club_admin',
-        'adminPassword': 'abcxyz',
+        'adminPassword': 'ZY3yoQL5v8MahcmcWBnG',
         'targetState': target_state
     }
     req = urllib.request.Request(URL + '/set_state', data=json.dumps(form_data).encode('utf-8'), method='POST')
@@ -52,4 +52,4 @@ def set_state(target_state):
 
 if __name__ == "__main__":
     #print(create_random_users())
-    print(set_state(1))  # Example usage of set_state
+    print(set_state(2))  # Example usage of set_state

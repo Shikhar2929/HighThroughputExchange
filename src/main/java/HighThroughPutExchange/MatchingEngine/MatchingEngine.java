@@ -89,9 +89,9 @@ public class MatchingEngine {
         return userList.initializeUserQuantity(username, ticker, volume);
     }
     public int getUserBalance(String username) {
-        return userList.getUserBalance(username);
+        return (int) userList.getUserBalance(username);
     }
-    public int getPnl(String username) {
+    public long getPnl(String username) {
         return userList.getUnrealizedPnl(username, latestPrice);
     }
     public ArrayList getRecentTrades() {
@@ -230,8 +230,10 @@ public class MatchingEngine {
     }
     public void setPriceClearOrderBook(Map<String, Integer> updatedPrices, TaskFuture<String> future) {
         for (String ticker : updatedPrices.keySet()) {
+            System.out.println(ticker);
             if (!orderBooks.containsKey(ticker)) {
                 future.setData("BAD TICKER");
+                return;
             }
         }
         for (Map.Entry<String, Integer> entry : updatedPrices.entrySet()) {
@@ -442,7 +444,7 @@ public class MatchingEngine {
                 asks.pollFirstEntry();
             }
         }
-        System.out.printf("BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
+        //System.out.printf("BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
         String msg = String.format("SUCCESS! BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
         if (orderData.volume > 0) {
             orderData.price /= orderData.volume;
@@ -498,7 +500,7 @@ public class MatchingEngine {
                 bids.pollLastEntry();
             }
         }
-        System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
+        //System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
         String msg = String.format("SUCCESS! ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
         if (orderData.volume > 0) {
             orderData.price /= orderData.volume;
@@ -752,7 +754,7 @@ public class MatchingEngine {
     }
     public Map<String, Object> bidMarketOrderHandler(String name, String ticker, int volume) {
         if (!userList.validUser(name) && !bots.containsKey(name)) {
-            System.out.println("Invalid");
+            //System.out.println("Invalid");
             return createMarketOrderResponse(0.0, 0, Message.AUTHENTICATION_FAILED);
         }
         OrderData orderData = new OrderData();

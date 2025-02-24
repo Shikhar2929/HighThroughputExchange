@@ -2,10 +2,10 @@ package HighThroughPutExchange.API.api_objects.requests;
 
 public class Preprocessing {
 
-    public static final int MAX_PRICE = 10000;
+    public static final int MAX_PRICE = 3000;
     public static final int MIN_PRICE = 0;
-    public static final int MAX_VOLUME = 10000;
-    public static final int MIN_VOLUME = -10000;
+    public static final int MAX_VOLUME = 1000;
+    public static final int MIN_VOLUME = 0;
 
     public static int truncate(int x) {
         return ((int) ((int) (x * 100))) / 100;

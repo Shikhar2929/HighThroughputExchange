@@ -1,8 +1,16 @@
 {
   "bots" : {
     "name" : "bots",
-    "backing" : { },
-    "allKeys" : [ ]
+    "backing" : {
+      "tradingbot1" : {
+        "username" : "tradingbot1",
+        "name" : "",
+        "apiKey" : "PRDXTXSRQQZHNSFH",
+        "apiKey2": "PRDXTXSRQQZHNSFH",
+        "email" : ""
+      }
+    },
+    "allKeys" : [ "tradingbot1" ]
   },
   "sessions" : {
     "name" : "sessions",

@@ -5,7 +5,7 @@ import org.json.JSONObject;
 import java.util.*;
 
 public class UserList {
-    private Map<String, Integer> userBalances = new HashMap<>(); // UserName -> Balance
+    private Map<String, Long> userBalances = new HashMap<>(); // UserName -> Balance
     private Map<String, Map<String, Integer>> quantities = new HashMap<>(); // Actual Amount Owned
     private Map<String, Map<String, Double>> sumPrices = new HashMap<>();
     private Map<String, Map<String, Integer>> bidSize = new HashMap<>();
@@ -21,8 +21,8 @@ public class UserList {
     }
 
 
-    public int getUserBalance(String username) {
-        return userBalances.getOrDefault(username, 0);
+    public long getUserBalance(String username) {
+        return userBalances.getOrDefault(username, (long) 0);
     }
     public int getUserVolume(String username, String ticker) {
         if (!quantities.containsKey(username)) return 0;
@@ -35,7 +35,7 @@ public class UserList {
         //Initialize User for infinite balance case
         System.out.println("Initializing...");
         if (userBalances.containsKey(username) || !infinite) return false;
-        userBalances.put(username, 0);
+        userBalances.put(username, (long) 0);
         return true;
     }
     /*
@@ -44,7 +44,7 @@ public class UserList {
     public boolean initializeUser(String username, int balance) {
         if (infinite) return initializeUser(username);
         if (userBalances.containsKey(username)) return false;
-        userBalances.put(username, balance);
+        userBalances.put(username, (long) balance);
         return true;
     }
     public boolean initializeUserQuantity(String username, String ticker, int quantity) {
@@ -76,12 +76,9 @@ public class UserList {
     public int getValidBidVolume(String username, String ticker, int price) {
         if (infinite) {
             int returnVal = positionLimit - getUserVolume(username, ticker) - bidSize.get(username).getOrDefault(ticker, 0);
-            System.out.printf("Return Value: %d\n", returnVal);
-            System.out.printf("Volume: %d\n", getUserVolume(username, ticker));
-            System.out.printf("Bid Size %d\n", bidSize.get(username).getOrDefault(ticker, 0));
             return returnVal;
         }
-        int currentBalance = getUserBalance(username);
+        int currentBalance = (int) getUserBalance(username);
         if (price != 0.0)
             return currentBalance / price;
         else
@@ -97,8 +94,8 @@ public class UserList {
         return getUserVolume(username, ticker);
     }
     public boolean adjustUserBalance(String username, int delta) {
-        int currentBalance = getUserBalance(username);
-        int newBalance = currentBalance + delta;
+        long currentBalance = getUserBalance(username);
+        long newBalance = currentBalance + delta;
         if (newBalance < 0 && !infinite) {
             System.out.println("NEGATIVE AND NOT INFINITE");
             return false;
@@ -109,13 +106,13 @@ public class UserList {
     public boolean adjustUserTickerBalance(String username, String ticker, int delta, int price) {
         int currentBalance = getUserVolume(username, ticker);
         int newBalance = currentBalance + delta;
-        System.out.printf("%s: %d %d\n", username, delta, price);
+        //System.out.printf("%s: %d %d\n", username, delta, price);
         double currSum = sumPrices.get(username).get(ticker);
         //System.out.println(currSum);
         if (!quantities.containsKey(username)) return false;
         if (delta < 0 && currentBalance > 0 && Math.abs(currentBalance) > Math.abs(delta)) {
             double oldPrice = currSum / currentBalance;
-            System.out.println(oldPrice);
+            //System.out.println(oldPrice);
             currSum += oldPrice * delta;
             sumPrices.get(username).put(ticker, currSum);
         }
@@ -126,12 +123,12 @@ public class UserList {
         }
         else if (delta < 0 && currentBalance >= 0 && Math.abs(currentBalance) <= Math.abs(delta)) {
             currSum = (currentBalance + delta) * price;
-            System.out.printf("New Sum: %.2f\n", currSum);
+            //System.out.printf("New Sum: %.2f\n", currSum);
             sumPrices.get(username).put(ticker, currSum);
         }
         else if (delta > 0 && currentBalance <= 0 && Math.abs(currentBalance) <= Math.abs(delta)) {
             currSum = (currentBalance + delta) * price;
-            System.out.printf("New Sum: %.2f\n", currSum);
+            //System.out.printf("New Sum: %.2f\n", currSum);
             sumPrices.get(username).put(ticker, currSum);
         }
         else {
@@ -174,7 +171,7 @@ public class UserList {
         }
 
         // Add balance to JSON
-        int balance = getUserBalance(username);
+        long balance = getUserBalance(username);
         userJson.put("username", username);
         userJson.put("balance", balance);
         userJson.put("pnl", getUnrealizedPnl(username, prices));
@@ -197,8 +194,8 @@ public class UserList {
 
         return userJson;
     }
-    public int getUnrealizedPnl(String username, Map<String, Integer> prices) {
-        int pnl = getUserBalance(username);
+    public long getUnrealizedPnl(String username, Map<String, Integer> prices) {
+        long pnl = getUserBalance(username);
         for (Map.Entry<String, Integer> entry : prices.entrySet()) {
             try {
                 pnl += quantities.get(username).get(entry.getKey()) * entry.getValue();
@@ -208,10 +205,10 @@ public class UserList {
                     System.out.println("username not found");
                 }
                 else if (!quantities.get(username).containsKey(entry.getKey())) {
-                    System.out.println("Weird as fuck");
+                    System.out.println("Weird Ticker Not Found");
                 }
                 else
-                    System.out.println("Java lowkey gayer than Devam");
+                    System.out.println("Weird Exception");
             }
         }
         return pnl;
