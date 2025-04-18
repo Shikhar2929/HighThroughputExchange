@@ -3,9 +3,8 @@ import urllib.request
 import random
 import time
 
-#URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
-URL = 'http://localhost:8080'
-#URL = 'http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080'
+#URL = 'http://localhost:8080'
+URL = 'http://ec2-18-220-60-154.us-east-2.compute.amazonaws.com:8080'
 default = 0
 def create_user(username, name, email):
     form_data = {
@@ -53,3 +52,4 @@ def set_state(target_state):
 if __name__ == "__main__":
     #print(create_random_users())
     print(set_state(1))  # Example usage of set_state
+
