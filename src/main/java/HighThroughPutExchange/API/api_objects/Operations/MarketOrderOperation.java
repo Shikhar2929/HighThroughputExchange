@@ -7,13 +7,13 @@ public class MarketOrderOperation extends Operation{
     @NotNull
     private String ticker;
     @NotNull
-    private double volume;
+    private int volume;
     @NotNull
     private boolean isBid;
-    public MarketOrderOperation(String type, String ticker, double volume, boolean isBid) {
+    public MarketOrderOperation(String type, String ticker, int volume, boolean isBid) {
         super("market_order");
         this.ticker = ticker;
-        this.volume = Preprocessing.preprocessVolume(volume);
+        this.volume = Preprocessing.botPreprocessVolume(volume);
         this.isBid = isBid;
     }
 
@@ -24,10 +24,10 @@ public class MarketOrderOperation extends Operation{
     public void setTicker(String ticker) {
         this.ticker = ticker;
     }
-    public double getVolume() {
+    public int getVolume() {
         return volume;
     }
-    public void setVolume(double volume) {
+    public void setVolume(int volume) {
         this.volume = volume;
     }
 

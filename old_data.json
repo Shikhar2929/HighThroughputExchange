@@ -1,0 +1,646 @@
+{
+  "sessions" : {
+    "name" : "sessions",
+    "backing" : {
+      "tradingbot1" : {
+        "sessionToken" : "DCQQWGOOJXHUBDRV",
+        "username" : "tradingbot1"
+      }
+    },
+    "allKeys" : [ "tradingbot1" ]
+  },
+  "bots" : {
+    "name" : "bots",
+    "backing" : {
+      "tradingbot1" : {
+        "username" : "tradingbot1",
+        "name" : "",
+        "apiKey" : "PRDXTXSRQQZHNSFH",
+        "email" : ""
+      }
+    },
+    "allKeys" : [ "tradingbot1" ]
+  },
+  "botSessions" : {
+    "name" : "botSessions",
+    "backing" : {
+      "tradingbot1" : {
+        "sessionToken" : "DCQQWGOOJXHUBDRV",
+        "username" : "tradingbot1"
+      }
+    },
+    "allKeys" : [ "tradingbot1" ]
+  },
+  "users" : {
+    "name" : "users",
+    "backing" : {
+      "team49" : {
+        "username" : "team49",
+        "name" : "Team 49",
+        "apiKey" : "XZNYTFQAITSJYCDP",
+        "email" : "team@team.team"
+      },
+      "team48" : {
+        "username" : "team48",
+        "name" : "Team 48",
+        "apiKey" : "TQDYWSEHLCSRLJCZ",
+        "email" : "team@team.team"
+      },
+      "team47" : {
+        "username" : "team47",
+        "name" : "Team 47",
+        "apiKey" : "TJLUXLPVIENYSZEP",
+        "email" : "team@team.team"
+      },
+      "team57" : {
+        "username" : "team57",
+        "name" : "Team 57",
+        "apiKey" : "VOKHEKMCMIYPHJXA",
+        "email" : "team@team.team"
+      },
+      "team56" : {
+        "username" : "team56",
+        "name" : "Team 56",
+        "apiKey" : "DIVYADOPZQHRIPDL",
+        "email" : "team@team.team"
+      },
+      "team55" : {
+        "username" : "team55",
+        "name" : "Team 55",
+        "apiKey" : "LAZBUDXXTMUNTARQ",
+        "email" : "team@team.team"
+      },
+      "team54" : {
+        "username" : "team54",
+        "name" : "Team 54",
+        "apiKey" : "UARVANSDTSYMNAGH",
+        "email" : "team@team.team"
+      },
+      "team53" : {
+        "username" : "team53",
+        "name" : "Team 53",
+        "apiKey" : "NLBVVGNFTGPIBYHK",
+        "email" : "team@team.team"
+      },
+      "team52" : {
+        "username" : "team52",
+        "name" : "Team 52",
+        "apiKey" : "VIWKNEGQAOOXLBTT",
+        "email" : "team@team.team"
+      },
+      "team51" : {
+        "username" : "team51",
+        "name" : "Team 51",
+        "apiKey" : "ZKMBMATGGMCCEQBX",
+        "email" : "team@team.team"
+      },
+      "team50" : {
+        "username" : "team50",
+        "name" : "Team 50",
+        "apiKey" : "UDCZGFAUBKXVIXIG",
+        "email" : "team@team.team"
+      },
+      "team39" : {
+        "username" : "team39",
+        "name" : "Team 39",
+        "apiKey" : "NEKODASQXJZKJMCS",
+        "email" : "team@team.team"
+      },
+      "team38" : {
+        "username" : "team38",
+        "name" : "Team 38",
+        "apiKey" : "TWSCKWDGJETRRXBH",
+        "email" : "team@team.team"
+      },
+      "team37" : {
+        "username" : "team37",
+        "name" : "Team 37",
+        "apiKey" : "KGLJXKDUAFRBWBYJ",
+        "email" : "team@team.team"
+      },
+      "team36" : {
+        "username" : "team36",
+        "name" : "Team 36",
+        "apiKey" : "BYUKGKAHILVZIAOU",
+        "email" : "team@team.team"
+      },
+      "team46" : {
+        "username" : "team46",
+        "name" : "Team 46",
+        "apiKey" : "MQVSTCSGLROPOAVI",
+        "email" : "team@team.team"
+      },
+      "team45" : {
+        "username" : "team45",
+        "name" : "Team 45",
+        "apiKey" : "ANAUTKOAHEPVPNUL",
+        "email" : "team@team.team"
+      },
+      "team44" : {
+        "username" : "team44",
+        "name" : "Team 44",
+        "apiKey" : "KTLGCMZIERNCSGAM",
+        "email" : "team@team.team"
+      },
+      "team43" : {
+        "username" : "team43",
+        "name" : "Team 43",
+        "apiKey" : "CGOYJPCFKAUEWZRR",
+        "email" : "team@team.team"
+      },
+      "team42" : {
+        "username" : "team42",
+        "name" : "Team 42",
+        "apiKey" : "KICLFTRURHSTIVSK",
+        "email" : "team@team.team"
+      },
+      "team41" : {
+        "username" : "team41",
+        "name" : "Team 41",
+        "apiKey" : "IPAJFDXKWAHYOXPD",
+        "email" : "team@team.team"
+      },
+      "team40" : {
+        "username" : "team40",
+        "name" : "Team 40",
+        "apiKey" : "FFRDDDTBGFPGHMFS",
+        "email" : "team@team.team"
+      },
+      "team69" : {
+        "username" : "team69",
+        "name" : "Team 69",
+        "apiKey" : "DRVPCCNKLHCEOEMS",
+        "email" : "team@team.team"
+      },
+      "team79" : {
+        "username" : "team79",
+        "name" : "Team 79",
+        "apiKey" : "MJZEXKZORJUVNFFE",
+        "email" : "team@team.team"
+      },
+      "team78" : {
+        "username" : "team78",
+        "name" : "Team 78",
+        "apiKey" : "GFNAWPVCEPLTDJIJ",
+        "email" : "team@team.team"
+      },
+      "team77" : {
+        "username" : "team77",
+        "name" : "Team 77",
+        "apiKey" : "NJMIKNEEDDBPYOCB",
+        "email" : "team@team.team"
+      },
+      "team76" : {
+        "username" : "team76",
+        "name" : "Team 76",
+        "apiKey" : "NDALJSBTLPHGRVNJ",
+        "email" : "team@team.team"
+      },
+      "team75" : {
+        "username" : "team75",
+        "name" : "Team 75",
+        "apiKey" : "FFOMJJXUQNDUAPGC",
+        "email" : "team@team.team"
+      },
+      "team74" : {
+        "username" : "team74",
+        "name" : "Team 74",
+        "apiKey" : "DCKSYJXQPYFSAJCK",
+        "email" : "team@team.team"
+      },
+      "team73" : {
+        "username" : "team73",
+        "name" : "Team 73",
+        "apiKey" : "LKANRUJVRYBMMNJF",
+        "email" : "team@team.team"
+      },
+      "team72" : {
+        "username" : "team72",
+        "name" : "Team 72",
+        "apiKey" : "ZPNJXTHRICCGFEAS",
+        "email" : "team@team.team"
+      },
+      "team71" : {
+        "username" : "team71",
+        "name" : "Team 71",
+        "apiKey" : "OLZPJFPWWYXRMVPI",
+        "email" : "team@team.team"
+      },
+      "team70" : {
+        "username" : "team70",
+        "name" : "Team 70",
+        "apiKey" : "CCKMYEWLQVMYAHRV",
+        "email" : "team@team.team"
+      },
+      "team59" : {
+        "username" : "team59",
+        "name" : "Team 59",
+        "apiKey" : "NPXNXSEYREZWPYLJ",
+        "email" : "team@team.team"
+      },
+      "team58" : {
+        "username" : "team58",
+        "name" : "Team 58",
+        "apiKey" : "BUWPZCHPZSJZISMP",
+        "email" : "team@team.team"
+      },
+      "team68" : {
+        "username" : "team68",
+        "name" : "Team 68",
+        "apiKey" : "ANLYYRRQOSLKTUYD",
+        "email" : "team@team.team"
+      },
+      "team67" : {
+        "username" : "team67",
+        "name" : "Team 67",
+        "apiKey" : "TFBDYOGWRFASJWRY",
+        "email" : "team@team.team"
+      },
+      "team66" : {
+        "username" : "team66",
+        "name" : "Team 66",
+        "apiKey" : "FXDFNQZOODRLJDWV",
+        "email" : "team@team.team"
+      },
+      "team65" : {
+        "username" : "team65",
+        "name" : "Team 65",
+        "apiKey" : "ENHVEGNZTUANYDJL",
+        "email" : "team@team.team"
+      },
+      "team64" : {
+        "username" : "team64",
+        "name" : "Team 64",
+        "apiKey" : "UITYMALEUKHFPXMX",
+        "email" : "team@team.team"
+      },
+      "team63" : {
+        "username" : "team63",
+        "name" : "Team 63",
+        "apiKey" : "ROXUQMLGTTFSXMMJ",
+        "email" : "team@team.team"
+      },
+      "team62" : {
+        "username" : "team62",
+        "name" : "Team 62",
+        "apiKey" : "PAJIUHKJWYDJQUWN",
+        "email" : "team@team.team"
+      },
+      "team61" : {
+        "username" : "team61",
+        "name" : "Team 61",
+        "apiKey" : "QXMGBPPZANCLKDNL",
+        "email" : "team@team.team"
+      },
+      "team60" : {
+        "username" : "team60",
+        "name" : "Team 60",
+        "apiKey" : "HUDDLLSDUBETSVKV",
+        "email" : "team@team.team"
+      },
+      "team13" : {
+        "username" : "team13",
+        "name" : "Team 13",
+        "apiKey" : "XAGDRZNWBLJLGDHS",
+        "email" : "team@team.team"
+      },
+      "team12" : {
+        "username" : "team12",
+        "name" : "Team 12",
+        "apiKey" : "JWTXSJGSPVSZSZDD",
+        "email" : "team@team.team"
+      },
+      "team11" : {
+        "username" : "team11",
+        "name" : "Team 11",
+        "apiKey" : "MMCCAEGAMUSDILZT",
+        "email" : "team@team.team"
+      },
+      "team99" : {
+        "username" : "team99",
+        "name" : "Team 99",
+        "apiKey" : "XPVLFSMBZVYHNDWG",
+        "email" : "team@team.team"
+      },
+      "team10" : {
+        "username" : "team10",
+        "name" : "Team 10",
+        "apiKey" : "AKQGCAAJUXJQGTWY",
+        "email" : "team@team.team"
+      },
+      "team98" : {
+        "username" : "team98",
+        "name" : "Team 98",
+        "apiKey" : "JIUDEDJSUVFLAXTN",
+        "email" : "team@team.team"
+      },
+      "team97" : {
+        "username" : "team97",
+        "name" : "Team 97",
+        "apiKey" : "PMNFAPQYDFPDAAGS",
+        "email" : "team@team.team"
+      },
+      "team96" : {
+        "username" : "team96",
+        "name" : "Team 96",
+        "apiKey" : "MBKEKBNANXKKAOUU",
+        "email" : "team@team.team"
+      },
+      "team95" : {
+        "username" : "team95",
+        "name" : "Team 95",
+        "apiKey" : "EPSNKMUVXPOOZMPD",
+        "email" : "team@team.team"
+      },
+      "team94" : {
+        "username" : "team94",
+        "name" : "Team 94",
+        "apiKey" : "CECQNHBFYEVYMSDH",
+        "email" : "team@team.team"
+      },
+      "team93" : {
+        "username" : "team93",
+        "name" : "Team 93",
+        "apiKey" : "NRGVRCKQTCNBECRN",
+        "email" : "team@team.team"
+      },
+      "team92" : {
+        "username" : "team92",
+        "name" : "Team 92",
+        "apiKey" : "YYKHWOAZJKGMSNLZ",
+        "email" : "team@team.team"
+      },
+      "team91" : {
+        "username" : "team91",
+        "name" : "Team 91",
+        "apiKey" : "PIQDJSNZHYNSEURX",
+        "email" : "team@team.team"
+      },
+      "team90" : {
+        "username" : "team90",
+        "name" : "Team 90",
+        "apiKey" : "GEDWYFSEUFBZWUFN",
+        "email" : "team@team.team"
+      },
+      "team89" : {
+        "username" : "team89",
+        "name" : "Team 89",
+        "apiKey" : "SIHMLBFOVCRTTDJS",
+        "email" : "team@team.team"
+      },
+      "team88" : {
+        "username" : "team88",
+        "name" : "Team 88",
+        "apiKey" : "SEVTDNWOIMUUFMTN",
+        "email" : "team@team.team"
+      },
+      "team87" : {
+        "username" : "team87",
+        "name" : "Team 87",
+        "apiKey" : "VCREGHOUOVNACIRN",
+        "email" : "team@team.team"
+      },
+      "team86" : {
+        "username" : "team86",
+        "name" : "Team 86",
+        "apiKey" : "HXYEJSVAAKQBRXXV",
+        "email" : "team@team.team"
+      },
+      "team85" : {
+        "username" : "team85",
+        "name" : "Team 85",
+        "apiKey" : "FOJSGPLKTTACPDFE",
+        "email" : "team@team.team"
+      },
+      "team84" : {
+        "username" : "team84",
+        "name" : "Team 84",
+        "apiKey" : "MOFNDUGBQKQDQQTI",
+        "email" : "team@team.team"
+      },
+      "team83" : {
+        "username" : "team83",
+        "name" : "Team 83",
+        "apiKey" : "FEPOORUTKDMENLHX",
+        "email" : "team@team.team"
+      },
+      "team82" : {
+        "username" : "team82",
+        "name" : "Team 82",
+        "apiKey" : "VZAZDYCLVRUNVEYO",
+        "email" : "team@team.team"
+      },
+      "team81" : {
+        "username" : "team81",
+        "name" : "Team 81",
+        "apiKey" : "OGPOXRIYBIGRNNDY",
+        "email" : "team@team.team"
+      },
+      "team80" : {
+        "username" : "team80",
+        "name" : "Team 80",
+        "apiKey" : "SSHINVQZQNNUTOPZ",
+        "email" : "team@team.team"
+      },
+      "team29" : {
+        "username" : "team29",
+        "name" : "Team 29",
+        "apiKey" : "SRDSESSJYJVKEEOR",
+        "email" : "team@team.team"
+      },
+      "team28" : {
+        "username" : "team28",
+        "name" : "Team 28",
+        "apiKey" : "AAWYCKXMMNGVBPBO",
+        "email" : "team@team.team"
+      },
+      "team27" : {
+        "username" : "team27",
+        "name" : "Team 27",
+        "apiKey" : "MEUYXQHJYKONKPDE",
+        "email" : "team@team.team"
+      },
+      "team26" : {
+        "username" : "team26",
+        "name" : "Team 26",
+        "apiKey" : "NAYSMMTVIQTJBKWC",
+        "email" : "team@team.team"
+      },
+      "team25" : {
+        "username" : "team25",
+        "name" : "Team 25",
+        "apiKey" : "RMUURXRSQZMWIXTL",
+        "email" : "team@team.team"
+      },
+      "team35" : {
+        "username" : "team35",
+        "name" : "Team 35",
+        "apiKey" : "MNLVYGAPRSPUUXEJ",
+        "email" : "team@team.team"
+      },
+      "team34" : {
+        "username" : "team34",
+        "name" : "Team 34",
+        "apiKey" : "YVBATNXVOUTVBHBO",
+        "email" : "team@team.team"
+      },
+      "team33" : {
+        "username" : "team33",
+        "name" : "Team 33",
+        "apiKey" : "JONGGEVBZQOHTJIX",
+        "email" : "team@team.team"
+      },
+      "team32" : {
+        "username" : "team32",
+        "name" : "Team 32",
+        "apiKey" : "UQAPQTVBEKGPUNBQ",
+        "email" : "team@team.team"
+      },
+      "team31" : {
+        "username" : "team31",
+        "name" : "Team 31",
+        "apiKey" : "WGAYQTPXUCQRDGUO",
+        "email" : "team@team.team"
+      },
+      "team30" : {
+        "username" : "team30",
+        "name" : "Team 30",
+        "apiKey" : "IHLRXKKXIKOQDUCH",
+        "email" : "team@team.team"
+      },
+      "tradingbot1" : {
+        "username" : "tradingbot1",
+        "name" : "",
+        "apiKey" : "PRDXTXSRQQZHNSFH",
+        "email" : ""
+      },
+      "team0" : {
+        "username" : "team0",
+        "name" : "Team 0",
+        "apiKey" : "BNMXLSXVPTUWBNHC",
+        "email" : "team@team.team"
+      },
+      "team3" : {
+        "username" : "team3",
+        "name" : "Team 3",
+        "apiKey" : "DHVPNOTCUZCRJJHT",
+        "email" : "team@team.team"
+      },
+      "team4" : {
+        "username" : "team4",
+        "name" : "Team 4",
+        "apiKey" : "OFXKQIIABERKAAPS",
+        "email" : "team@team.team"
+      },
+      "team1" : {
+        "username" : "team1",
+        "name" : "Team 1",
+        "apiKey" : "GPKZCYLZUQYAONYE",
+        "email" : "team@team.team"
+      },
+      "team2" : {
+        "username" : "team2",
+        "name" : "Team 2",
+        "apiKey" : "CLPYXMPUSLMLAUHT",
+        "email" : "team@team.team"
+      },
+      "team7" : {
+        "username" : "team7",
+        "name" : "Team 7",
+        "apiKey" : "YMFFZUCYTYCOYFNE",
+        "email" : "team@team.team"
+      },
+      "team8" : {
+        "username" : "team8",
+        "name" : "Team 8",
+        "apiKey" : "FZLENHKEKDAEKWVG",
+        "email" : "team@team.team"
+      },
+      "team5" : {
+        "username" : "team5",
+        "name" : "Team 5",
+        "apiKey" : "JLWRQAIBSMLMUASP",
+        "email" : "team@team.team"
+      },
+      "team19" : {
+        "username" : "team19",
+        "name" : "Team 19",
+        "apiKey" : "ZTUFQFORQVTVNIUV",
+        "email" : "team@team.team"
+      },
+      "team6" : {
+        "username" : "team6",
+        "name" : "Team 6",
+        "apiKey" : "GWBXIGCJBADKHMQY",
+        "email" : "team@team.team"
+      },
+      "team18" : {
+        "username" : "team18",
+        "name" : "Team 18",
+        "apiKey" : "FKPMCWHHIWZAMVPM",
+        "email" : "team@team.team"
+      },
+      "team17" : {
+        "username" : "team17",
+        "name" : "Team 17",
+        "apiKey" : "GIWNULECAAAVETTQ",
+        "email" : "team@team.team"
+      },
+      "team16" : {
+        "username" : "team16",
+        "name" : "Team 16",
+        "apiKey" : "DLJVKREAQFPWUPSF",
+        "email" : "team@team.team"
+      },
+      "team9" : {
+        "username" : "team9",
+        "name" : "Team 9",
+        "apiKey" : "NLXEZJTYOLEBFYOS",
+        "email" : "team@team.team"
+      },
+      "team15" : {
+        "username" : "team15",
+        "name" : "Team 15",
+        "apiKey" : "DULKHNLFNGWMWJTC",
+        "email" : "team@team.team"
+      },
+      "team14" : {
+        "username" : "team14",
+        "name" : "Team 14",
+        "apiKey" : "QMCHYJCLCCKFDNLY",
+        "email" : "team@team.team"
+      },
+      "team24" : {
+        "username" : "team24",
+        "name" : "Team 24",
+        "apiKey" : "MIIARWUTJEOTJFEJ",
+        "email" : "team@team.team"
+      },
+      "team23" : {
+        "username" : "team23",
+        "name" : "Team 23",
+        "apiKey" : "YLJQPTDTGTPVGOUV",
+        "email" : "team@team.team"
+      },
+      "team22" : {
+        "username" : "team22",
+        "name" : "Team 22",
+        "apiKey" : "JZQONYUZLLAAJQMW",
+        "email" : "team@team.team"
+      },
+      "team21" : {
+        "username" : "team21",
+        "name" : "Team 21",
+        "apiKey" : "YRRSHSYCVYRILTLS",
+        "email" : "team@team.team"
+      },
+      "team20" : {
+        "username" : "team20",
+        "name" : "Team 20",
+        "apiKey" : "WLVYCHUSVAJKPAMX",
+        "email" : "team@team.team"
+      }
+    },
+    "allKeys" : [ "team49", "team48", "team47", "team57", "team56", "team55", "team54", "team53", "team52", "team51", "team50", "team39", "team38", "team37", "team36", "team46", "team45", "team44", "team43", "team42", "team41", "team40", "team69", "team79", "team78", "team77", "team76", "team75", "team74", "team73", "team72", "team71", "team70", "team59", "team58", "team68", "team67", "team66", "team65", "team64", "team63", "team62", "team61", "team60", "team13", "team12", "team11", "team99", "team10", "team98", "team97", "team96", "team95", "team94", "team93", "team92", "team91", "team90", "team89", "team88", "team87", "team86", "team85", "team84", "team83", "team82", "team81", "team80", "team29", "team28", "team27", "team26", "team25", "team35", "team34", "team33", "team32", "team31", "team30", "tradingbot1", "team0", "team3", "team4", "team1", "team2", "team7", "team8", "team5", "team19", "team6", "team18", "team17", "team16", "team9", "team15", "team14", "team24", "team23", "team22", "team21", "team20" ]
+  }
+}

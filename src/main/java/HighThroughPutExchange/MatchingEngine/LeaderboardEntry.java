@@ -3,9 +3,9 @@ package HighThroughPutExchange.MatchingEngine;
 public class LeaderboardEntry implements Comparable<LeaderboardEntry> {
 
     private String username;
-    private double balance;
+    private long balance;
 
-    public LeaderboardEntry(String username, double balance) {
+    public LeaderboardEntry(String username, long balance) {
         this.username = username;
         this.balance = balance;
     }
@@ -22,14 +22,14 @@ public class LeaderboardEntry implements Comparable<LeaderboardEntry> {
         return balance;
     }
 
-    public void setBalance(double balance) {
+    public void setBalance(long balance) {
         this.balance = balance;
     }
 
     @Override
     public int compareTo(LeaderboardEntry o) {
         if (o == null) {return 1;}
-        int comp = Double.compare(this.balance, o.balance);
+        int comp = Long.compare(this.balance, o.balance);
         if (comp == 0) {
             return this.username.compareTo(o.username);
         }

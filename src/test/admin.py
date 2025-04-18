@@ -9,7 +9,7 @@ default = 0
 def create_user(username, name, email):
     form_data = {
         'adminUsername': 'trading_club_admin',
-        'adminPassword': 'abcxyz',
+        'adminPassword': 'ZY3yoQL5v8MahcmcWBnG',
         'username': username,
         'name': name,
         'email': email
@@ -42,7 +42,7 @@ def teardown(username, session_token):
 def set_state(target_state):
     form_data = {
         'adminUsername': 'trading_club_admin',
-        'adminPassword': 'abcxyz',
+        'adminPassword': 'ZY3yoQL5v8MahcmcWBnG',
         'targetState': target_state
     }
     req = urllib.request.Request(URL + '/set_state', data=json.dumps(form_data).encode('utf-8'), method='POST')
@@ -51,5 +51,4 @@ def set_state(target_state):
 
 if __name__ == "__main__":
     #print(create_random_users())
-    print(set_state(1))  # Example usage of set_state
-
+    print(set_state(2))  # Example usage of set_state

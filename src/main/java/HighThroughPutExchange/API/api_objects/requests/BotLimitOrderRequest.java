@@ -1,23 +1,30 @@
-package HighThroughPutExchange.API.api_objects.Operations;
+package HighThroughPutExchange.API.api_objects.requests;
 
-
-import HighThroughPutExchange.API.api_objects.requests.Preprocessing;
 import jakarta.validation.constraints.NotNull;
 
-public class LimitOrderOperation extends Operation{
+public class BotLimitOrderRequest extends BasePrivateRequest {
     @NotNull
     private String ticker;
     @NotNull
-    private int price;
-    @NotNull
     private int volume;
     @NotNull
+    private int price;
+    @NotNull
     private boolean isBid;
-    public LimitOrderOperation(String ticker, int price, int volume, boolean isBid) {
-        super("limit_order");
+
+    public boolean getBid() {
+        return isBid;
+    }
+
+    public void setBid(boolean bid) {
+        isBid = bid;
+    }
+
+    public BotLimitOrderRequest(String username, String sessionToken, String ticker, int volume, int price, boolean isBid) {
+        super(username, sessionToken);
         this.ticker = ticker;
-        this.price = Preprocessing.preprocessPrice(price);
         this.volume = Preprocessing.botPreprocessVolume(volume);
+        this.price = Preprocessing.preprocessPrice(price);
         this.isBid = isBid;
     }
 
@@ -28,11 +35,13 @@ public class LimitOrderOperation extends Operation{
     public void setTicker(String ticker) {
         this.ticker = ticker;
     }
+
     public int getVolume() {
         return volume;
     }
+
     public void setVolume(int volume) {
-        this.volume = volume;
+        this.volume = Preprocessing.botPreprocessVolume(volume);
     }
 
     public int getPrice() {
@@ -40,13 +49,6 @@ public class LimitOrderOperation extends Operation{
     }
 
     public void setPrice(int price) {
-        this.price = price;
-    }
-
-    public boolean getBid() {
-        return isBid;
-    }
-    public void setBid(boolean isBid) {
-        this.isBid = isBid;
+        this.price = Preprocessing.preprocessPrice(price);
     }
 }

@@ -3,7 +3,7 @@ package HighThroughPutExchange.API;
 public enum State {
     STOP,
     TRADE,
-    AUCTION;
+    TRADE_WITH_AUCTION;
 
     /*
     track state by ordinal;

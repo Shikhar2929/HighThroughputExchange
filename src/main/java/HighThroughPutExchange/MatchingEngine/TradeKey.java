@@ -5,16 +5,16 @@ import java.util.Objects;
 
 public class TradeKey implements Comparable<TradeKey>{
     String ticker;
-    private final double price;
+    private final int price;
     private final Side side;
 
-    public TradeKey(String ticker, double price, Side side) {
+    public TradeKey(String ticker, int price, Side side) {
         this.ticker = ticker;
         this.price = price;
         this.side = side;
     }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
     }
 
@@ -44,7 +44,7 @@ public class TradeKey implements Comparable<TradeKey>{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TradeKey tradeKey = (TradeKey) o;
-        return Double.compare(tradeKey.price, price) == 0 &&
+        return Integer.compare(tradeKey.price, price) == 0 &&
                 ticker.equals(tradeKey.ticker) &&
                 side == tradeKey.side;
     }
@@ -54,9 +54,9 @@ public class TradeKey implements Comparable<TradeKey>{
             return sideCompare;
         }
         if (this.side == Side.BID) {
-            return Double.compare(other.price, this.price);
+            return Integer.compare(other.price, this.price);
         } else {
-            return Double.compare(this.price, other.price);
+            return Integer.compare(this.price, other.price);
         }
     }
 }

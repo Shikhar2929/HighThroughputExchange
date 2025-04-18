@@ -1,7 +1,7 @@
 package HighThroughPutExchange.API.api_objects.requests;
 
 import jakarta.validation.constraints.NotNull;
-public class MarketOrderRequest extends BasePrivateRequest {
+public class BotMarketOrderRequest extends BasePrivateRequest {
     @NotNull
     private String ticker;
     @NotNull
@@ -9,10 +9,10 @@ public class MarketOrderRequest extends BasePrivateRequest {
     @NotNull
     private boolean isBid;
 
-    public MarketOrderRequest(String username, String sessionToken, String ticker, int volume, boolean isBid) {
+    public BotMarketOrderRequest(String username, String sessionToken, String ticker, int volume, boolean isBid) {
         super(username, sessionToken);
         this.ticker = ticker;
-        this.volume = Preprocessing.preprocessVolume(volume);
+        this.volume = Preprocessing.botPreprocessVolume(volume);
         this.isBid = isBid;
     }
     public String getTicker() {
@@ -30,6 +30,6 @@ public class MarketOrderRequest extends BasePrivateRequest {
     }
 
     public void setVolume(int volume) {
-        this.volume = Preprocessing.preprocessVolume(volume);
+        this.volume = Preprocessing.botPreprocessVolume(volume);
     }
 }

@@ -2,18 +2,18 @@ package HighThroughPutExchange.API.api_objects.requests;
 
 public class BidAuctionRequest extends BasePrivateRequest {
 
-    private double bid;
+    private int bid;
 
-    public BidAuctionRequest(String username, String sessionToken, double bid) {
+    public BidAuctionRequest(String username, String sessionToken, int bid) {
         super(username, sessionToken);
         this.bid = bid;
     }
 
-    public double getBid() {
+    public int getBid() {
         return bid;
     }
 
-    public void setBid(double bid) {
+    public void setBid(int bid) {
         this.bid = bid;
     }
 }

@@ -242,7 +242,7 @@ public class ServerApplication {
             return new ResponseEntity<>(new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
         }
         try {
-            users.putItem(new User(form.getUsername(), form.getName(), generateKey(), form.getEmail()));
+            users.putItem(new User(form.getUsername(), form.getName(), generateKey(), generateKey(), form.getEmail()));
             TaskQueue.addTask(() -> {
                 System.out.println("User initialized" + form.getUsername());
                 matchingEngine.initializeUser(form.getUsername());
@@ -250,7 +250,7 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
+        return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey(), users.getItem(form.getUsername()).getApiKey2()), HttpStatus.OK);
     }
 
 
@@ -301,6 +301,22 @@ public class ServerApplication {
 
         return new ResponseEntity<>(new SetStateResponse(Message.SUCCESS.toString(), state.ordinal()), HttpStatus.OK);
     }
+    @CrossOrigin(origins="*")
+    @PostMapping("/set_price")
+    public ResponseEntity<SetPriceResponse> setPrice(@Valid @RequestBody SetPriceRequest form) {
+        if (!adminPageAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(new SetPriceResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        }
+        TaskFuture<String> future = new TaskFuture<>();
+        TaskQueue.addTask(() -> {
+            matchingEngine.setPriceClearOrderBook(form.getPrices(), future);
+            future.markAsComplete();
+        });
+        future.waitForCompletion();
+        System.out.println(future.getData());
+        return new ResponseEntity<>(new SetPriceResponse(future.getData()), HttpStatus.OK);
+    }
+
 
     @CrossOrigin(origins = "*")
     @PostMapping("/get_leading_auction_bid")
@@ -335,7 +351,7 @@ public class ServerApplication {
             return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
 
-        if (state != State.AUCTION) {
+        if (state != State.TRADE_WITH_AUCTION) {
             return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.LOCKED);
         }
 
@@ -361,7 +377,7 @@ public class ServerApplication {
     @PostMapping("/buildup")
     public ResponseEntity<BuildupResponse> buildup(@Valid @RequestBody BuildupRequest form) {
         /*
-        Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as oppsed to session token.
+        Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as opposed to session token.
          */
         // if username not found
         if (!users.containsItem(form.getUsername())) {
@@ -370,20 +386,26 @@ public class ServerApplication {
 
         User u = users.getItem(form.getUsername());
         // if username and api key mismatch
-        if (!u.getApiKey().equals(form.getApiKey())) {
+        if (!u.getApiKey().equals(form.getApiKey()) && !u.getApiKey2().equals(form.getApiKey())) {
             return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
         }
 
-        Session s = new Session(generateKey(), u.getUsername());
-        if (sessions.containsItem(s.getUsername())) {
-            sessions.deleteItem(s.getUsername());
+        String sessionToken = generateKey();
+        if (sessions.containsItem(form.getUsername())) {
+            if (u.getApiKey().equals(form.getApiKey())) {
+                sessions.getItem(form.getUsername()).setSessionToken(sessionToken);
+            } else {
+                sessions.getItem(form.getUsername()).setSessionToken2(sessionToken);
+            }
+        } else {
+            Session s = new Session(sessionToken, u.getUsername());
+            try {
+                sessions.putItem(s);
+            } catch (AlreadyExistsException e) {
+                throw new RuntimeException(e);
+            }
         }
-        try {
-            sessions.putItem(s);
-        } catch (AlreadyExistsException e) {
-            throw new RuntimeException(e);
-        }
-        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
+        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), sessionToken, matchingEngine.serializeOrderBooks()), HttpStatus.OK);
     }
     @CrossOrigin(origins = "*")
     @PostMapping("/bot_buildup")
@@ -458,7 +480,7 @@ public class ServerApplication {
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new LimitOrderResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
 
@@ -466,7 +488,7 @@ public class ServerApplication {
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
                     form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-            System.out.println("Adding Limit Order");
+            //System.out.println("Adding Limit Order");
             if (form.getBid())
                 matchingEngine.bidLimitOrder(form.getUsername(), order, future);
             else
@@ -479,18 +501,18 @@ public class ServerApplication {
     }
     @CrossOrigin(origins="*")
     @PostMapping("/bot_limit_order")
-    public ResponseEntity<LimitOrderResponse> botLimitOrder(@Valid @RequestBody LimitOrderRequest form) {
+    public ResponseEntity<LimitOrderResponse> botLimitOrder(@Valid @RequestBody BotLimitOrderRequest form) {
         if (!botAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
                     form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-            System.out.println("Adding Limit Order");
+            //System.out.println("Adding Limit Order");
             if (form.getBid())
                 matchingEngine.bidLimitOrder(form.getUsername(), order, future);
             else
@@ -511,7 +533,7 @@ public class ServerApplication {
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
@@ -533,7 +555,7 @@ public class ServerApplication {
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
@@ -558,13 +580,13 @@ public class ServerApplication {
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        System.out.println("Removing Order");
-        System.out.println(form.getOrderID());
+        //System.out.println("Removing Order");
+        //System.out.println(form.getOrderID());
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
@@ -581,13 +603,13 @@ public class ServerApplication {
         if (!botAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        System.out.println("Removing Order");
-        System.out.println(form.getOrderID());
+        //System.out.println("Removing Order");
+        //System.out.println(form.getOrderID());
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
             matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
@@ -607,12 +629,12 @@ public class ServerApplication {
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new MarketOrderResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
-            System.out.println("Adding Market Order: " + form);
+            //System.out.println("Adding Market Order: " + form);
             if (form.getBid())
                 matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
             else
@@ -626,16 +648,16 @@ public class ServerApplication {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/bot_market_order")
-    public ResponseEntity<MarketOrderResponse> botMarketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
+    public ResponseEntity<MarketOrderResponse> botMarketOrderResponse(@Valid @RequestBody BotMarketOrderRequest form) {
         if (!botAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         TaskFuture<String> future = new TaskFuture<>();
         TaskQueue.addTask(() -> {
-            System.out.println("Adding Market Order: " + form);
+            //System.out.println("Adding Market Order: " + form);
             if (form.getBid())
                 matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
             else
@@ -652,7 +674,7 @@ public class ServerApplication {
         if (!botAuthenticator.authenticate(form)) {
             return new ResponseEntity<>(new BatchResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
         }
-        if (state != State.TRADE) {
+        if (state == State.STOP) {
             return new ResponseEntity<>(new BatchResponse(Message.TRADE_LOCKED.toString(), null), HttpStatus.LOCKED);
         }
 
@@ -667,14 +689,14 @@ public class ServerApplication {
             TaskFuture<String> future = new TaskFuture<>();
             futures.add(future);
             responses.add(new OperationResponse(operation.getType(), null));
-            System.out.println(operation.toString());
+            //System.out.println(operation.toString());
             switch (operation.getType()) {
                 case "limit_order":
                     LimitOrderOperation limitOrderOperation = (LimitOrderOperation) operation;
                     temporaryTaskQueue.add(() -> {
                         Order order = new Order(form.getUsername(), limitOrderOperation.getTicker(), limitOrderOperation.getPrice(),
                                 limitOrderOperation.getVolume(), limitOrderOperation.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-                        System.out.println("Batch - Adding Limit Order");
+                        //System.out.println("Batch - Adding Limit Order");
                         if (limitOrderOperation.getBid())
                             matchingEngine.bidLimitOrder(form.getUsername(), order, future);
                         else
@@ -685,32 +707,33 @@ public class ServerApplication {
                 case "market_order":
                     MarketOrderOperation marketOrderOperation = (MarketOrderOperation) operation;
                     temporaryTaskQueue.add(() -> {
-                        System.out.println("Batch - Adding Market Order");
+                        //System.out.println("Batch - Adding Market Order");
                         if (marketOrderOperation.getBid()) {
-                            matchingEngine.bidMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume());
+                            matchingEngine.bidMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
                         }
                         else
-                            matchingEngine.askMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume());
+                            matchingEngine.askMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
                         future.markAsComplete();
                     });
                     break;
                 case "remove":
                     RemoveOperation removeOperation = (RemoveOperation) operation;
                     temporaryTaskQueue.add(() -> {
-                        System.out.println("Batch - Remove Processing");
-                        matchingEngine.removeOrder(form.getUsername(), removeOperation.getOrderId());
+                        //System.out.println("Batch - Remove Processing");
+                        matchingEngine.removeOrder(form.getUsername(), removeOperation.getOrderId(), future);
+                        future.markAsComplete();
                     });
-                    future.markAsComplete();
                     break;
                 case "remove_all":
                     RemoveAllOperation removeAllOperation = (RemoveAllOperation) operation;
                     temporaryTaskQueue.add(() -> {
-                        System.out.println("Batch - Remove All");
-                        matchingEngine.removeAll(form.getUsername());
+                        //System.out.println("Batch - Remove All");
+                        matchingEngine.removeAll(form.getUsername(), future);
+                        future.markAsComplete();
                     });
-                    future.markAsComplete();
                     break;
                 default:
+                    // todo mark future
                     success = false;
                     break;
             }
@@ -721,16 +744,16 @@ public class ServerApplication {
         for (Runnable task : temporaryTaskQueue) {
             TaskQueue.addTask(task);
         }
-        System.out.println("Batch Tasks Added to the Queue Successfully!");
+        //System.out.println("Batch Tasks Added to the Queue Successfully!");
         for (int i = 0; i < futures.size(); i++) {
             TaskFuture<String> future = futures.get(i);
             future.waitForCompletion();
             String message = future.getData();
-            System.out.printf("Batch %d Message: %s\n", i, message);
+            //System.out.printf("Batch %d Message: %s\n", i, message);
             OperationResponse response = responses.get(i);
-            response.setMessage(message);
+            response.setMessage(future.getData());
         }
-        System.out.println("All Messages Received From Batch Tasks, Returning!");
+        //System.out.println("All Messages Received From Batch Tasks, Returning!");
         return new ResponseEntity<>(new BatchResponse("SUCCESS", responses), HttpStatus.OK);
 
     }
@@ -757,18 +780,22 @@ public class ServerApplication {
         if (!rateLimiter.processRequest(form)) {
             return new ResponseEntity<>(new BidAuctionResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (state != State.AUCTION) {
+        if (state != State.TRADE_WITH_AUCTION) {
             return new ResponseEntity<>(new BidAuctionResponse(Message.AUCTION_LOCKED.toString()), HttpStatus.LOCKED);
         }
 
         if (!auction.isValid(form.getUsername(), form.getBid())) {
-            return new ResponseEntity<>(new BidAuctionResponse("Bid amount cannot exceed balance."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new BidAuctionResponse(
+                    String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.BAD_INPUT.getErrorCode(), String.format("Bad Input! Bid amount cannot exceed %d.", auction.getMaxBid()))
+            ), HttpStatus.BAD_REQUEST);
         }
 
         TaskQueue.addTask(() -> {
             auction.placeBid(form.getUsername(), form.getBid());
         });
 
-        return new ResponseEntity<>(new BidAuctionResponse(Message.SUCCESS.toString()), HttpStatus.OK);
+        return new ResponseEntity<>(new BidAuctionResponse(
+                String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(), String.format("Success! Placed auction bid for %d.", form.getBid()))
+        ), HttpStatus.OK);
     }
 }
