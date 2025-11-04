@@ -1,8 +1,10 @@
 const sessionId = "IGKJUWLLEEOIKFUO"; // Replace with the actual Session ID variable
 const username = "bot1"; // Replace with the actual Username variable
 
+// Allow overriding via window.PUBLIC_CONFIG injected by an optional config.js
+const WS_BASE = (window.PUBLIC_CONFIG && window.PUBLIC_CONFIG.WS_URL) || 'ws://localhost:8080/exchange-socket';
 // Construct the WebSocket URL with query parameters
-const brokerURL = `ws://localhost:8080/exchange-socket?Session-ID=${encodeURIComponent(sessionId)}&Username=${encodeURIComponent(username)}`;
+const brokerURL = `${WS_BASE}?Session-ID=${encodeURIComponent(sessionId)}&Username=${encodeURIComponent(username)}`;
 
 const stompClient = new StompJs.Client({
     brokerURL: brokerURL,
@@ -67,11 +69,13 @@ function disconnect() {
 
 // Send start signal to initiate the stream
 function sendStartSignal() {
+    const adminUsername = (window.PUBLIC_CONFIG && window.PUBLIC_CONFIG.ADMIN_USERNAME) || 'trading_club_admin';
+    const adminPassword = (window.PUBLIC_CONFIG && window.PUBLIC_CONFIG.ADMIN_PASSWORD) || 'abcxyz';
     stompClient.publish({
         destination: "/app/start",
         body: JSON.stringify({
-            adminUsername: "trading_club_admin",
-            adminPassword: "abcxyz"
+            adminUsername,
+            adminPassword
         })
     });
     console.log("Start signal sent.");

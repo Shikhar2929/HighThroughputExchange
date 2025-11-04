@@ -2,13 +2,14 @@ import json
 import urllib.request
 import random
 import time
-#URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
-URL = 'http://localhost:8080'
-#URL = 'http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080'
+from env_loader import load_env, getenv
+
+load_env()
+URL = getenv('HTTP_URL', 'http://localhost:8080')
 def create_bot(username, name, email):
     form_data = {
-        'adminUsername': 'trading_club_admin',
-        'adminPassword': 'abcxyz',
+    'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
+    'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz'),
         'username': username,
         'name': name,
     }

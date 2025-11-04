@@ -2,14 +2,16 @@ import json
 import urllib.request
 import random
 import time
+from env_loader import load_env, getenv
 
-#URL = 'http://localhost:8080'
-URL = 'http://ec2-18-220-60-154.us-east-2.compute.amazonaws.com:8080'
+load_env()
+# Prefer HTTP_URL from .env-public; default to localhost
+URL = getenv('HTTP_URL', 'http://localhost:8080')
 default = 0
 def create_user(username, name, email):
     form_data = {
-        'adminUsername': 'trading_club_admin',
-        'adminPassword': 'ZY3yoQL5v8MahcmcWBnG',
+        'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
+        'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz'),
         'username': username,
         'name': name,
         'email': email
@@ -41,8 +43,8 @@ def teardown(username, session_token):
     return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 def set_state(target_state):
     form_data = {
-        'adminUsername': 'trading_club_admin',
-        'adminPassword': 'ZY3yoQL5v8MahcmcWBnG',
+        'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
+        'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz'),
         'targetState': target_state
     }
     req = urllib.request.Request(URL + '/set_state', data=json.dumps(form_data).encode('utf-8'), method='POST')

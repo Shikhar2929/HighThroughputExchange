@@ -1,9 +1,14 @@
-POST http://localhost:8080/add_user
+@host = {{host}}
+@adminUsername = {{adminUsername}}
+@adminPassword = {{adminPassword}}
+
+###
+POST {{host}}/add_user
 Content-Type: application/json
 
 {
-  "adminUsername": "trading_club_admin",
-  "adminPassword": "abcxyz",
+  "adminUsername": "{{adminUsername}}",
+  "adminPassword": "{{adminPassword}}",
   "username": "test1",
   "name": "Team 1",
   "email": "team@team.team"
@@ -12,7 +17,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:8080/buildup
+POST {{host}}/buildup
 Content-Type: application/json
 
 {
@@ -22,7 +27,7 @@ Content-Type: application/json
 
 
 ###
-POST  http://localhost:8080/privatePage
+POST  {{host}}/privatePage
 Content-Type: application/json
 
 {
@@ -32,27 +37,27 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:8080/shutdown
+POST {{host}}/shutdown
 Content-Type: application/json
 
 {
-  "adminUsername": "trading_club_admin",
-  "adminPassword": "abcxyz"
+  "adminUsername": "{{adminUsername}}",
+  "adminPassword": "{{adminPassword}}"
 }
 
 
 ###
-POST http://localhost:8080/leaderboard
+POST {{host}}/leaderboard
 Content-Type: application/json
 
 {
-  "adminUsername": "trading_club_admin",
-  "adminPassword": "abcxyz"
+  "adminUsername": "{{adminUsername}}",
+  "adminPassword": "{{adminPassword}}"
 }
 
 
 ### enable trading
-POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/buildup
+POST {{host}}/buildup
 Content-Type: application/json
 
 {
@@ -61,10 +66,10 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/get_state
+GET {{host}}/get_state
 
 ### testing async responses
-POST http://localhost:8080/test
+POST {{host}}/test
 Content-Type: application/json
 
 {
@@ -73,17 +78,17 @@ Content-Type: application/json
 }
 
 ### Auctions testing
-POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/set_state
+POST {{host}}/set_state
 Content-Type: application/json
 
 {
-  "adminUsername": "trading_club_admin",
-  "adminPassword": "abcxyz",
+  "adminUsername": "{{adminUsername}}",
+  "adminPassword": "{{adminPassword}}",
   "targetState": 2
 }
 
 ###
-POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/bid_auction
+POST {{host}}/bid_auction
 Content-Type: application/json
 
 {
@@ -94,45 +99,45 @@ Content-Type: application/json
 
 
 ### enable trading
-POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/set_state
+POST {{host}}/set_state
 Content-Type: application/json
 
 {
-  "adminUsername": "trading_club_admin",
-  "adminPassword": "abcxyz",
+  "adminUsername": "{{adminUsername}}",
+  "adminPassword": "{{adminPassword}}",
   "targetState": 1
 }
 
 
 ### enable trading
-POST http://localhost:8080/set_state
+POST {{host}}/set_state
 Content-Type: application/json
 
 {
-  "adminUsername": "trading_club_admin",
-  "adminPassword": "abcxyz",
+  "adminUsername": "{{adminUsername}}",
+  "adminPassword": "{{adminPassword}}",
   "targetState": 2
 }
 
 
 ### enable trading
-POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/set_state
+POST {{host}}/set_state
 Content-Type: application/json
 
 {
-  "adminUsername": "trading_club_admin",
-  "adminPassword": "abcxyz",
+  "adminUsername": "{{adminUsername}}",
+  "adminPassword": "{{adminPassword}}",
   "targetState": 1
 }
 
 
 ### Settling
-POST http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080/set_price
+POST {{host}}/set_price
 Content-Type: application/json
 
 {
-  "adminUsername": "trading_club_admin",
-  "adminPassword": "abcxyz",
+  "adminUsername": "{{adminUsername}}",
+  "adminPassword": "{{adminPassword}}",
   "prices": {"A": 3, "B": 4, "C": 5}
 }
 

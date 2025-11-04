@@ -4,14 +4,15 @@ import time
 import csv
 
 # Define the base URL
-#URL = 'http://localhost:8080'
-# URL = 'http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
-URL = 'http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080'
+from env_loader import load_env, getenv
+
+load_env()
+URL = getenv('HTTP_URL', 'http://localhost:8080')
 
 def post_leaderboard():
     form_data = {
-        'adminUsername': 'trading_club_admin',
-        'adminPassword': 'ZY3yoQL5v8MahcmcWBnG'
+    'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
+    'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz')
     }
 
     # Create the request

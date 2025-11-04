@@ -3,7 +3,10 @@ import websocketConnection
 import json
 import urllib.request
 import OrderBook
-URL = 'http://localhost:8080'
+from env_loader import load_env, getenv
+
+load_env()
+URL = getenv('HTTP_URL', 'http://localhost:8080')
 
 def user_buildup(username, api_key):
     form_data = {
