@@ -16,46 +16,56 @@ def create_bot(username, name, email):
         'username': username,
         'name': name,
     }
-    req = urllib.request.Request(URL + '/add_bot', data=json.dumps(form_data).encode('utf-8'), method='POST')
-    req.add_header('Content-Type', 'application/json')
-    return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
+    req = urllib.request.Request(
+        URL + "/add_bot", data=json.dumps(form_data).encode("utf-8"), method="POST"
+    )
+    req.add_header("Content-Type", "application/json")
+    return json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+
 
 # User buildup
 def bot_buildup(username, api_key):
-    form_data = {
-        'username': username,
-        'apiKey': api_key
-    }
-    req = urllib.request.Request(URL + '/bot_buildup', data=json.dumps(form_data).encode('utf-8'), method='POST')
-    req.add_header('Content-Type', 'application/json')
-    return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
+    form_data = {"username": username, "apiKey": api_key}
+    req = urllib.request.Request(
+        URL + "/bot_buildup", data=json.dumps(form_data).encode("utf-8"), method="POST"
+    )
+    req.add_header("Content-Type", "application/json")
+    return json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+
 
 # Place a trade
 def place_trade(username, session_token, ticker, volume, price, is_bid):
     form_data = {
-        'username': username,
-        'sessionToken': session_token,
-        'ticker': ticker,
-        'volume': volume,
-        'price': price,
-        'isBid': is_bid
+        "username": username,
+        "sessionToken": session_token,
+        "ticker": ticker,
+        "volume": volume,
+        "price": price,
+        "isBid": is_bid,
     }
-    req = urllib.request.Request(URL + '/bot_limit_order', data=json.dumps(form_data).encode('utf-8'), method='POST')
-    req.add_header('Content-Type', 'application/json')
-    return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
+    req = urllib.request.Request(
+        URL + "/bot_limit_order",
+        data=json.dumps(form_data).encode("utf-8"),
+        method="POST",
+    )
+    req.add_header("Content-Type", "application/json")
+    return json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+
 
 # Teardown a session
 def teardown(username, session_token):
-    form_data = {
-        'username': username,
-        'sessionToken': session_token
-    }
-    req = urllib.request.Request(URL + '/teardown', data=json.dumps(form_data).encode('utf-8'), method='POST')
-    req.add_header('Content-Type', 'application/json')
-    return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
+    form_data = {"username": username, "sessionToken": session_token}
+    req = urllib.request.Request(
+        URL + "/teardown", data=json.dumps(form_data).encode("utf-8"), method="POST"
+    )
+    req.add_header("Content-Type", "application/json")
+    return json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
+
 
 # Bot logic
-def trading_bot(username, session_token, ticker, initial_balance=100000, max_position=100):
+def trading_bot(
+    username, session_token, ticker, initial_balance=100000, max_position=100
+):
     balance = initial_balance
     position = max_position
 
@@ -75,18 +85,19 @@ def trading_bot(username, session_token, ticker, initial_balance=100000, max_pos
             position -= volume if not is_bid else 0
 
             print(f"Bot {username} placed a {'bid' if is_bid else 'ask'}: {resp}")
-            #print(f"Updated balance: {balance}, Updated position: {position}")
+            # print(f"Updated balance: {balance}, Updated position: {position}")
         else:
             print(f"Bot {username} cannot place trade due to insufficient balance.")
 
         time.sleep(random.uniform(0.5, 1.5))  # Shorter delay to simulate activity
 
-    #print(f"Bot {username} finished trading. Final balance: {balance}, Final position: {position}")
+    # print(f"Bot {username} finished trading. Final balance: {balance}, Final position: {position}")
+
 
 # Main script
 if __name__ == "__main__":
     bot_count = 5  # Number of bots
-    ticker = 'SPREADSUITAB'  # Stock ticker to trade
+    ticker = "SPREADSUITAB"  # Stock ticker to trade
     bot_sessions = []
 
     try:
@@ -101,14 +112,16 @@ if __name__ == "__main__":
             print(f"Created bot user: {user_data}")
 
             # Step 2: User gets session token
-            session_data = bot_buildup(username, user_data['apiKey'])
+            session_data = bot_buildup(username, user_data["apiKey"])
             print(f"Bot {username} session established: {session_data}")
-            bot_sessions.append({
-                "username": username,
-                "session_token": session_data['sessionToken'],
-                "balance": 100000,  # Initial balance
-                "position": 100     # Maximum position
-            })
+            bot_sessions.append(
+                {
+                    "username": username,
+                    "session_token": session_data["sessionToken"],
+                    "balance": 100000,  # Initial balance
+                    "position": 100,  # Maximum position
+                }
+            )
 
         # Step 3: Interleave trading for all bots
         active_bots = len(bot_sessions)
@@ -118,7 +131,9 @@ if __name__ == "__main__":
                     # Execute one trade per bot in each round
                     username = bot["username"]
                     session_token = bot["session_token"]
-                    max_volume = min(5, bot["position"])  # Trade a max of 5 shares per trade
+                    max_volume = min(
+                        5, bot["position"]
+                    )  # Trade a max of 5 shares per trade
                     volume = random.randint(1, max_volume)
                     price = round(random.uniform(100, 300), 2)  # Random price
                     cost = volume * price
@@ -126,7 +141,9 @@ if __name__ == "__main__":
                     if bot["balance"] >= cost:
                         is_bid = random.choice([True, False])
                         try:
-                            resp = place_trade(username, session_token, ticker, volume, price, is_bid)
+                            resp = place_trade(
+                                username, session_token, ticker, volume, price, is_bid
+                            )
 
                             # Update balance and position
                             if is_bid:
@@ -134,13 +151,19 @@ if __name__ == "__main__":
                             else:
                                 bot["position"] -= volume
 
-                            print(f"Bot {username} placed a {'bid' if is_bid else 'ask'}: {resp}")
+                            print(
+                                f"Bot {username} placed a {'bid' if is_bid else 'ask'}: {resp}"
+                            )
                         except Exception as e:
                             print(f"Error in trading for {username}: {e}")
                     else:
-                        print(f"Bot {username} cannot place trade due to insufficient balance or position.")
+                        print(
+                            f"Bot {username} cannot place trade due to insufficient balance or position."
+                        )
                 else:
-                    print(f"Bot {bot['username']} finished trading. Final balance: {bot['balance']}, Final position: {bot['position']}")
+                    print(
+                        f"Bot {bot['username']} finished trading. Final balance: {bot['balance']}, Final position: {bot['position']}"
+                    )
                     active_bots -= 1
 
                 time.sleep(random.uniform(0.5, 1.5))  # Delay to simulate activity

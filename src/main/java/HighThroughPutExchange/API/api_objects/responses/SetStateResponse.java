@@ -1,22 +1,10 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
-
-public class SetStateResponse {
-    @JsonRawValue
-    private String message;
+public class SetStateResponse extends AbstractMessageResponse {
     private int newState;
     public SetStateResponse(String message, int newState) {
-        this.message = message;
+        super(message);
         this.newState = newState;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public void setNewState(int newState) {this.newState = newState;}
