@@ -1,5 +1,8 @@
 import websocket
 import json
+from env_loader import load_env, getenv
+
+load_env()
 
 
 def on_message(ws, message):
@@ -21,7 +24,9 @@ def on_open(ws):
     print("Message sent to $default route")
 
 
-ws_url = "wss://b2sylfzefg.execute-api.us-east-2.amazonaws.com/production"
+ws_url = getenv(
+    "AWS_WS_URL", "wss://b2sylfzefg.execute-api.us-east-2.amazonaws.com/production"
+)
 ws = websocket.WebSocketApp(
     ws_url, on_open=on_open, on_message=on_message, on_error=on_error, on_close=on_close
 )

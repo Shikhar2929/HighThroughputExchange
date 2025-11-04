@@ -4,11 +4,14 @@ import threading
 from websocket import WebSocketApp
 import time
 import OrderBook
+from env_loader import load_env, getenv
+
+load_env()
 
 
 class WebSocketClient:
     def __init__(self, order_book: OrderBook):
-        self.ws_url = "ws://localhost:8080/exchange-socket"
+        self.ws_url = getenv("WS_URL", "ws://localhost:8080/exchange-socket")
         self.connected = False
         self.ws = None
         self.order_book = order_book
@@ -82,7 +85,10 @@ class WebSocketClient:
     def send_start_signal(self):
         """Send the start signal with admin credentials"""
         if self.connected and self.ws:
-            message = {"adminUsername": "trading_club_admin", "adminPassword": "abcxyz"}
+            message = {
+                "adminUsername": getenv("ADMIN_USERNAME"),
+                "adminPassword": getenv("ADMIN_PASSWORD"),
+            }
 
             # Construct STOMP SEND frame
             send_frame = (

@@ -2,15 +2,17 @@ import json
 import urllib.request
 import random
 import time
+from env_loader import load_env, getenv
 
-URL = "http://localhost:8080"
+load_env()
+URL = getenv("HTTP_URL", "http://localhost:8080")
 
 
 # Create bot
 def create_bot(username):
     form_data = {
-        "adminUsername": "trading_club_admin",
-        "adminPassword": "abcxyz",
+        "adminUsername": getenv("ADMIN_USERNAME"),
+        "adminPassword": getenv("ADMIN_PASSWORD"),
         "username": username,
     }
     req = urllib.request.Request(

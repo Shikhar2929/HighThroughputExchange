@@ -2,8 +2,10 @@ import admin
 import json
 import urllib.request
 import OrderBook
+from env_loader import load_env, getenv
 
-URL = "http://localhost:8080"
+load_env()
+URL = getenv("HTTP_URL", "http://localhost:8080")
 
 
 def user_buildup(username, api_key):

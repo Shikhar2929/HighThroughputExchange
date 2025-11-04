@@ -1,15 +1,16 @@
 import json
 import urllib.request
 
-# URL='http://ec2-13-59-143-196.us-east-2.compute.amazonaws.com:8080'
-# URL = 'http://localhost:8080'
-URL = "http://ec2-3-16-107-184.us-east-2.compute.amazonaws.com:8080"
+from env_loader import load_env, getenv
+
+load_env()
+URL = getenv("HTTP_URL", "http://localhost:8080")
 
 
 def set_state(target_state):
     form_data = {
-        "adminUsername": "trading_club_admin",
-        "adminPassword": "ZY3yoQL5v8MahcmcWBnG",
+        "adminUsername": getenv("ADMIN_USERNAME"),
+        "adminPassword": getenv("ADMIN_PASSWORD"),
         "targetState": target_state,
     }
     req = urllib.request.Request(
@@ -21,8 +22,8 @@ def set_state(target_state):
 
 def setPrices(prices_dict):
     form_data = {
-        "adminUsername": "trading_club_admin",
-        "adminPassword": "ZY3yoQL5v8MahcmcWBnG",
+        "adminUsername": getenv("ADMIN_USERNAME"),
+        "adminPassword": getenv("ADMIN_PASSWORD"),
         "prices": prices_dict,
     }
     req = urllib.request.Request(
