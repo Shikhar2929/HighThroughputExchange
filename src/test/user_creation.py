@@ -3,9 +3,9 @@ import json
 from env_loader import load_env, getenv
 
 load_env()
-URL = getenv('HTTP_URL', 'http://localhost:8080')
-ADMIN_USERNAME = getenv('ADMIN_USERNAME')
-ADMIN_PASSWORD = getenv('ADMIN_PASSWORD')
+URL = getenv("HTTP_URL", "http://localhost:8080")
+ADMIN_USERNAME = getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = getenv("ADMIN_PASSWORD")
 
 
 def create_user(username: str, name: str, email: str):
@@ -16,10 +16,12 @@ def create_user(username: str, name: str, email: str):
         "name": name,
         "email": email,
     }
-    req = urllib.request.Request(URL + '/add_user', data=json.dumps(form_data).encode('utf-8'), method='POST')
-    req.add_header('Content-Type', 'application/json')
+    req = urllib.request.Request(
+        URL + "/add_user", data=json.dumps(form_data).encode("utf-8"), method="POST"
+    )
+    req.add_header("Content-Type", "application/json")
     with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode('utf-8'))
+        return json.loads(resp.read().decode("utf-8"))
 
 
 if __name__ == "__main__":

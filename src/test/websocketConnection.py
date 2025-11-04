@@ -11,7 +11,7 @@ load_env()
 
 class WebSocketClient:
     def __init__(self, order_book: OrderBook):
-        self.ws_url = getenv('WS_URL', 'ws://localhost:8080/exchange-socket')
+        self.ws_url = getenv("WS_URL", "ws://localhost:8080/exchange-socket")
         self.connected = False
         self.ws = None
         self.order_book = order_book
@@ -86,8 +86,8 @@ class WebSocketClient:
         """Send the start signal with admin credentials"""
         if self.connected and self.ws:
             message = {
-                "adminUsername": getenv('ADMIN_USERNAME'),
-                "adminPassword": getenv('ADMIN_PASSWORD')
+                "adminUsername": getenv("ADMIN_USERNAME"),
+                "adminPassword": getenv("ADMIN_PASSWORD"),
             }
 
             # Construct STOMP SEND frame

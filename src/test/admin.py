@@ -1,22 +1,20 @@
 import json
 import urllib.request
-import random
-import time
 from env_loader import load_env, getenv
 
 load_env()
 # Prefer HTTP_URL from .env-public; default to localhost
-URL = getenv('HTTP_URL', 'http://localhost:8080')
+URL = getenv("HTTP_URL", "http://localhost:8080")
 default = 0
 
 
 def create_user(username, name, email):
     form_data = {
-        'adminUsername': getenv('ADMIN_USERNAME'),
-        'adminPassword': getenv('ADMIN_PASSWORD'),
-        'username': username,
-        'name': name,
-        'email': email
+        "adminUsername": getenv("ADMIN_USERNAME"),
+        "adminPassword": getenv("ADMIN_PASSWORD"),
+        "username": username,
+        "name": name,
+        "email": email,
     }
     req = urllib.request.Request(
         URL + "/add_user", data=json.dumps(form_data).encode("utf-8"), method="POST"
@@ -49,9 +47,9 @@ def teardown(username, session_token):
 
 def set_state(target_state):
     form_data = {
-        'adminUsername': getenv('ADMIN_USERNAME'),
-        'adminPassword': getenv('ADMIN_PASSWORD'),
-        'targetState': target_state
+        "adminUsername": getenv("ADMIN_USERNAME"),
+        "adminPassword": getenv("ADMIN_PASSWORD"),
+        "targetState": target_state,
     }
     req = urllib.request.Request(
         URL + "/set_state", data=json.dumps(form_data).encode("utf-8"), method="POST"

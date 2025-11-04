@@ -5,16 +5,17 @@ import time
 from env_loader import load_env, getenv
 
 load_env()
-URL = getenv('HTTP_URL', 'http://localhost:8080')
+URL = getenv("HTTP_URL", "http://localhost:8080")
+
 
 # Function to create a user
 def create_user(username, name, email):
     form_data = {
-    'adminUsername': getenv('ADMIN_USERNAME'),
-    'adminPassword': getenv('ADMIN_PASSWORD'),
-        'username': username,
-        'name': name,
-        'email': email
+        "adminUsername": getenv("ADMIN_USERNAME"),
+        "adminPassword": getenv("ADMIN_PASSWORD"),
+        "username": username,
+        "name": name,
+        "email": email,
     }
     req = urllib.request.Request(
         URL + "/add_user", data=json.dumps(form_data).encode("utf-8"), method="POST"

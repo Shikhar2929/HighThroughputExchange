@@ -7,12 +7,13 @@ import csv
 from env_loader import load_env, getenv
 
 load_env()
-URL = getenv('HTTP_URL', 'http://localhost:8080')
+URL = getenv("HTTP_URL", "http://localhost:8080")
+
 
 def post_leaderboard():
     form_data = {
-    'adminUsername': getenv('ADMIN_USERNAME'),
-    'adminPassword': getenv('ADMIN_PASSWORD')
+        "adminUsername": getenv("ADMIN_USERNAME"),
+        "adminPassword": getenv("ADMIN_PASSWORD"),
     }
 
     # Create the request
