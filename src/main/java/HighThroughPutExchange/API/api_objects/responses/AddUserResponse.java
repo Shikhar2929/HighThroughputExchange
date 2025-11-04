@@ -1,10 +1,6 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
-
-public class AddUserResponse {
-    @JsonRawValue
-    private String message;
+public class AddUserResponse extends AbstractMessageResponse {
     private String apiKey;
     private String apiKey2;
 
@@ -21,7 +17,7 @@ public class AddUserResponse {
     }
 
     public AddUserResponse(String message, String apiKey, String apiKey2) {
-        this.message = message;
+        super(message);
         this.apiKey = apiKey;
         this.apiKey2 = apiKey2;
     }
@@ -34,11 +30,4 @@ public class AddUserResponse {
         this.apiKey2 = apiKey2;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }
