@@ -11,8 +11,8 @@ URL = getenv('HTTP_URL', 'http://localhost:8080')
 
 def post_leaderboard():
     form_data = {
-    'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
-    'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz')
+    'adminUsername': getenv('ADMIN_USERNAME'),
+    'adminPassword': getenv('ADMIN_PASSWORD')
     }
 
     # Create the request

@@ -10,8 +10,8 @@ URL = getenv('HTTP_URL', 'http://localhost:8080')
 default = 0
 def create_user(username, name, email):
     form_data = {
-        'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
-        'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz'),
+        'adminUsername': getenv('ADMIN_USERNAME'),
+        'adminPassword': getenv('ADMIN_PASSWORD'),
         'username': username,
         'name': name,
         'email': email
@@ -43,8 +43,8 @@ def teardown(username, session_token):
     return json.loads(urllib.request.urlopen(req).read().decode('utf-8'))
 def set_state(target_state):
     form_data = {
-        'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
-        'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz'),
+        'adminUsername': getenv('ADMIN_USERNAME'),
+        'adminPassword': getenv('ADMIN_PASSWORD'),
         'targetState': target_state
     }
     req = urllib.request.Request(URL + '/set_state', data=json.dumps(form_data).encode('utf-8'), method='POST')

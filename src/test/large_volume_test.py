@@ -10,8 +10,8 @@ URL = getenv('HTTP_URL', 'http://localhost:8080')
 # Create bot
 def create_bot(username):
     form_data = {
-        'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
-        'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz'),
+        'adminUsername': getenv('ADMIN_USERNAME'),
+        'adminPassword': getenv('ADMIN_PASSWORD'),
         'username': username
     }
     req = urllib.request.Request(URL + '/add_bot', data=json.dumps(form_data).encode('utf-8'), method='POST')

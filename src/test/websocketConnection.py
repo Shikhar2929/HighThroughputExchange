@@ -82,8 +82,8 @@ class WebSocketClient:
         """Send the start signal with admin credentials"""
         if self.connected and self.ws:
             message = {
-                "adminUsername": getenv('ADMIN_USERNAME', 'trading_club_admin'),
-                "adminPassword": getenv('ADMIN_PASSWORD', 'abcxyz')
+                "adminUsername": getenv('ADMIN_USERNAME'),
+                "adminPassword": getenv('ADMIN_PASSWORD')
             }
 
             # Construct STOMP SEND frame

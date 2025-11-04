@@ -4,8 +4,8 @@ from env_loader import load_env, getenv
 
 load_env()
 URL = getenv('HTTP_URL', 'http://localhost:8080')
-ADMIN_USERNAME = getenv('ADMIN_USERNAME', 'trading_club_admin')
-ADMIN_PASSWORD = getenv('ADMIN_PASSWORD', 'abcxyz')
+ADMIN_USERNAME = getenv('ADMIN_USERNAME')
+ADMIN_PASSWORD = getenv('ADMIN_PASSWORD')
 
 
 def create_user(username: str, name: str, email: str):

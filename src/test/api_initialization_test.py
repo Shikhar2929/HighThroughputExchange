@@ -10,8 +10,8 @@ URL = getenv('HTTP_URL', 'http://localhost:8080')
 # Function to create a user
 def create_user(username, name, email):
     form_data = {
-    'adminUsername': getenv('ADMIN_USERNAME', 'trading_club_admin'),
-    'adminPassword': getenv('ADMIN_PASSWORD', 'abcxyz'),
+    'adminUsername': getenv('ADMIN_USERNAME'),
+    'adminPassword': getenv('ADMIN_PASSWORD'),
         'username': username,
         'name': name,
         'email': email
