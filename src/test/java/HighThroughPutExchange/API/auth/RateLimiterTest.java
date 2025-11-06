@@ -1,10 +1,10 @@
 package HighThroughPutExchange.API.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
 import HighThroughPutExchange.API.authentication.RateLimiter;
-
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class RateLimiterTest {
 

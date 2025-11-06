@@ -1,10 +1,10 @@
 package HighThroughPutExchange.API.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import HighThroughPutExchange.API.api_objects.requests.BaseAdminRequest;
 import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
-
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class AdminPageAuthenticatorTest {
 

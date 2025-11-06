@@ -1,5 +1,7 @@
 package HighThroughPutExchange.API.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
 import HighThroughPutExchange.API.authentication.BotAuthenticator;
 import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
@@ -7,8 +9,6 @@ import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class PrivateAndBotAuthenticatorTest {
 
