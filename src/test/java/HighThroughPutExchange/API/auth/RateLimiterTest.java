@@ -1,0 +1,23 @@
+package HighThroughPutExchange.API.auth;
+
+import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
+import HighThroughPutExchange.API.authentication.RateLimiter;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class RateLimiterTest {
+
+    @Test
+    void allowsUpTo15RequestsPerSecond_thenBlocks() {
+        RateLimiter limiter = new RateLimiter();
+        BasePrivateRequest req = new BasePrivateRequest("alice", "token");
+
+        // First 15 should pass
+        for (int i = 0; i < 15; i++) {
+            assertTrue(limiter.processRequest(req), "request " + i + " should pass");
+        }
+        // 16th within same second should be blocked
+        assertFalse(limiter.processRequest(req));
+    }
+}
