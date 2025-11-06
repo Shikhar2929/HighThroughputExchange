@@ -86,7 +86,6 @@
                 <version>3.5.0</version>
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
-                    <failOnViolation>false</failOnViolation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <linkXRef>false</linkXRef>
                 </configuration>
