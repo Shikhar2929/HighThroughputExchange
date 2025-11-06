@@ -34,25 +34,18 @@ public class TickerData {
         firstTrade = true;
     }
 
-    /**
-     * Checks if OHLC data is available for this ticker.
-     */
+    /** Checks if OHLC data is available for this ticker. */
     public boolean isDataAvailable() {
         return !firstTrade;
     }
 
-    /**
-     * Retrieves the latest OHLC snapshot for this ticker.
-     */
+    /** Retrieves the latest OHLC snapshot for this ticker. */
     public OHLCData getCurrentData() {
         return new OHLCData(open, high, low, close);
     }
 
-    /**
-     * Retrieves historical OHLC data.
-     */
+    /** Retrieves historical OHLC data. */
     public List<OHLCData> getHistoricalData() {
         return new ArrayList<>(historicalData);
     }
 }
-

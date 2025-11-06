@@ -1,17 +1,12 @@
 package HighThroughPutExchange.Common;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum Message {
-
-    SUCCESS(0, "Success!"),
-    AUTHENTICATION_FAILED(1,"Authentication failed."),
-    RATE_LIMITED(2, "Rate Limited. Please stop spamming."),
-    TRADE_LOCKED(3, "Trading is currently locked"),
-    BAD_INPUT(4, "Bad input. Please check your parameters."),
-    AUCTION_LOCKED(5, "Auctioning is currently locked."),
-    POSITION_LIMIT_EXCEEDED(6, "Position limit has been exceeded."),
-    INSUFFICIENT_BALANCE(7, "Insufficient balance.");
+    SUCCESS(0, "Success!"), AUTHENTICATION_FAILED(1, "Authentication failed."), RATE_LIMITED(2,
+            "Rate Limited. Please stop spamming."), TRADE_LOCKED(3, "Trading is currently locked"), BAD_INPUT(4,
+                    "Bad input. Please check your parameters."), AUCTION_LOCKED(5,
+                            "Auctioning is currently locked."), POSITION_LIMIT_EXCEEDED(6,
+                                    "Position limit has been exceeded."), INSUFFICIENT_BALANCE(7,
+                                            "Insufficient balance.");
 
     public int getErrorCode() {
         return errorCode;

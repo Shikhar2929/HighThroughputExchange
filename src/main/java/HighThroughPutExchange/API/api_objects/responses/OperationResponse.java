@@ -2,6 +2,7 @@ package HighThroughPutExchange.API.api_objects.responses;
 
 public class OperationResponse extends AbstractMessageResponse {
     private String type;
+
     public OperationResponse(String type, String message) {
         super(message);
         this.type = type;

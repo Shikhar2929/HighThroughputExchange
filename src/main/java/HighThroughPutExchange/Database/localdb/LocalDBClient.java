@@ -4,15 +4,13 @@ import HighThroughPutExchange.Database.abstractions.AbstractDBClient;
 import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
 import HighThroughPutExchange.Database.exceptions.NotFoundException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.LinkedHashMap;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalDBClient extends AbstractDBClient {
 
@@ -28,16 +26,14 @@ public class LocalDBClient extends AbstractDBClient {
         try {
             temp = objectMapper.readerFor(HashMap.class).readValue(file);
             LocalDBTable table;
-            for (String tableName: temp.keySet()) {
+            for (String tableName : temp.keySet()) {
                 table = new LocalDBTable<>(tableName);
-                for (String key: temp.get(tableName).get("backing").keySet()) {
+                for (String key : temp.get(tableName).get("backing").keySet()) {
                     try {
                         table.putItem(
                                 objectMapper.convertValue(
                                         temp.get(tableName).get("backing").get(key),
-                                        tableMapping.getOrDefault(tableName, null)
-                                )
-                        );
+                                        tableMapping.getOrDefault(tableName, null)));
                     } catch (AlreadyExistsException e) {
                         throw new RuntimeException(e);
                     }
@@ -51,7 +47,9 @@ public class LocalDBClient extends AbstractDBClient {
 
     @Override
     public LocalDBTable<DBEntry> createTable(String tableName) throws AlreadyExistsException {
-        if (tables.containsKey(tableName)) {throw new AlreadyExistsException();}
+        if (tables.containsKey(tableName)) {
+            throw new AlreadyExistsException();
+        }
         LocalDBTable<DBEntry> output = new LocalDBTable<DBEntry>(tableName);
         tables.put(tableName, output);
         return output;
@@ -59,13 +57,17 @@ public class LocalDBClient extends AbstractDBClient {
 
     @Override
     public LocalDBTable getTable(String tableName) throws NotFoundException {
-        if (!tables.containsKey(tableName)) {throw new NotFoundException();}
+        if (!tables.containsKey(tableName)) {
+            throw new NotFoundException();
+        }
         return tables.get(tableName);
     }
 
     @Override
     public void destroyTable(String tableName) throws NotFoundException {
-        if (!tables.containsKey(tableName)) {throw new NotFoundException();}
+        if (!tables.containsKey(tableName)) {
+            throw new NotFoundException();
+        }
         tables.remove(tableName);
     }
 

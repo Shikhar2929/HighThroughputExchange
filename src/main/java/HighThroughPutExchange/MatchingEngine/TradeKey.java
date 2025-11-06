@@ -1,9 +1,8 @@
 package HighThroughPutExchange.MatchingEngine;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class TradeKey implements Comparable<TradeKey>{
+public class TradeKey implements Comparable<TradeKey> {
     String ticker;
     private final int price;
     private final Side side;
@@ -28,10 +27,7 @@ public class TradeKey implements Comparable<TradeKey>{
 
     @Override
     public String toString() {
-        return "PriceChange{" +
-                ", ticker=" + ticker +
-                ", isBid=" + side +
-                '}';
+        return "PriceChange{" + ", ticker=" + ticker + ", isBid=" + side + '}';
     }
 
     @Override
@@ -41,14 +37,18 @@ public class TradeKey implements Comparable<TradeKey>{
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         TradeKey tradeKey = (TradeKey) o;
-        return Integer.compare(tradeKey.price, price) == 0 &&
-                ticker.equals(tradeKey.ticker) &&
-                side == tradeKey.side;
+        return Integer.compare(tradeKey.price, price) == 0
+                && ticker.equals(tradeKey.ticker)
+                && side == tradeKey.side;
     }
-    @Override public int compareTo(TradeKey other) {
+
+    @Override
+    public int compareTo(TradeKey other) {
         int sideCompare = this.side.compareTo(other.side);
         if (sideCompare != 0) {
             return sideCompare;

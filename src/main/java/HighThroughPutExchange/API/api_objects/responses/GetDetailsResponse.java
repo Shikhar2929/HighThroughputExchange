@@ -11,6 +11,7 @@ public class GetDetailsResponse extends AbstractMessageResponse {
     public String getUserDetails() {
         return userDetails;
     }
+
     public GetDetailsResponse(String message, String userDetails) {
         super(message);
         this.userDetails = userDetails;

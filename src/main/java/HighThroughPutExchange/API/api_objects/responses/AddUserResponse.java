@@ -29,5 +29,4 @@ public class AddUserResponse extends AbstractMessageResponse {
     public void setApiKey2(String apiKey2) {
         this.apiKey2 = apiKey2;
     }
-
 }

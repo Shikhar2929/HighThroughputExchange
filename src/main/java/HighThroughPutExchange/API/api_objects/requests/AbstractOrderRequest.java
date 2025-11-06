@@ -1,12 +1,9 @@
 package HighThroughPutExchange.API.api_objects.requests;
 
 import jakarta.validation.constraints.NotNull;
-
 import java.util.function.IntUnaryOperator;
 
-/**
- * Shared state and helpers for authenticated order placement requests.
- */
+/** Shared state and helpers for authenticated order placement requests. */
 public abstract class AbstractOrderRequest extends BasePrivateRequest {
     @NotNull
     private String ticker;
@@ -17,12 +14,13 @@ public abstract class AbstractOrderRequest extends BasePrivateRequest {
 
     private final IntUnaryOperator volumeProcessor;
 
-    protected AbstractOrderRequest(String username,
-                                   String sessionToken,
-                                   String ticker,
-                                   int volume,
-                                   boolean isBid,
-                                   IntUnaryOperator volumeProcessor) {
+    protected AbstractOrderRequest(
+            String username,
+            String sessionToken,
+            String ticker,
+            int volume,
+            boolean isBid,
+            IntUnaryOperator volumeProcessor) {
         super(username, sessionToken);
         this.ticker = ticker;
         this.isBid = isBid;

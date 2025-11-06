@@ -9,6 +9,7 @@ import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.authentication.RateLimiter;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
+import HighThroughPutExchange.Auction.Auction;
 import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
@@ -18,23 +19,22 @@ import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
 import HighThroughPutExchange.Database.exceptions.NotFoundException;
 import HighThroughPutExchange.Database.localdb.LocalDBClient;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
+import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import HighThroughPutExchange.MatchingEngine.Order;
 import HighThroughPutExchange.MatchingEngine.Side;
 import HighThroughPutExchange.MatchingEngine.Status;
-import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
-import HighThroughPutExchange.Auction.Auction;
+import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 /*
 todo
     make all task queue tasks into completable futures
@@ -77,6 +77,7 @@ public class ServerApplication {
         }
         return output.toString();
     }
+
     public ServerApplication() {
         state = State.STOP;
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
@@ -129,7 +130,7 @@ public class ServerApplication {
         }
         try {
             botSessions = dbClient.getTable("botSessions");
-        } catch(NotFoundException e) {
+        } catch (NotFoundException e) {
             try {
                 dbClient.createTable("botSessions");
                 botSessions = dbClient.getTable("botSessions");
@@ -138,7 +139,8 @@ public class ServerApplication {
             }
         }
 
-        // PrivatePageAuthenticator privatePageAuthenticator = new PrivatePageAuthenticator(sessions);
+        // PrivatePageAuthenticator privatePageAuthenticator = new
+        // PrivatePageAuthenticator(sessions);
         adminPageAuthenticator = AdminPageAuthenticator.getInstance();
         PrivatePageAuthenticator.buildInstance(sessions);
         privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
@@ -153,39 +155,30 @@ public class ServerApplication {
     }
 
     /*
-    HTTP Status Codes:
-        - OK: success
-        - UNAUTHORIZED: failed authentication
-        - TOO_MANY_REQUESTS: rate limited
-        - BAD_REQUEST: bad input in HTTP request form
-        - LOCKED: if state is mismatched
+     * HTTP Status Codes: - OK: success - UNAUTHORIZED: failed authentication -
+     * TOO_MANY_REQUESTS: rate limited - BAD_REQUEST: bad input in HTTP request form
+     * - LOCKED: if state is mismatched
      */
 
     // -------------------- public pages --------------------
     /*
-    @CrossOrigin(origins = "*")
-    @GetMapping("/")
-    public ResponseEntity<String> home() {
-        return new ResponseEntity<>("Welcome to GT Trading Club's High Throughput Exchange!", HttpStatus.OK);
-    } */
+     * @CrossOrigin(origins = "*")
+     *
+     * @GetMapping("/") public ResponseEntity<String> home() { return new
+     * ResponseEntity<>("Welcome to GT Trading Club's High Throughput Exchange!",
+     * HttpStatus.OK); }
+     */
 
-    /*@PostMapping("/test")
-    public CompletableFuture<String> test(@RequestBody PrivatePageRequest form) {
-        if (form.getUsername().equals("test")) {
-            System.out.println("test is the username");
-            return CompletableFuture.completedFuture("done sir");
-        }
-        return CompletableFuture.supplyAsync(() -> {
-            System.out.println(form.getUsername());
-            System.out.println(form.getSessionToken());
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            return "done";
-        });
-    }*/
+    /*
+     * @PostMapping("/test") public CompletableFuture<String> test(@RequestBody
+     * PrivatePageRequest form) { if (form.getUsername().equals("test")) {
+     * System.out.println("test is the username"); return
+     * CompletableFuture.completedFuture("done sir"); } return
+     * CompletableFuture.supplyAsync(() -> { System.out.println(form.getUsername());
+     * System.out.println(form.getSessionToken()); try { Thread.sleep(10000); }
+     * catch (InterruptedException e) { throw new RuntimeException(e); } return
+     * "done"; }); }
+     */
 
     @CrossOrigin(origins = "*")
     @GetMapping("/get_state")
@@ -197,68 +190,88 @@ public class ServerApplication {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/admin_page")
-    public ResponseEntity<AdminDashboardResponse> adminPage(@Valid @RequestBody AdminDashboardRequest form) {
+    public ResponseEntity<AdminDashboardResponse> adminPage(
+            @Valid @RequestBody AdminDashboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AdminDashboardResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new AdminDashboardResponse(Message.AUTHENTICATION_FAILED.toString(), ""),
+                    HttpStatus.UNAUTHORIZED);
         }
 
-        return new ResponseEntity<>(new AdminDashboardResponse(Message.SUCCESS.toString(), ""), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new AdminDashboardResponse(Message.SUCCESS.toString(), ""), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/add_bot")
     public ResponseEntity<AddUserResponse> addBot(@Valid @RequestBody AddBotRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AddUserResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new AddUserResponse(Message.AUTHENTICATION_FAILED.toString(), ""),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
         }
         try {
             String key = generateKey();
             users.putItem(new User(form.getUsername(), "", key, ""));
             bots.putItem(new User(form.getUsername(), "", key, ""));
-            TaskQueue.addTask(() -> {
+            TaskQueue.addTask(
+                    () -> {
                         System.out.println("Bot Initialized");
                         matchingEngine.initializeBot(form.getUsername());
-                    }
-            );
-        }
-        catch(AlreadyExistsException e) {
+                    });
+        } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new AddUserResponse(
+                        Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey()),
+                HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/add_user")
     public ResponseEntity<AddUserResponse> addUser(@Valid @RequestBody AddUserRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AddUserResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new AddUserResponse(Message.AUTHENTICATION_FAILED.toString(), ""),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         // no duplicate usernames
         if (users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
         }
         try {
-            users.putItem(new User(form.getUsername(), form.getName(), generateKey(), generateKey(), form.getEmail()));
-            TaskQueue.addTask(() -> {
-                System.out.println("User initialized" + form.getUsername());
-                matchingEngine.initializeUser(form.getUsername());
-            });
+            users.putItem(
+                    new User(
+                            form.getUsername(), form.getName(), generateKey(), generateKey(), form.getEmail()));
+            TaskQueue.addTask(
+                    () -> {
+                        System.out.println("User initialized" + form.getUsername());
+                        matchingEngine.initializeUser(form.getUsername());
+                    });
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey(), users.getItem(form.getUsername()).getApiKey2()), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new AddUserResponse(
+                        Message.SUCCESS.toString(),
+                        users.getItem(form.getUsername()).getApiKey(),
+                        users.getItem(form.getUsername()).getApiKey2()),
+                HttpStatus.OK);
     }
-
 
     @CrossOrigin(origins = "*")
     @PostMapping("/shutdown")
     public ResponseEntity<ShutdownResponse> shutdown(@Valid @RequestBody ShutdownRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new ShutdownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new ShutdownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
 
         try {
@@ -271,88 +284,106 @@ public class ServerApplication {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/leaderboard")
-    public ResponseEntity<LeaderboardResponse> leaderboard(@Valid @RequestBody LeaderboardRequest form) {
+    public ResponseEntity<LeaderboardResponse> leaderboard(
+            @Valid @RequestBody LeaderboardRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new LeaderboardResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new LeaderboardResponse(Message.AUTHENTICATION_FAILED.toString(), null),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         TaskFuture<ArrayList<LeaderboardEntry>> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.getLeaderboard(future);
-        });
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.getLeaderboard(future);
+                });
 
         future.waitForCompletion();
 
-        return new ResponseEntity<>(new LeaderboardResponse(Message.SUCCESS.toString(), future.getData()), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new LeaderboardResponse(Message.SUCCESS.toString(), future.getData()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/set_state")
     public ResponseEntity<SetStateResponse> setState(@Valid @RequestBody SetStateRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new SetStateResponse(Message.AUTHENTICATION_FAILED.toString(), state.ordinal()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new SetStateResponse(Message.AUTHENTICATION_FAILED.toString(), state.ordinal()),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         if (form.getTargetState() >= State.values().length || form.getTargetState() < 0) {
-            return new ResponseEntity<>(new SetStateResponse(Message.BAD_INPUT.toString(), state.ordinal()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    new SetStateResponse(Message.BAD_INPUT.toString(), state.ordinal()),
+                    HttpStatus.BAD_REQUEST);
         }
 
         state = State.values()[form.getTargetState()];
 
-        return new ResponseEntity<>(new SetStateResponse(Message.SUCCESS.toString(), state.ordinal()), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new SetStateResponse(Message.SUCCESS.toString(), state.ordinal()), HttpStatus.OK);
     }
-    @CrossOrigin(origins="*")
+
+    @CrossOrigin(origins = "*")
     @PostMapping("/set_price")
     public ResponseEntity<SetPriceResponse> setPrice(@Valid @RequestBody SetPriceRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new SetPriceResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new SetPriceResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.setPriceClearOrderBook(form.getPrices(), future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.setPriceClearOrderBook(form.getPrices(), future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         System.out.println(future.getData());
         return new ResponseEntity<>(new SetPriceResponse(future.getData()), HttpStatus.OK);
     }
 
-
     @CrossOrigin(origins = "*")
     @PostMapping("/get_leading_auction_bid")
-    public ResponseEntity<GetLeadingAuctionBidResponse> getLeadingAuctionBid(@Valid @RequestBody BaseAdminRequest form) {
+    public ResponseEntity<GetLeadingAuctionBidResponse> getLeadingAuctionBid(
+            @Valid @RequestBody BaseAdminRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         TaskFuture<GetLeadingAuctionBidResponse> future = new TaskFuture<>();
         future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
-        TaskQueue.addTask(() -> {
-            future.getData().setUser(auction.getBestUser());
-            future.getData().setBid(auction.getBestBid());
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    future.getData().setUser(auction.getBestUser());
+                    future.getData().setBid(auction.getBestBid());
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         return new ResponseEntity<>(future.getData(), HttpStatus.OK);
     }
 
     /*
-    Method with the following behavior:
-        1. sets state to STOP, stopping the auctioning phase
-        2. gets best bid by best user
-        3. executes auction
-        4. resets auction object
-        5. returns who won auction and at what amount
+     * Method with the following behavior: 1. sets state to STOP, stopping the
+     * auctioning phase 2. gets best bid by best user 3. executes auction 4. resets
+     * auction object 5. returns who won auction and at what amount
      */
     @CrossOrigin(origins = "*")
     @PostMapping("/terminate_auction")
-    public ResponseEntity<GetLeadingAuctionBidResponse> terminateAuction(@Valid @RequestBody BaseAdminRequest form) {
+    public ResponseEntity<GetLeadingAuctionBidResponse> terminateAuction(
+            @Valid @RequestBody BaseAdminRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         if (state != State.TRADE_WITH_AUCTION) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.LOCKED);
         }
 
         state = State.STOP;
@@ -360,13 +391,14 @@ public class ServerApplication {
         TaskFuture<GetLeadingAuctionBidResponse> future = new TaskFuture<>();
         future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
 
-        TaskQueue.addTask(() -> {
-            future.getData().setUser(auction.getBestUser());
-            future.getData().setBid(auction.getBestBid());
-            auction.executeAuction();
-            auction.reset();
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    future.getData().setUser(auction.getBestUser());
+                    future.getData().setBid(auction.getBestBid());
+                    auction.executeAuction();
+                    auction.reset();
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         return new ResponseEntity<>(future.getData(), HttpStatus.OK);
     }
@@ -377,17 +409,22 @@ public class ServerApplication {
     @PostMapping("/buildup")
     public ResponseEntity<BuildupResponse> buildup(@Valid @RequestBody BuildupRequest form) {
         /*
-        Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as opposed to session token.
+         * Note that BuildupRequest does not inherit from BasePrivateRequest because it
+         * uses the API key, as opposed to session token.
          */
         // if username not found
         if (!users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         User u = users.getItem(form.getUsername());
         // if username and api key mismatch
         if (!u.getApiKey().equals(form.getApiKey()) && !u.getApiKey2().equals(form.getApiKey())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         String sessionToken = generateKey();
@@ -405,23 +442,32 @@ public class ServerApplication {
                 throw new RuntimeException(e);
             }
         }
-        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), sessionToken, matchingEngine.serializeOrderBooks()), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new BuildupResponse(
+                        Message.SUCCESS.toString(), sessionToken, matchingEngine.serializeOrderBooks()),
+                HttpStatus.OK);
     }
+
     @CrossOrigin(origins = "*")
     @PostMapping("/bot_buildup")
     public ResponseEntity<BuildupResponse> botBuildup(@Valid @RequestBody BuildupRequest form) {
         /*
-        Note that BuildupRequest does not inherit from BasePrivateRequest because it uses the API key, as oppsed to session token.
+         * Note that BuildupRequest does not inherit from BasePrivateRequest because it
+         * uses the API key, as oppsed to session token.
          */
         // if username not found
         if (!bots.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         User u = bots.getItem(form.getUsername());
         // if username and api key mismatch
         if (!u.getApiKey().equals(form.getApiKey())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         Session s = new Session(generateKey(), u.getUsername());
@@ -441,16 +487,18 @@ public class ServerApplication {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new BuildupResponse(
+                        Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()),
+                HttpStatus.OK);
     }
-
-
 
     @CrossOrigin(origins = "*")
     @PostMapping("/teardown")
     public ResponseEntity<TeardownResponse> teardown(@Valid @RequestBody TeardownRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new TeardownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new TeardownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
 
         sessions.deleteItem(form.getUsername());
@@ -460,12 +508,16 @@ public class ServerApplication {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/privatePage")
-    public ResponseEntity<PrivatePageResponse> privatePage(@Valid @RequestBody PrivatePageRequest form) {
+    public ResponseEntity<PrivatePageResponse> privatePage(
+            @Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new PrivatePageResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new PrivatePageResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new PrivatePageResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new PrivatePageResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
 
         return new ResponseEntity<>(new PrivatePageResponse(Message.SUCCESS.toString()), HttpStatus.OK);
@@ -475,50 +527,71 @@ public class ServerApplication {
     @PostMapping("/limit_order")
     public ResponseEntity<LimitOrderResponse> limitOrder(@Valid @RequestBody LimitOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new LimitOrderResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new LimitOrderResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state == State.STOP) {
-            return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
 
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
-                    form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-            //System.out.println("Adding Limit Order");
-            if (form.getBid())
-                matchingEngine.bidLimitOrder(form.getUsername(), order, future);
-            else
-                matchingEngine.askLimitOrder(form.getUsername(), order, future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    Order order = new Order(
+                            form.getUsername(),
+                            form.getTicker(),
+                            form.getPrice(),
+                            form.getVolume(),
+                            form.getBid() ? Side.BID : Side.ASK,
+                            Status.ACTIVE);
+                    // System.out.println("Adding Limit Order");
+                    if (form.getBid())
+                        matchingEngine.bidLimitOrder(form.getUsername(), order, future);
+                    else
+                        matchingEngine.askLimitOrder(form.getUsername(), order, future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         // todo set message to volume filled
         return new ResponseEntity<>(new LimitOrderResponse(future.getData()), HttpStatus.OK);
     }
-    @CrossOrigin(origins="*")
+
+    @CrossOrigin(origins = "*")
     @PostMapping("/bot_limit_order")
-    public ResponseEntity<LimitOrderResponse> botLimitOrder(@Valid @RequestBody BotLimitOrderRequest form) {
+    public ResponseEntity<LimitOrderResponse> botLimitOrder(
+            @Valid @RequestBody BotLimitOrderRequest form) {
         if (!botAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (state == State.STOP) {
-            return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(),
-                    form.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-            //System.out.println("Adding Limit Order");
-            if (form.getBid())
-                matchingEngine.bidLimitOrder(form.getUsername(), order, future);
-            else
-                matchingEngine.askLimitOrder(form.getUsername(), order, future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    Order order = new Order(
+                            form.getUsername(),
+                            form.getTicker(),
+                            form.getPrice(),
+                            form.getVolume(),
+                            form.getBid() ? Side.BID : Side.ASK,
+                            Status.ACTIVE);
+                    // System.out.println("Adding Limit Order");
+                    if (form.getBid())
+                        matchingEngine.bidLimitOrder(form.getUsername(), order, future);
+                    else
+                        matchingEngine.askLimitOrder(form.getUsername(), order, future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         // todo set message to volume filled
         return new ResponseEntity<>(new LimitOrderResponse(future.getData()), HttpStatus.OK);
@@ -528,70 +601,85 @@ public class ServerApplication {
     @PostMapping("/remove_all")
     public ResponseEntity<RemoveAllResponse> removeAll(@Valid @RequestBody RemoveAllRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state == State.STOP) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
-            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.removeAll(form.getUsername(), future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
-    }
-    @PostMapping("/bot_remove_all")
-    public ResponseEntity<RemoveAllResponse> botRemoveAll(@Valid @RequestBody RemoveAllRequest form) {
-        if (!botAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-        if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
-        }
-        if (state == State.STOP) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
-        }
-        if (form.getUsername() == null)
-            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.removeAll(form.getUsername(), future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.removeAll(form.getUsername(), future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         // todo set message to volume filled
         return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
     }
 
+    @PostMapping("/bot_remove_all")
+    public ResponseEntity<RemoveAllResponse> botRemoveAll(@Valid @RequestBody RemoveAllRequest form) {
+        if (!botAuthenticator.authenticate(form)) {
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        }
+        if (!rateLimiter.processRequest(form)) {
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+        }
+        if (state == State.STOP) {
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+        }
+        if (form.getUsername() == null)
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        TaskFuture<String> future = new TaskFuture<>();
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.removeAll(form.getUsername(), future);
+                    future.markAsComplete();
+                });
+        future.waitForCompletion();
+        // todo set message to volume filled
+        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
+    }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/remove")
     public ResponseEntity<RemoveAllResponse> remove(@Valid @RequestBody RemoveRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state == State.STOP) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
-            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        //System.out.println("Removing Order");
-        //System.out.println(form.getOrderID());
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        // System.out.println("Removing Order");
+        // System.out.println(form.getOrderID());
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         // todo set message to volume filled
         return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
@@ -601,20 +689,24 @@ public class ServerApplication {
     @PostMapping("/bot_remove")
     public ResponseEntity<RemoveAllResponse> botRemove(@Valid @RequestBody RemoveRequest form) {
         if (!botAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
         }
         if (state == State.STOP) {
-            return new ResponseEntity<>(new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         if (form.getUsername() == null)
-            return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        //System.out.println("Removing Order");
-        //System.out.println(form.getOrderID());
+            return new ResponseEntity<>(
+                    new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+        // System.out.println("Removing Order");
+        // System.out.println(form.getOrderID());
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         // todo set message to volume filled
         return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
@@ -622,25 +714,33 @@ public class ServerApplication {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/market_order")
-    public ResponseEntity<MarketOrderResponse> marketOrderResponse(@Valid @RequestBody MarketOrderRequest form) {
+    public ResponseEntity<MarketOrderResponse> marketOrderResponse(
+            @Valid @RequestBody MarketOrderRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new MarketOrderResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new MarketOrderResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state == State.STOP) {
-            return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            //System.out.println("Adding Market Order: " + form);
-            if (form.getBid())
-                matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
-            else
-                matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    // System.out.println("Adding Market Order: " + form);
+                    if (form.getBid())
+                        matchingEngine.bidMarketOrder(
+                                form.getUsername(), form.getTicker(), form.getVolume(), future);
+                    else
+                        matchingEngine.askMarketOrder(
+                                form.getUsername(), form.getTicker(), form.getVolume(), future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         // todo set message to volume filled
         return new ResponseEntity<>(new MarketOrderResponse(future.getData()), HttpStatus.OK);
@@ -648,38 +748,50 @@ public class ServerApplication {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/bot_market_order")
-    public ResponseEntity<MarketOrderResponse> botMarketOrderResponse(@Valid @RequestBody BotMarketOrderRequest form) {
+    public ResponseEntity<MarketOrderResponse> botMarketOrderResponse(
+            @Valid @RequestBody BotMarketOrderRequest form) {
         if (!botAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (state == State.STOP) {
-            return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            //System.out.println("Adding Market Order: " + form);
-            if (form.getBid())
-                matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
-            else
-                matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    // System.out.println("Adding Market Order: " + form);
+                    if (form.getBid())
+                        matchingEngine.bidMarketOrder(
+                                form.getUsername(), form.getTicker(), form.getVolume(), future);
+                    else
+                        matchingEngine.askMarketOrder(
+                                form.getUsername(), form.getTicker(), form.getVolume(), future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         // todo set message to volume filled
         return new ResponseEntity<>(new MarketOrderResponse(future.getData()), HttpStatus.OK);
     }
+
     @CrossOrigin(origins = "*")
     @PostMapping("/batch")
     public ResponseEntity<BatchResponse> processBatch(@Valid @RequestBody BatchRequest form) {
         if (!botAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new BatchResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new BatchResponse(Message.AUTHENTICATION_FAILED.toString(), null),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (state == State.STOP) {
-            return new ResponseEntity<>(new BatchResponse(Message.TRADE_LOCKED.toString(), null), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new BatchResponse(Message.TRADE_LOCKED.toString(), null), HttpStatus.LOCKED);
         }
 
         if (form.getOperations().size() > MAX_OPERATIONS) {
-            return new ResponseEntity<>(new BatchResponse("EXCEEDED_OPERATION_LIMIT", null), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    new BatchResponse("EXCEEDED_OPERATION_LIMIT", null), HttpStatus.BAD_REQUEST);
         }
         List<Runnable> temporaryTaskQueue = new ArrayList<>();
         List<OperationResponse> responses = new ArrayList<>();
@@ -689,113 +801,150 @@ public class ServerApplication {
             TaskFuture<String> future = new TaskFuture<>();
             futures.add(future);
             responses.add(new OperationResponse(operation.getType(), null));
-            //System.out.println(operation.toString());
+            // System.out.println(operation.toString());
             switch (operation.getType()) {
-                case "limit_order":
+                case "limit_order" :
                     LimitOrderOperation limitOrderOperation = (LimitOrderOperation) operation;
-                    temporaryTaskQueue.add(() -> {
-                        Order order = new Order(form.getUsername(), limitOrderOperation.getTicker(), limitOrderOperation.getPrice(),
-                                limitOrderOperation.getVolume(), limitOrderOperation.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-                        //System.out.println("Batch - Adding Limit Order");
-                        if (limitOrderOperation.getBid())
-                            matchingEngine.bidLimitOrder(form.getUsername(), order, future);
-                        else
-                            matchingEngine.askLimitOrder(form.getUsername(), order, future);
-                        future.markAsComplete();
-                        });
+                    temporaryTaskQueue.add(
+                            () -> {
+                                Order order = new Order(
+                                        form.getUsername(),
+                                        limitOrderOperation.getTicker(),
+                                        limitOrderOperation.getPrice(),
+                                        limitOrderOperation.getVolume(),
+                                        limitOrderOperation.getBid() ? Side.BID : Side.ASK,
+                                        Status.ACTIVE);
+                                // System.out.println("Batch - Adding Limit Order");
+                                if (limitOrderOperation.getBid())
+                                    matchingEngine.bidLimitOrder(form.getUsername(), order, future);
+                                else
+                                    matchingEngine.askLimitOrder(form.getUsername(), order, future);
+                                future.markAsComplete();
+                            });
                     break;
-                case "market_order":
+                case "market_order" :
                     MarketOrderOperation marketOrderOperation = (MarketOrderOperation) operation;
-                    temporaryTaskQueue.add(() -> {
-                        //System.out.println("Batch - Adding Market Order");
-                        if (marketOrderOperation.getBid()) {
-                            matchingEngine.bidMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
-                        }
-                        else
-                            matchingEngine.askMarketOrder(form.getUsername(), marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
-                        future.markAsComplete();
-                    });
+                    temporaryTaskQueue.add(
+                            () -> {
+                                // System.out.println("Batch - Adding Market Order");
+                                if (marketOrderOperation.getBid()) {
+                                    matchingEngine.bidMarketOrder(
+                                            form.getUsername(),
+                                            marketOrderOperation.getTicker(),
+                                            marketOrderOperation.getVolume(),
+                                            future);
+                                } else
+                                    matchingEngine.askMarketOrder(
+                                            form.getUsername(),
+                                            marketOrderOperation.getTicker(),
+                                            marketOrderOperation.getVolume(),
+                                            future);
+                                future.markAsComplete();
+                            });
                     break;
-                case "remove":
+                case "remove" :
                     RemoveOperation removeOperation = (RemoveOperation) operation;
-                    temporaryTaskQueue.add(() -> {
-                        //System.out.println("Batch - Remove Processing");
-                        matchingEngine.removeOrder(form.getUsername(), removeOperation.getOrderId(), future);
-                        future.markAsComplete();
-                    });
+                    temporaryTaskQueue.add(
+                            () -> {
+                                // System.out.println("Batch - Remove Processing");
+                                matchingEngine.removeOrder(
+                                        form.getUsername(), removeOperation.getOrderId(), future);
+                                future.markAsComplete();
+                            });
                     break;
-                case "remove_all":
+                case "remove_all" :
                     RemoveAllOperation removeAllOperation = (RemoveAllOperation) operation;
-                    temporaryTaskQueue.add(() -> {
-                        //System.out.println("Batch - Remove All");
-                        matchingEngine.removeAll(form.getUsername(), future);
-                        future.markAsComplete();
-                    });
+                    temporaryTaskQueue.add(
+                            () -> {
+                                // System.out.println("Batch - Remove All");
+                                matchingEngine.removeAll(form.getUsername(), future);
+                                future.markAsComplete();
+                            });
                     break;
-                default:
+                default :
                     // todo mark future
                     success = false;
                     break;
             }
         }
         if (!success) {
-            return new ResponseEntity<>(new BatchResponse("UNKNOWN OPERATION", null), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    new BatchResponse("UNKNOWN OPERATION", null), HttpStatus.BAD_REQUEST);
         }
         for (Runnable task : temporaryTaskQueue) {
             TaskQueue.addTask(task);
         }
-        //System.out.println("Batch Tasks Added to the Queue Successfully!");
+        // System.out.println("Batch Tasks Added to the Queue Successfully!");
         for (int i = 0; i < futures.size(); i++) {
             TaskFuture<String> future = futures.get(i);
             future.waitForCompletion();
             String message = future.getData();
-            //System.out.printf("Batch %d Message: %s\n", i, message);
+            // System.out.printf("Batch %d Message: %s\n", i, message);
             OperationResponse response = responses.get(i);
             response.setMessage(future.getData());
         }
-        //System.out.println("All Messages Received From Batch Tasks, Returning!");
+        // System.out.println("All Messages Received From Batch Tasks, Returning!");
         return new ResponseEntity<>(new BatchResponse("SUCCESS", responses), HttpStatus.OK);
-
     }
-
 
     @CrossOrigin(origins = "*")
     @PostMapping("/get_details")
-    public ResponseEntity<GetDetailsResponse> getDetails(@Valid @RequestBody PrivatePageRequest form) {
+    public ResponseEntity<GetDetailsResponse> getDetails(
+            @Valid @RequestBody PrivatePageRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new GetDetailsResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new GetDetailsResponse(Message.AUTHENTICATION_FAILED.toString(), ""),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new GetDetailsResponse(Message.RATE_LIMITED.toString(), ""), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new GetDetailsResponse(Message.RATE_LIMITED.toString(), ""),
+                    HttpStatus.TOO_MANY_REQUESTS);
         }
-        return new ResponseEntity<>(new GetDetailsResponse(Message.SUCCESS.toString(), matchingEngine.getUserDetails(form.getUsername())), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new GetDetailsResponse(
+                        Message.SUCCESS.toString(), matchingEngine.getUserDetails(form.getUsername())),
+                HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/bid_auction")
     public ResponseEntity<BidAuctionResponse> bidAuction(@Valid @RequestBody BidAuctionRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new BidAuctionResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new BidAuctionResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
         }
         if (state != State.TRADE_WITH_AUCTION) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.AUCTION_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new BidAuctionResponse(Message.AUCTION_LOCKED.toString()), HttpStatus.LOCKED);
         }
 
         if (!auction.isValid(form.getUsername(), form.getBid())) {
-            return new ResponseEntity<>(new BidAuctionResponse(
-                    String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.BAD_INPUT.getErrorCode(), String.format("Bad Input! Bid amount cannot exceed %d.", auction.getMaxBid()))
-            ), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(
+                    new BidAuctionResponse(
+                            String.format(
+                                    "{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
+                                    Message.BAD_INPUT.getErrorCode(),
+                                    String.format("Bad Input! Bid amount cannot exceed %d.", auction.getMaxBid()))),
+                    HttpStatus.BAD_REQUEST);
         }
 
-        TaskQueue.addTask(() -> {
-            auction.placeBid(form.getUsername(), form.getBid());
-        });
+        TaskQueue.addTask(
+                () -> {
+                    auction.placeBid(form.getUsername(), form.getBid());
+                });
 
-        return new ResponseEntity<>(new BidAuctionResponse(
-                String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(), String.format("Success! Placed auction bid for %d.", form.getBid()))
-        ), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new BidAuctionResponse(
+                        String.format(
+                                "{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
+                                Message.SUCCESS.getErrorCode(),
+                                String.format("Success! Placed auction bid for %d.", form.getBid()))),
+                HttpStatus.OK);
     }
 }
