@@ -10,14 +10,17 @@ public class Preprocessing {
     public static int truncate(int x) {
         return ((int) ((int) (x * 100))) / 100;
     }
+
     public static int preprocessPrice(int price) {
-        //return price;//
+        // return price;//
         return Math.min(MAX_PRICE, Math.max(MIN_PRICE, truncate(price)));
     }
+
     public static int preprocessVolume(int volume) {
         return Math.min(MAX_VOLUME, Math.max(MIN_VOLUME, truncate(volume)));
-        //return volume;
+        // return volume;
     }
+
     public static int botPreprocessVolume(int volume) {
         return Math.max(truncate(volume), 0);
     }

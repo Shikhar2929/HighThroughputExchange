@@ -7,6 +7,7 @@ public class Order {
     protected int volume;
     protected Side side;
     protected Status status;
+
     public Order(String username, String ticker, int price, int volume, Side side, Status status) {
         this.name = username;
         this.ticker = ticker;
@@ -23,6 +24,7 @@ public class Order {
     public Side getSide() {
         return side;
     }
+
     public Status getStatus() {
         return status;
     }
@@ -31,8 +33,6 @@ public class Order {
     public String toString() {
         return String.format(
                 "Order{name='%s', ticker='%s', price=%d, volume=%d, side=%s, status=%s}",
-                name, ticker, price, volume, side, status
-        );
+                name, ticker, price, volume, side, status);
     }
-
 }

@@ -8,25 +8,17 @@ import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.OHLCData;
 import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
-import HighThroughPutExchange.MatchingEngine.PriceChange;
 import HighThroughPutExchange.MatchingEngine.RecentTrades;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.simp.user.SimpUser;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Controller;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
-import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Controller;
 
 @Controller
 public class SocketController {
@@ -44,13 +36,15 @@ public class SocketController {
 
     @MessageMapping("/start")
     public void startStream(StartSocketRequest req) throws Exception {
-        if (!AdminPageAuthenticator.getInstance().authenticate(req)) {throw new Exception("authentication failed");}
-        /*for (int i = 0; i < 50; ++i) {
-            sendMessage(new SocketResponse(String.format("Message %d", i)));
-            Thread.sleep(500);
+        if (!AdminPageAuthenticator.getInstance().authenticate(req)) {
+            throw new Exception("authentication failed");
         }
+        /*
+         * for (int i = 0; i < 50; ++i) { sendMessage(new
+         * SocketResponse(String.format("Message %d", i))); Thread.sleep(500); }
          */
     }
+
     @Scheduled(fixedRate = 200) // sends an update every 500 milliseconds
     public void sendRecentTrades() {
         String recentTradesJson = RecentTrades.getRecentTradesAsJson();
@@ -60,14 +54,16 @@ public class SocketController {
             sendMessage(new SocketResponse("No recent trades"));
         }
     }
+
     @Scheduled(fixedRate = 200)
     public void sendUserBalances() {
-        TaskQueue.addTask(() -> {
-            for (SimpUser user : simpUserRegistry.getUsers()) {
-                String userDetailsJson = matchingEngine.getUserDetails(user.getName());
-                sendUserInfo(user.getName(), userDetailsJson);
-            }
-        });
+        TaskQueue.addTask(
+                () -> {
+                    for (SimpUser user : simpUserRegistry.getUsers()) {
+                        String userDetailsJson = matchingEngine.getUserDetails(user.getName());
+                        sendUserInfo(user.getName(), userDetailsJson);
+                    }
+                });
     }
 
     public void sendUserInfo(String username, String resp) {
@@ -111,16 +107,13 @@ public class SocketController {
         }
     }
     /*
-    For Debugging:
-    @EventListener
-    public void handleSessionConnected(SessionConnectEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        Principal user = headerAccessor.getUser();
-        if (user != null) {
-            System.out.println("User connected: " + user.getName());
-        } else {
-            System.out.println("No Principal found for the session.");
-        }
-    }
-    */
+     * For Debugging:
+     *
+     * @EventListener public void handleSessionConnected(SessionConnectEvent event)
+     * { StompHeaderAccessor headerAccessor =
+     * StompHeaderAccessor.wrap(event.getMessage()); Principal user =
+     * headerAccessor.getUser(); if (user != null) {
+     * System.out.println("User connected: " + user.getName()); } else {
+     * System.out.println("No Principal found for the session."); } }
+     */
 }

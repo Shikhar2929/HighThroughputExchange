@@ -1,10 +1,9 @@
 package HighThroughPutExchange.API.api_objects.Operations;
 
-
 import HighThroughPutExchange.API.api_objects.requests.Preprocessing;
 import jakarta.validation.constraints.NotNull;
 
-public class LimitOrderOperation extends Operation{
+public class LimitOrderOperation extends Operation {
     @NotNull
     private String ticker;
     @NotNull
@@ -13,6 +12,7 @@ public class LimitOrderOperation extends Operation{
     private int volume;
     @NotNull
     private boolean isBid;
+
     public LimitOrderOperation(String ticker, int price, int volume, boolean isBid) {
         super("limit_order");
         this.ticker = ticker;
@@ -28,9 +28,11 @@ public class LimitOrderOperation extends Operation{
     public void setTicker(String ticker) {
         this.ticker = ticker;
     }
+
     public int getVolume() {
         return volume;
     }
+
     public void setVolume(int volume) {
         this.volume = volume;
     }
@@ -46,6 +48,7 @@ public class LimitOrderOperation extends Operation{
     public boolean getBid() {
         return isBid;
     }
+
     public void setBid(boolean isBid) {
         this.isBid = isBid;
     }

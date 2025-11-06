@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TaskQueue {
     private static final ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
+
     public static void addTask(Runnable task) {
         taskQueue.add(task);
     }

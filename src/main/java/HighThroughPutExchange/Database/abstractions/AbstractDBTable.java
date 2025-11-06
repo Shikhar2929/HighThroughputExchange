@@ -15,7 +15,10 @@ public abstract class AbstractDBTable<T extends DBEntry> {
     }
 
     public abstract void putItem(T item) throws AlreadyExistsException;
+
     public abstract boolean containsItem(String key);
+
     public abstract T getItem(String key);
+
     public abstract void deleteItem(String key);
 }

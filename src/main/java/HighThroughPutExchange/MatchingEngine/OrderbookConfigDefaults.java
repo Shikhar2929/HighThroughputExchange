@@ -7,7 +7,8 @@ public class OrderbookConfigDefaults {
     private HashMap<String, Integer> balances;
     private int defaultBalance;
 
-    public OrderbookConfigDefaults() {}
+    public OrderbookConfigDefaults() {
+    }
 
     public String[] getTickers() {
         return tickers;

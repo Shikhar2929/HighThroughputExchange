@@ -8,8 +8,8 @@ public class Session extends DBEntry {
     private String sessionToken2;
     private String username;
 
-    public Session() {}
-
+    public Session() {
+    }
 
     public Session(String sessionToken, String username) {
         this(sessionToken, sessionToken, username);
@@ -20,7 +20,6 @@ public class Session extends DBEntry {
         this.sessionToken2 = sessionToken2;
         this.username = username;
     }
-
 
     @Override
     public String hashOut() {

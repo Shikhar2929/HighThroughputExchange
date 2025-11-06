@@ -3,7 +3,8 @@ package HighThroughPutExchange.MatchingEngine;
 public class OrderbookConfig {
     private OrderbookConfigDefaults defaults;
 
-    public OrderbookConfig() {}
+    public OrderbookConfig() {
+    }
 
     public OrderbookConfigDefaults getDefaults() {
         return defaults;

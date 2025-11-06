@@ -1,10 +1,11 @@
 package HighThroughPutExchange.MatchingEngine;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class RecentTrades {
 
@@ -23,14 +24,16 @@ public class RecentTrades {
 
     public static ArrayList<PriceChange> getRecentTrades() {
         ArrayList<PriceChange> recentTrades = new ArrayList<>();
-        tradeMap.forEach((key, volume) -> {
-            PriceChange priceChange = new PriceChange(key.getTicker(), key.getPrice(), volume, key.getSide());
-            recentTrades.add(priceChange);
-        });
+        tradeMap.forEach(
+                (key, volume) -> {
+                    PriceChange priceChange = new PriceChange(key.getTicker(), key.getPrice(), volume, key.getSide());
+                    recentTrades.add(priceChange);
+                });
         Collections.sort(recentTrades);
         tradeMap.clear();
         return recentTrades;
     }
+
     public static String getRecentTradesAsJson() {
         ArrayList<PriceChange> recentTrades = getRecentTrades();
         ObjectMapper objectMapper = new ObjectMapper();

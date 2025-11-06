@@ -28,7 +28,9 @@ public class LeaderboardEntry implements Comparable<LeaderboardEntry> {
 
     @Override
     public int compareTo(LeaderboardEntry o) {
-        if (o == null) {return 1;}
+        if (o == null) {
+            return 1;
+        }
         int comp = Long.compare(this.balance, o.balance);
         if (comp == 0) {
             return this.username.compareTo(o.username);
