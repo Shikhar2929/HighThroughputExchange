@@ -11,9 +11,11 @@ public class BuildupResponse extends AbstractMessageResponse {
     public void setSessionToken(String sessionToken) {
         this.sessionToken = sessionToken;
     }
+
     public String getOrderBookData() {
         return orderBookData;
     }
+
     public BuildupResponse(String message, String sessionToken, String orderBookData) {
         super(message);
         this.sessionToken = sessionToken;

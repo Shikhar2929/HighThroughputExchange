@@ -14,9 +14,11 @@ import jakarta.validation.constraints.NotNull;
 public abstract class Operation {
     @NotNull
     private String type;
-    public Operation(String type){
+
+    public Operation(String type) {
         this.type = type;
     }
+
     public String getType() {
         return type;
     }
@@ -25,4 +27,3 @@ public abstract class Operation {
         this.type = type;
     }
 }
-

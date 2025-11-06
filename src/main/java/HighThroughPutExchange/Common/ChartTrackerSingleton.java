@@ -18,14 +18,17 @@ public class ChartTrackerSingleton {
         }
         return instance;
     }
+
     public synchronized void updatePrice(String ticker, int price) {
         tickerDataMap.computeIfAbsent(ticker, k -> new TickerData()).updatePrice(price);
     }
+
     public synchronized void resetAll() {
         for (String ticker : tickerDataMap.keySet()) {
             tickerDataMap.get(ticker).reset();
         }
     }
+
     public synchronized Map<String, List<OHLCData>> getAllHistoricalData() {
         Map<String, List<OHLCData>> historicalData = new HashMap<>();
         for (Map.Entry<String, TickerData> entry : tickerDataMap.entrySet()) {
@@ -33,6 +36,7 @@ public class ChartTrackerSingleton {
         }
         return historicalData;
     }
+
     public synchronized Map<String, OHLCData> getCurrentData() {
         Map<String, OHLCData> currentData = new HashMap<>();
         for (Map.Entry<String, TickerData> entry : tickerDataMap.entrySet()) {

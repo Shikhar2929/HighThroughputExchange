@@ -29,5 +29,4 @@ public class GetLeadingAuctionBidResponse extends AbstractMessageResponse {
     public void setBid(double bid) {
         this.bid = bid;
     }
-
 }

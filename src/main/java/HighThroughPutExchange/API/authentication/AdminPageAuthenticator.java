@@ -8,7 +8,8 @@ public class AdminPageAuthenticator {
     private final String adminUsername = "trading_club_admin";
     private final String adminPassword = "ZY3yoQL5v8MahcmcWBnG";
 
-    private AdminPageAuthenticator() {}
+    private AdminPageAuthenticator() {
+    }
 
     public static AdminPageAuthenticator getInstance() {
         if (instance == null) {
@@ -18,6 +19,7 @@ public class AdminPageAuthenticator {
     }
 
     public boolean authenticate(BaseAdminRequest req) {
-        return req.getAdminUsername().equals(adminUsername) && req.getAdminPassword().equals(adminPassword);
+        return req.getAdminUsername().equals(adminUsername)
+                && req.getAdminPassword().equals(adminPassword);
     }
 }

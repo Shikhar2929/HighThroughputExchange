@@ -1,18 +1,17 @@
 package HighThroughPutExchange.MatchingEngine;
 
-import java.io.FileReader;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.Iterator;
-
 import HighThroughPutExchange.Common.ChartTrackerSingleton;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.FileReader;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.Iterator;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 // todo: get rid of usage of JSON library
- import org.json.JSONArray;
- import org.json.JSONObject;
 
 public class MatchingEngine {
     private Map<String, OrderBook> orderBooks = new HashMap<>();
@@ -22,17 +21,21 @@ public class MatchingEngine {
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
     private UserList userList = new UserList();
     private long orderID = 0;
+
     public MatchingEngine() {
         userList.setInfinite(false);
     }
-    public MatchingEngine(boolean initialize){
+
+    public MatchingEngine(boolean initialize) {
         if (initialize)
             initializeGameMode();
     }
+
     public MatchingEngine(int positionLimit) {
         userList.setInfinite(true);
         userList.setPositionLimit(positionLimit);
     }
+
     public String serializeOrderBooks() {
         ObjectMapper mapper = new ObjectMapper();
         for (String key : orderBooks.keySet()) {
@@ -45,6 +48,7 @@ public class MatchingEngine {
             return null;
         }
     }
+
     private void initializeGameMode() {
         try {
             FileReader reader = new FileReader("config.json");
@@ -66,11 +70,11 @@ public class MatchingEngine {
                 int positionLimit = defaults.getInt("positionLimit");
                 userList.setPositionLimit(positionLimit);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     public boolean initializeBot(String username) {
         bots.put(username, 0);
         initializeUserBalance(username, 0);
@@ -84,25 +88,31 @@ public class MatchingEngine {
         System.out.println("Initializing: " + username);
         return userList.initializeUser(username, balance);
     }
+
     public boolean initializeUserTickerVolume(String username, String ticker, int volume) {
         System.out.println("Initializing: " + username + " with ticker: " + ticker);
         return userList.initializeUserQuantity(username, ticker, volume);
     }
+
     public int getUserBalance(String username) {
         return (int) userList.getUserBalance(username);
     }
+
     public long getPnl(String username) {
         return userList.getUnrealizedPnl(username, latestPrice);
     }
+
     public ArrayList getRecentTrades() {
         ArrayList<PriceChange> recentTrades = RecentTrades.getRecentTrades();
-        //for (Trade trade : recentTrades)
-        ///    System.out.println(trade);
+        // for (Trade trade : recentTrades)
+        /// System.out.println(trade);
         return recentTrades;
     }
+
     public int getTickerBalance(String username, String ticker) {
         return userList.getUserVolume(username, ticker);
     }
+
     public boolean initializeTicker(String ticker) {
         if (orderBooks.containsKey(ticker)) {
             return false;
@@ -119,7 +129,7 @@ public class MatchingEngine {
             OrderbookConfig configData = mapper.readerFor(OrderbookConfig.class).readValue(reader);
             reader.close();
 
-            for (String ticker: configData.getDefaults().getTickers()) {
+            for (String ticker : configData.getDefaults().getTickers()) {
                 System.out.println("Ticker: " + ticker);
                 initializeTicker(ticker);
             }
@@ -128,6 +138,7 @@ public class MatchingEngine {
         }
         return true;
     }
+
     public boolean initializeAllTickers() {
         try {
             // Read the JSON file
@@ -162,8 +173,9 @@ public class MatchingEngine {
             reader.close();
 
             System.out.println("Default Balance: " + configData.getDefaults().getDefaultBalance());
-            for (String key: configData.getDefaults().getBalances().keySet()) {
-                System.out.println("Ticker: " + key + ", Balance: " + configData.getDefaults().getBalances().get(key));
+            for (String key : configData.getDefaults().getBalances().keySet()) {
+                System.out.println(
+                        "Ticker: " + key + ", Balance: " + configData.getDefaults().getBalances().get(key));
                 initializeUserTickerVolume(user, key, configData.getDefaults().getBalances().get(key));
             }
         } catch (Exception e) {
@@ -172,6 +184,7 @@ public class MatchingEngine {
         }
         return true;
     }
+
     public boolean initializeUser(String user) {
         try {
             // Read the JSON file
@@ -200,8 +213,7 @@ public class MatchingEngine {
                     System.out.println("Ticker: " + ticker + ", Balance: " + balance);
                     initializeUserTickerVolume(user, ticker, balance);
                 }
-            }
-            else {
+            } else {
                 JSONObject defaults = configData.getJSONObject("defaults");
                 JSONObject balances = defaults.getJSONObject("balances");
                 Iterator<String> keys = balances.keys();
@@ -213,7 +225,6 @@ public class MatchingEngine {
                     System.out.println("Ticker: " + ticker + ", Balance: " + balance);
                     initializeUserTickerVolume(user, ticker, balance);
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -221,14 +232,18 @@ public class MatchingEngine {
         }
         return true;
     }
+
     public int getPrice(String ticker) {
-        return latestPrice.getOrDefault(ticker,0);
+        return latestPrice.getOrDefault(ticker, 0);
     }
+
     public void setPrice(String ticker, int price) {
         latestPrice.put(ticker, price);
         chartTrackerSingleton.updatePrice(ticker, price);
     }
-    public void setPriceClearOrderBook(Map<String, Integer> updatedPrices, TaskFuture<String> future) {
+
+    public void setPriceClearOrderBook(
+            Map<String, Integer> updatedPrices, TaskFuture<String> future) {
         for (String ticker : updatedPrices.keySet()) {
             System.out.println(ticker);
             if (!orderBooks.containsKey(ticker)) {
@@ -247,30 +262,36 @@ public class MatchingEngine {
     }
 
     public int getHighestBid(String ticker) {
-        if (!orderBooks.containsKey(ticker)) return 0;
+        if (!orderBooks.containsKey(ticker))
+            return 0;
         TreeMap<Integer, Deque<Order>> bids = orderBooks.get(ticker).bids;
         if (bids.isEmpty()) {
             return 0;
         }
         return bids.lastKey();
     }
+
     public int getLowestAsk(String ticker) {
-        if (!orderBooks.containsKey(ticker)) return 0;
+        if (!orderBooks.containsKey(ticker))
+            return 0;
         TreeMap<Integer, Deque<Order>> asks = orderBooks.get(ticker).asks;
         if (asks.isEmpty()) {
             return Integer.MAX_VALUE;
         }
         return asks.firstKey();
     }
-    protected void updateVolume(Map<Integer, Integer> volumeMap, int price, int delta, String ticker, Side side) {
+
+    protected void updateVolume(
+            Map<Integer, Integer> volumeMap, int price, int delta, String ticker, Side side) {
         volumeMap.put(price, volumeMap.getOrDefault(price, 0) + delta);
         if (volumeMap.get(price) <= 0) {
             volumeMap.remove(price);
         }
         int newQuantity = volumeMap.getOrDefault(price, 0);
-        //System.out.printf("Price: %d Quantity: %d\n", price, newQuantity);
+        // System.out.printf("Price: %d Quantity: %d\n", price, newQuantity);
         RecentTrades.addTrade(ticker, price, newQuantity, side);
     }
+
     private void zeroVolume(OrderBook orderBook, String ticker) {
         for (int price : orderBook.bidVolumes.keySet())
             RecentTrades.addTrade(ticker, price, 0, Side.BID);
@@ -278,6 +299,7 @@ public class MatchingEngine {
             RecentTrades.addTrade(ticker, price, 0, Side.ASK);
         orderBook.clearOrderBook();
     }
+
     private boolean validateBidOrder(String user, Order order) {
         if (bots.containsKey(user)) {
             return true;
@@ -300,6 +322,7 @@ public class MatchingEngine {
         }
         return true;
     }
+
     private boolean validateAskOrder(String user, Order order) {
         if (bots.containsKey(user)) {
             return true;
@@ -322,7 +345,9 @@ public class MatchingEngine {
         }
         return true;
     }
-    private Map<String, Object> createLimitOrderResponse(double price, int volumeFilled, Message error, String errorMessage, long orderId) {
+
+    private Map<String, Object> createLimitOrderResponse(
+            double price, int volumeFilled, Message error, String errorMessage, long orderId) {
         Map<String, Object> response = new HashMap<>();
         response.put("price", price);
         response.put("volumeFilled", volumeFilled);
@@ -331,7 +356,9 @@ public class MatchingEngine {
         response.put("orderId", orderId);
         return response;
     }
-    private Map<String, Object> createMarketOrderResponse(double price, int volumeFilled, Message error) {
+
+    private Map<String, Object> createMarketOrderResponse(
+            double price, int volumeFilled, Message error) {
         Map<String, Object> response = new HashMap<>();
         response.put("price", price);
         response.put("volumeFilled", volumeFilled);
@@ -339,14 +366,15 @@ public class MatchingEngine {
         response.put("errorMessage", error.getErrorMessage());
         return response;
     }
-    private OrderData processBid(Deque<Order> orders, Map<Integer, Integer> askVolumes, Order aggressor) {
+
+    private OrderData processBid(
+            Deque<Order> orders, Map<Integer, Integer> askVolumes, Order aggressor) {
         OrderData orderData = new OrderData();
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
             if (order.status == Status.CANCELLED) {
                 orders.poll();
-            }
-            else if (order.volume > aggressor.volume) {
+            } else if (order.volume > aggressor.volume) {
                 int volumeTraded = aggressor.volume;
                 updateVolume(askVolumes, order.price, -volumeTraded, order.ticker, Side.ASK);
                 userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
@@ -356,7 +384,7 @@ public class MatchingEngine {
 
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
                 userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
-                //Update OrderBook to reflect new price of the ticker
+                // Update OrderBook to reflect new price of the ticker
                 setPrice(order.ticker, order.price);
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
@@ -383,14 +411,15 @@ public class MatchingEngine {
         }
         return orderData;
     }
-    public OrderData processAsk(Deque<Order> orders,  Map<Integer, Integer> bidVolumes, Order aggressor) {
+
+    public OrderData processAsk(
+            Deque<Order> orders, Map<Integer, Integer> bidVolumes, Order aggressor) {
         OrderData orderData = new OrderData();
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
             if (order.status == Status.CANCELLED) {
                 orders.poll();
-            }
-            else if (order.volume > aggressor.volume) {
+            } else if (order.volume > aggressor.volume) {
                 int volumeTraded = aggressor.volume;
                 updateVolume(bidVolumes, order.price, -volumeTraded, order.ticker, Side.BID);
                 userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
@@ -401,7 +430,8 @@ public class MatchingEngine {
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
                 setPrice(order.ticker, order.price);
-                //RecentTrades.addTrade(order.name, aggressor.name, order.ticker, order.price, volumeTraded);
+                // RecentTrades.addTrade(order.name, aggressor.name, order.ticker, order.price,
+                // volumeTraded);
                 order.volume = order.volume - aggressor.volume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
@@ -426,17 +456,19 @@ public class MatchingEngine {
         }
         return orderData;
     }
+
     public Map<String, Object> bidLimitOrderHandler(String name, Order order) {
         if (!validateBidOrder(name, order)) {
             System.out.println("BAD PARAMETERS");
-            return createLimitOrderResponse(0.0, 0, Message.BAD_INPUT, Message.BAD_INPUT.getErrorMessage(), -1);
+            return createLimitOrderResponse(
+                    0.0, 0, Message.BAD_INPUT, Message.BAD_INPUT.getErrorMessage(), -1);
         }
         TreeMap<Integer, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
         Map<Integer, Integer> askVolumes = orderBooks.get(order.ticker).askVolumes;
         TreeMap<Integer, Deque<Order>> bids = orderBooks.get(order.ticker).bids;
         Map<Integer, Integer> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
         OrderData orderData = new OrderData();
-        //validate order ensures that there is sufficient balance
+        // validate order ensures that there is sufficient balance
         while (order.volume > 0 && !asks.isEmpty() && asks.firstKey() <= order.price) {
             Deque<Order> orderList = asks.get(asks.firstKey());
             orderData.add(processBid(orderList, askVolumes, order));
@@ -444,8 +476,12 @@ public class MatchingEngine {
                 asks.pollFirstEntry();
             }
         }
-        //System.out.printf("BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
-        String msg = String.format("SUCCESS! BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
+        // System.out.printf("BID LIMIT ORDER Remaining Volume to be placed on the
+        // orderbook: %d\n",
+        // order.volume);
+        String msg = String.format(
+                "SUCCESS! BID LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n",
+                order.volume);
         if (orderData.volume > 0) {
             orderData.price /= orderData.volume;
         }
@@ -453,40 +489,42 @@ public class MatchingEngine {
             order.status = Status.ACTIVE;
             bids.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             updateVolume(bidVolumes, order.price, order.volume, order.ticker, Side.BID);
-            //userList.adjustUserBalance(name, -order.price * order.volume);
+            // userList.adjustUserBalance(name, -order.price * order.volume);
             userList.adjustUserBidBalance(name, order.ticker, order.volume);
             orderID++;
             if (userOrders.containsKey(order.name)) {
                 userOrders.get(order.name).put(orderID, order);
-            }
-            else {
+            } else {
                 userOrders.put(order.name, new HashMap<>());
                 userOrders.get(order.name).put(orderID, order);
             }
-            return createLimitOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS, msg, orderID);
-        }
-        else {
+            return createLimitOrderResponse(
+                    orderData.price, (int) orderData.volume, Message.SUCCESS, msg, orderID);
+        } else {
             order.status = Status.FILLED;
         }
-        return createLimitOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS, msg, 0);
+        return createLimitOrderResponse(
+                orderData.price, (int) orderData.volume, Message.SUCCESS, msg, 0);
     }
 
     public long bidLimitOrder(String name, Order order) {
         return (long) bidLimitOrderHandler(name, order).get("orderId");
     }
+
     public void bidLimitOrder(String name, Order order, TaskFuture<String> future) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonResponse = objectMapper.writeValueAsString(bidLimitOrderHandler(name, order));
             future.setData(jsonResponse);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Bad JSON, Error in Bid Limit Order Handler");
         }
     }
+
     public Map<String, Object> askLimitOrderHandler(String name, Order order) {
         if (!validateAskOrder(name, order)) {
-            return createLimitOrderResponse(0, 0, Message.BAD_INPUT, Message.BAD_INPUT.getErrorMessage(), -1);
+            return createLimitOrderResponse(
+                    0, 0, Message.BAD_INPUT, Message.BAD_INPUT.getErrorMessage(), -1);
         }
         TreeMap<Integer, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
         Map<Integer, Integer> askVolumes = orderBooks.get(order.ticker).askVolumes;
@@ -500,8 +538,12 @@ public class MatchingEngine {
                 bids.pollLastEntry();
             }
         }
-        //System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
-        String msg = String.format("SUCCESS! ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n", order.volume);
+        // System.out.printf("ASK LIMIT ORDER Remaining Volume to be placed on the
+        // orderbook: %d\n",
+        // order.volume);
+        String msg = String.format(
+                "SUCCESS! ASK LIMIT ORDER Remaining Volume to be placed on the orderbook: %d\n",
+                order.volume);
         if (orderData.volume > 0) {
             orderData.price /= orderData.volume;
         }
@@ -510,43 +552,45 @@ public class MatchingEngine {
             asks.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             orderID++;
             updateVolume(askVolumes, order.price, order.volume, order.ticker, Side.ASK);
-            //userList.adjustUserTickerBalance(order.name, order.ticker, -order.volume);
+            // userList.adjustUserTickerBalance(order.name, order.ticker, -order.volume);
             userList.adjustUserAskBalance(order.name, order.ticker, order.volume);
             if (userOrders.containsKey(order.name)) {
                 userOrders.get(order.name).put(orderID, order);
-            }
-            else {
+            } else {
                 userOrders.put(order.name, new HashMap<>());
                 userOrders.get(order.name).put(orderID, order);
             }
-            return createLimitOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS, msg, orderID);
-        }
-        else {
+            return createLimitOrderResponse(
+                    orderData.price, (int) orderData.volume, Message.SUCCESS, msg, orderID);
+        } else {
             order.status = Status.FILLED;
         }
-        return createLimitOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS, msg, 0);
+        return createLimitOrderResponse(
+                orderData.price, (int) orderData.volume, Message.SUCCESS, msg, 0);
     }
-
 
     public long askLimitOrder(String name, Order order) {
         return (long) askLimitOrderHandler(name, order).get("orderId");
     }
+
     public void askLimitOrder(String name, Order order, TaskFuture<String> future) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonResponse = objectMapper.writeValueAsString(askLimitOrderHandler(name, order));
             future.setData(jsonResponse);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Bad JSON, Error in Ask Limit Order");
         }
     }
+
     protected Map<Integer, Deque<Order>> getBids(String ticker) {
         return orderBooks.get(ticker).bids;
     }
+
     protected Map<Integer, Deque<Order>> getAsks(String ticker) {
         return orderBooks.get(ticker).asks;
     }
+
     public List<PriceLevel> getBidPriceLevels(String ticker) {
         Map<Integer, Integer> bidVolumes = orderBooks.get(ticker).bidVolumes;
         List<PriceLevel> priceLevels = new ArrayList<>();
@@ -555,6 +599,7 @@ public class MatchingEngine {
         }
         return priceLevels;
     }
+
     public List<PriceLevel> getAskPriceLevels(String ticker) {
         Map<Integer, Integer> askVolumes = orderBooks.get(ticker).askVolumes;
         List<PriceLevel> priceLevels = new ArrayList<>();
@@ -572,6 +617,7 @@ public class MatchingEngine {
             return null;
         return orders.get(orderId);
     }
+
     public boolean removeOrder(String userId, long orderId) {
         if (!userList.validUser(userId))
             return false;
@@ -581,13 +627,12 @@ public class MatchingEngine {
                 Order order = orders.get(orderId);
                 orders.get(orderId).status = Status.CANCELLED;
                 if (order.side == Side.BID) {
-                    //userList.adjustUserBalance(userId, order.price * order.volume);
+                    // userList.adjustUserBalance(userId, order.price * order.volume);
                     userList.adjustUserBidBalance(userId, order.ticker, -order.volume);
                     Map<Integer, Integer> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
                     updateVolume(bidVolumes, order.price, -order.volume, order.ticker, Side.BID);
-                }
-                else {
-                    //userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
+                } else {
+                    // userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
                     userList.adjustUserAskBalance(userId, order.ticker, -order.volume);
                     Map<Integer, Integer> askVolumes = orderBooks.get(order.ticker).askVolumes;
                     updateVolume(askVolumes, order.price, -order.volume, order.ticker, Side.ASK);
@@ -598,6 +643,7 @@ public class MatchingEngine {
         }
         return false;
     }
+
     // todo: verify correctness of messaging
     public boolean removeOrder(String userId, long orderId, TaskFuture<String> future) {
         if (!userList.validUser(userId)) {
@@ -610,18 +656,23 @@ public class MatchingEngine {
                 Order order = orders.get(orderId);
                 orders.get(orderId).status = Status.CANCELLED;
                 if (order.side == Side.BID) {
-                    //userList.adjustUserBalance(userId, order.price * order.volume);
+                    // userList.adjustUserBalance(userId, order.price * order.volume);
                     userList.adjustUserBidBalance(userId, order.ticker, -order.volume);
                     Map<Integer, Integer> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
                     updateVolume(bidVolumes, order.price, -order.volume, order.ticker, Side.BID);
-                }
-                else {
+                } else {
                     // userList.adjustUserTickerBalance(userId, order.ticker, order.volume);
                     userList.adjustUserAskBalance(userId, order.ticker, -order.volume);
                     Map<Integer, Integer> askVolumes = orderBooks.get(order.ticker).askVolumes;
                     updateVolume(askVolumes, order.price, -order.volume, order.ticker, Side.ASK);
                 }
-                future.setData(String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(), String.format("removed order with properties - id: %d, volume: %d, ", orderId, orders.remove(orderId).volume)));
+                future.setData(
+                        String.format(
+                                "{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
+                                Message.SUCCESS.getErrorCode(),
+                                String.format(
+                                        "removed order with properties - id: %d, volume: %d, ",
+                                        orderId, orders.remove(orderId).volume)));
                 return true;
             }
         }
@@ -629,6 +680,7 @@ public class MatchingEngine {
         // future.setData("Invalid OrderID");
         return false;
     }
+
     public void removeAll(String userId) {
         if (!userList.validUser(userId)) {
             return;
@@ -646,6 +698,7 @@ public class MatchingEngine {
             boolean removed = removeOrder(userId, orderId);
         }
     }
+
     public void removeAll(String userId, TaskFuture<String> future) {
         if (!userList.validUser(userId)) {
             return;
@@ -670,9 +723,15 @@ public class MatchingEngine {
             }
         }
 
-        future.setData(String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(), String.format("Removed total volume of %d", volumeRemoved)));
+        future.setData(
+                String.format(
+                        "{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
+                        Message.SUCCESS.getErrorCode(),
+                        String.format("Removed total volume of %d", volumeRemoved)));
     }
-    public OrderData processMarketOrder(Deque<Order> orders, Map<Integer, Integer> volumeMap, Order aggressor, Side side) {
+
+    public OrderData processMarketOrder(
+            Deque<Order> orders, Map<Integer, Integer> volumeMap, Order aggressor, Side side) {
         int overallVolume = 0;
         OrderData orderData = new OrderData();
         while (aggressor.volume > 0 && !orders.isEmpty()) {
@@ -685,7 +744,9 @@ public class MatchingEngine {
             // First Case: Finite Stack - only sell what you can own
             int aggressorVolume = aggressor.volume;
             if (side == Side.BID)
-                aggressorVolume = Math.min(aggressorVolume, userList.getValidBidVolume(aggressor.name, order.ticker, order.price));
+                aggressorVolume = Math.min(
+                        aggressorVolume,
+                        userList.getValidBidVolume(aggressor.name, order.ticker, order.price));
             else if (side == Side.ASK) {
                 aggressorVolume = Math.min(aggressorVolume, userList.getValidAskVolume(aggressor.name, order.ticker));
             }
@@ -697,23 +758,24 @@ public class MatchingEngine {
 
                     userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, volumeTraded * order.price);
-                    //Add volume to the aggressor's ticker balance, since it is buying
+                    // Add volume to the aggressor's ticker balance, since it is buying
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
                     userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
-                    //Update the ask volume map and the ask if it is a bid order
+                    // Update the ask volume map and the ask if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
-                }
-                else {
+                } else {
                     userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
 
                     userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, -volumeTraded * order.price);
-                    //Remove volume from the aggressor's ticker balance and add to the order's balance
-                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
+                    // Remove volume from the aggressor's ticker balance and add to the order's
+                    // balance
+                    userList.adjustUserTickerBalance(
+                            aggressor.name, order.ticker, -volumeTraded, order.price);
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
-                    //Update the bid volume map and the bid if it is a bid order
+                    // Update the bid volume map and the bid if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
-                    }
+                }
                 setPrice(order.ticker, tradePrice);
                 order.volume -= aggressorVolume;
                 orderData.linearCombination(tradePrice, volumeTraded);
@@ -731,13 +793,13 @@ public class MatchingEngine {
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
                     userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
-                }
-                else {
+                } else {
                     userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
 
                     userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
                     userList.adjustUserBalance(order.name, -volumeTraded * order.price);
-                    userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
+                    userList.adjustUserTickerBalance(
+                            aggressor.name, order.ticker, -volumeTraded, order.price);
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
                 }
@@ -752,14 +814,15 @@ public class MatchingEngine {
         }
         return orderData;
     }
+
     public Map<String, Object> bidMarketOrderHandler(String name, String ticker, int volume) {
         if (!userList.validUser(name) && !bots.containsKey(name)) {
-            //System.out.println("Invalid");
+            // System.out.println("Invalid");
             return createMarketOrderResponse(0.0, 0, Message.AUTHENTICATION_FAILED);
         }
         OrderData orderData = new OrderData();
         Order marketOrder = new Order(name, ticker, 0, volume, Side.BID, Status.ACTIVE); // Price is 0 for market orders
-        //int volumeFilled = 0;
+        // int volumeFilled = 0;
         TreeMap<Integer, Deque<Order>> asks = orderBooks.get(ticker).asks;
         Map<Integer, Integer> askVolumes = orderBooks.get(ticker).askVolumes;
         while (marketOrder.volume > 0 && !asks.isEmpty()) {
@@ -782,7 +845,6 @@ public class MatchingEngine {
         return createMarketOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS);
     }
 
-
     public int bidMarketOrder(String name, String ticker, int volume) {
         return (int) bidMarketOrderHandler(name, ticker, volume).get("volumeFilled");
     }
@@ -792,11 +854,11 @@ public class MatchingEngine {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonResponse = objectMapper.writeValueAsString(bidMarketOrderHandler(name, ticker, volume));
             future.setData(jsonResponse);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Bad JSON, Error in Bid Market Order Handler");
         }
     }
+
     public Map<String, Object> askMarketOrderHandler(String name, String ticker, int volume) {
         if (!userList.validUser(name) && !bots.containsKey(name)) {
             return createMarketOrderResponse(0.0, 0, Message.AUTHENTICATION_FAILED);
@@ -806,7 +868,7 @@ public class MatchingEngine {
         }
         OrderData orderData = new OrderData();
         Order marketOrder = new Order(name, ticker, 0, volume, Side.ASK, Status.ACTIVE); // Price is 0 for market orders
-        //int volumeFilled = 0;
+        // int volumeFilled = 0;
         TreeMap<Integer, Deque<Order>> bids = orderBooks.get(ticker).bids;
         Map<Integer, Integer> bidVolumes = orderBooks.get(ticker).bidVolumes;
         while (marketOrder.volume > 0 && !bids.isEmpty()) {
@@ -828,19 +890,21 @@ public class MatchingEngine {
         }
         return createMarketOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS);
     }
+
     public int askMarketOrder(String name, String ticker, int volume) {
         return (int) askMarketOrderHandler(name, ticker, volume).get("volumeFilled");
     }
+
     public void askMarketOrder(String name, String ticker, int volume, TaskFuture<String> future) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonResponse = objectMapper.writeValueAsString(askMarketOrderHandler(name, ticker, volume));
             future.setData(jsonResponse);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Bad JSON, Error in Bid Market Order Handler");
         }
     }
+
     public String getUserDetails(String username) {
         ObjectMapper objectMapper = new ObjectMapper();
         JSONObject userListDetails = userList.getUserDetailsAsJson(username, latestPrice);
@@ -881,6 +945,7 @@ public class MatchingEngine {
         future.setData(userList.getLeaderboard(latestPrice));
         future.markAsComplete();
     }
+
     public void executeAuction(String user, int bid) {
         userList.adjustUserBalance(user, -bid);
     }

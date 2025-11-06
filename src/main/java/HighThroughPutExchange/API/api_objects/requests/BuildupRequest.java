@@ -8,7 +8,6 @@ public class BuildupRequest {
     @NotNull
     private String apiKey;
 
-
     public BuildupRequest(String username, String apiKey) {
         this.username = username;
         this.apiKey = apiKey;

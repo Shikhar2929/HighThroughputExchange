@@ -6,6 +6,7 @@ public class BatchResponse {
 
     private String status;
     private List<OperationResponse> results;
+
     public BatchResponse(String status, List<OperationResponse> results) {
         this.status = status;
         this.results = results;
@@ -22,6 +23,7 @@ public class BatchResponse {
     public void setResults(List<OperationResponse> results) {
         this.results = results;
     }
+
     public List<OperationResponse> getResults() {
         return results;
     }

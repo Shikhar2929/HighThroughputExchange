@@ -1,14 +1,14 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
 import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
-
 import java.util.List;
 
 public class LeaderboardResponse extends AbstractMessageResponse {
 
     private List<LeaderboardEntry> data;
 
-    public LeaderboardResponse() {}
+    public LeaderboardResponse() {
+    }
 
     public LeaderboardResponse(String message, List<LeaderboardEntry> data) {
         super(message);

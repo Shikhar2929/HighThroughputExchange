@@ -1,6 +1,5 @@
 package HighThroughPutExchange.MatchingEngine;
 
 public enum Side {
-    BID,
-    ASK;
+    BID, ASK;
 }
