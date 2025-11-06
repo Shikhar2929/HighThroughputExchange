@@ -2,6 +2,17 @@
 
 ---
 
+### Run tests
+```sh
+mvn test
+```
+
+### Run format and checkstyle
+```sh
+mvn spotless:apply
+mvn checkstyle:check
+```
+
 <h3>API Design</h3>
 
 [//]: # (Todo: stopping mechanism; action endpoint; show auction results; frontend orderbook; individual order cancelation)
