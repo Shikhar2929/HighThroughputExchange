@@ -14,36 +14,36 @@ permissions:
   contents: read
 
 jobs:
-    test:
-        env:
-            - ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-              ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  test:
+    runs-on: ubuntu-latest
+    env:
+      - ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+        ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Set up JDK 17
-              uses: actions/setup-java@v4
-              with:
-                  distribution: temurin
-                  java-version: '17'
-                  cache: maven
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
 
-            # verify formatting and linting
-            - name: Verify formatting
-              run: mvn -B -ntp spotless:check
-            - name: Checkstyle
-              run: mvn -B -ntp -Dcheckstyle.failOnViolation=true checkstyle:check
+      # verify formatting and linting
+      - name: Verify formatting
+        run: mvn -B -ntp spotless:check
+      - name: Checkstyle
+        run: mvn -B -ntp -Dcheckstyle.failOnViolation=true checkstyle:check
 
-            - name: Run tests
-              run: mvn -B -ntp test
+      - name: Run tests
+        run: mvn -B -ntp test
 
-            - name: Upload test reports (on failure)
-              if: failure()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: surefire-reports
-                  path: |
-                      **/target/surefire-reports/**
-                      **/target/failsafe-reports/**
+      - name: Upload test reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: |
+            **/target/surefire-reports/**
+            **/target/failsafe-reports/**
