@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API.auth;
+package HighThroughPutExchange.API;
 
 import static org.junit.jupiter.api.Assertions.*;
 
