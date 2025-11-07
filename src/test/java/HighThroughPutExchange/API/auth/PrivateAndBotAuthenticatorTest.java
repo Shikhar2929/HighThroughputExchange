@@ -9,7 +9,9 @@ import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
 public class PrivateAndBotAuthenticatorTest {
 
     private LocalDBTable<Session> sessions;

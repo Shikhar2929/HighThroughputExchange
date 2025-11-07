@@ -14,3 +14,4 @@ temp/data.json
 HighThroughputExchange-1.0-SNAPSHOT.jar
 __pycache__/
 .ruff_cache/
+.env

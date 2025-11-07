@@ -5,9 +5,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
 import HighThroughPutExchange.API.authentication.RateLimiter;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
 public class RateLimiterTest {
-
     @Test
     void allowsUpTo15RequestsPerSecond_thenBlocks() {
         RateLimiter limiter = new RateLimiter();
