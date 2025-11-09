@@ -93,6 +93,10 @@
                     <configLocation>google_checks.xml</configLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <linkXRef>false</linkXRef>
+                    <!-- Show violations in console output -->
+                    <consoleOutput>true</consoleOutput>
+                    <!-- Fail the build on warnings as well as errors -->
+                    <violationSeverity>warning</violationSeverity>
                 </configuration>
                 <dependencies>
                     <dependency>

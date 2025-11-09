@@ -30,8 +30,8 @@ jobs:
       # verify formatting and linting
       - name: Verify formatting
         run: mvn -B -ntp spotless:check
-      - name: Checkstyle
-        run: mvn -B -ntp -Dcheckstyle.failOnViolation=true checkstyle:check
+            - name: Checkstyle
+              run: mvn -B -ntp -Dcheckstyle.failOnViolation=true -Dcheckstyle.violationSeverity=warning checkstyle:check
 
       - name: Run tests
         run: mvn -B -ntp test
