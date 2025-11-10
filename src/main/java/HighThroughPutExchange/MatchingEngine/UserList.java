@@ -86,9 +86,7 @@ public class UserList {
      */
     public int getValidBidVolume(String username, String ticker, int price) {
         if (infinite) {
-            int returnVal = positionLimit
-                    - getUserVolume(username, ticker)
-                    - bidSize.get(username).getOrDefault(ticker, 0);
+            int returnVal = positionLimit - getUserVolume(username, ticker) - bidSize.get(username).getOrDefault(ticker, 0);
             return returnVal;
         }
         int currentBalance = (int) getUserBalance(username);
@@ -104,9 +102,7 @@ public class UserList {
 
     public int getValidAskVolume(String username, String ticker) {
         if (infinite) {
-            return positionLimit
-                    + getUserVolume(username, ticker)
-                    - askSize.get(username).getOrDefault(ticker, 0);
+            return positionLimit + getUserVolume(username, ticker) - askSize.get(username).getOrDefault(ticker, 0);
         }
         return getUserVolume(username, ticker);
     }

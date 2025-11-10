@@ -1,4 +1,5 @@
 package HighThroughPutExchange;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
@@ -41,18 +42,16 @@ public class MatchingEngineTest {
         assertEquals(100, firstFill + secondFill, "Trader should not be able to own more than the position limit");
 
         // Ensure the trader's position does not exceed the limit
-        assertEquals(100, engine.getTickerBalance(buyer, "AAPL"),
-                "Trader's position should not exceed the position limit");
+        assertEquals(100, engine.getTickerBalance(buyer, "AAPL"), "Trader's position should not exceed the position limit");
         assertEquals(-15000, engine.getUserBalance(buyer));
         assertEquals(9000, engine.getUserBalance(seller1));
         assertEquals(6000, engine.getUserBalance(seller2));
         assertEquals(0, engine.getUserBalance(buyer) + engine.getUserBalance(seller1) + engine.getUserBalance(seller2));
-        assertEquals(0, engine.getTickerBalance(buyer, ticker) + engine.getTickerBalance(seller1, ticker)
-                + engine.getTickerBalance(seller2, ticker));
+        assertEquals(0, engine.getTickerBalance(buyer, ticker) + engine.getTickerBalance(seller1, ticker) + engine.getTickerBalance(seller2, ticker));
         engine.removeOrder(seller1, orderId);
-        assertEquals(0, engine.getTickerBalance(buyer, ticker) + engine.getTickerBalance(seller1, ticker)
-                + engine.getTickerBalance(seller2, ticker));
+        assertEquals(0, engine.getTickerBalance(buyer, ticker) + engine.getTickerBalance(seller1, ticker) + engine.getTickerBalance(seller2, ticker));
     }
+
     @Test
     public void infiniteTestTradingWithSelf() {
         int positionLimit = 1000;
@@ -73,12 +72,13 @@ public class MatchingEngineTest {
         assertEquals(0, engine.getUserBalance(user));
         // Try to short up to position limit
         Order sellOrder = new Order(user, ticker, 150, 50, Side.ASK, Status.ACTIVE); // Short additional 50 to reach
-                                                                                     // -100
+        // -100
         orderId = engine.askLimitOrder(user, sellOrder);
         assertEquals(0, orderId, "Should be completely filled");
         assertEquals(0, engine.getTickerBalance(user, ticker));
         assertEquals(0, engine.getUserBalance(user));
     }
+
     @Test
     public void infiniteTestRemove() {
         int positionLimit = 1000;
@@ -111,8 +111,8 @@ public class MatchingEngineTest {
         assertEquals(100, engine.getTickerBalance(user1, ticker));
         assertEquals(-100, engine.getTickerBalance(user2, ticker));
         assertEquals(100, engine.getPrice(ticker), "Matched, should be 100");
-
     }
+
     @Test
     public void exceedPositionLimit() {
         int positionLimit = 1000;
@@ -143,6 +143,7 @@ public class MatchingEngineTest {
         assertEquals(-999, engine.getTickerBalance(user2, ticker));
         assertEquals(100, engine.getPrice(ticker), "Matched, should be 100");
     }
+
     @Test
     public void infiniteTestMarketOrder() {
         int positionLimit = 1000;
@@ -182,6 +183,7 @@ public class MatchingEngineTest {
         assertEquals(800, engine.getTickerBalance(user1, ticker));
         assertEquals(105, engine.getPrice(ticker), "Matched, should be 105");
     }
+
     @Test
     public void positionLimitEdgeCases() {
         int positionLimit = 1000;
@@ -259,8 +261,7 @@ public class MatchingEngineTest {
         engine.initializeUserBalance(user1, 0);
         engine.initializeUserBalance(user2, 0);
 
-        Map<String, Object> message = engine.askLimitOrderHandler(user1,
-                new Order(user1, ticker, 15, 80, Side.ASK, Status.ACTIVE));
+        Map<String, Object> message = engine.askLimitOrderHandler(user1, new Order(user1, ticker, 15, 80, Side.ASK, Status.ACTIVE));
         assertEquals(0, (double) message.get("price"));
         assertEquals(0, (int) message.get("volumeFilled"));
         message = engine.bidLimitOrderHandler(user2, new Order(user2, ticker, 16, 10, Side.BID, Status.ACTIVE));
@@ -273,6 +274,7 @@ public class MatchingEngineTest {
         assertEquals((14.0 * 5 + 10 * 15) / 15, (double) message.get("price"));
         assertEquals(15, message.get("volumeFilled"));
     }
+
     @Test
     public void testAskMarketOrderPrice() {
         String ticker = "B";
@@ -309,8 +311,7 @@ public class MatchingEngineTest {
 
         engine.askLimitOrder(user1, new Order(user1, ticker, 25, 8, Side.ASK, Status.ACTIVE));
         engine.askLimitOrder(user1, new Order(user1, ticker, 28, 2, Side.ASK, Status.ACTIVE));
-        Map<String, Object> message = engine.bidLimitOrderHandler(user2,
-                new Order(user2, ticker, 30, 12, Side.BID, Status.ACTIVE));
+        Map<String, Object> message = engine.bidLimitOrderHandler(user2, new Order(user2, ticker, 30, 12, Side.BID, Status.ACTIVE));
         assertEquals((25.0 * 8 + 28.0 * 2) / 10.0, (double) message.get("price"));
         assertEquals(10, message.get("volumeFilled"));
     }
@@ -330,14 +331,14 @@ public class MatchingEngineTest {
 
         engine.bidLimitOrder(user2, new Order(user2, ticker, 30, 10, Side.BID, Status.ACTIVE));
         engine.bidLimitOrder(user2, new Order(user2, ticker, 29, 3, Side.BID, Status.ACTIVE));
-        Map<String, Object> message = engine.askLimitOrderHandler(user1,
-                new Order(user1, ticker, 27, 11, Side.ASK, Status.ACTIVE));
+        Map<String, Object> message = engine.askLimitOrderHandler(user1, new Order(user1, ticker, 27, 11, Side.ASK, Status.ACTIVE));
         double price = (30.0 * 10 + 29 * 1) / 11;
         assertEquals(price, (double) message.get("price"));
         assertEquals(11, message.get("volumeFilled"));
         assertEquals(-(30 * 10 + 29 * 1), engine.getUserBalance(user2));
         assertEquals((30 * 10 + 29 * 1), engine.getUserBalance(user1));
     }
+
     // Place Bid LimitOrder and its filled
     // askLimitOrder
     @Test
@@ -360,6 +361,7 @@ public class MatchingEngineTest {
         assertEquals(-10, engine.getTickerBalance(user1, ticker));
         assertEquals(10, engine.getTickerBalance(user2, ticker));
     }
+
     @Test
     public void testMarketOrdersRigorously() {
         String ticker = "D";

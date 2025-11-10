@@ -5,12 +5,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotNull;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = LimitOrderOperation.class, name = "limit_order"),
+@JsonSubTypes({@JsonSubTypes.Type(value = LimitOrderOperation.class, name = "limit_order"),
         @JsonSubTypes.Type(value = MarketOrderOperation.class, name = "market_order"),
         @JsonSubTypes.Type(value = RemoveOperation.class, name = "remove"),
-        @JsonSubTypes.Type(value = RemoveAllOperation.class, name = "remove_all")
-})
+        @JsonSubTypes.Type(value = RemoveAllOperation.class, name = "remove_all")})
 public abstract class Operation {
     @NotNull
     private String type;

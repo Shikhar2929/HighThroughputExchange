@@ -10,8 +10,7 @@ public class AddUserRequest extends BaseAdminRequest {
     @NotNull
     private String email;
 
-    public AddUserRequest(
-            String adminUsername, String adminPassword, String username, String name, String email) {
+    public AddUserRequest(String adminUsername, String adminPassword, String username, String name, String email) {
         super(adminUsername, adminPassword);
         this.username = username;
         this.name = name;
