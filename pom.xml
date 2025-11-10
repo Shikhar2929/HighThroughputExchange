@@ -76,12 +76,11 @@
                 <version>2.43.0</version>
                 <configuration>
                     <java>
+                        <googleJavaFormat/>
                         <eclipse>
                             <version>4.26</version>
                             <file>config/eclipse-java-formatter.properties</file>
                         </eclipse>
-                        <removeUnusedImports/>
-                        <importOrder/>
                     </java>
                 </configuration>
             </plugin>
