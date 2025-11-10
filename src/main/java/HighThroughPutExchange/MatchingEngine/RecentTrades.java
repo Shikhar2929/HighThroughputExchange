@@ -34,6 +34,12 @@ public class RecentTrades {
         return recentTrades;
     }
 
+    // Clear any accumulated trades and reset counters (for test isolation)
+    protected static void clear() {
+        tradeMap.clear();
+        tradeCounter = 0;
+    }
+
     public static String getRecentTradesAsJson() {
         ArrayList<PriceChange> recentTrades = getRecentTrades();
         ObjectMapper objectMapper = new ObjectMapper();

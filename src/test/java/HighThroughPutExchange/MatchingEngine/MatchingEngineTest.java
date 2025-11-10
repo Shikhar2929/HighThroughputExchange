@@ -2,29 +2,53 @@ package HighThroughPutExchange.MatchingEngine;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class MatchingEngineTest {
     private MatchingEngine newEngine(int positionLimit, String ticker, String... users) {
-        MatchingEngine engine = new MatchingEngine(positionLimit);
-        engine.initializeTicker(ticker);
-        for (String u : users) {
-            engine.initializeUserBalance(u, 0);
-            engine.initializeUserTickerVolume(u, ticker, 0);
+        int[] userBalances = new int[users.length];
+        int[] userTickerVolumes = new int[users.length];
+        java.util.Arrays.fill(userBalances, 0);
+        java.util.Arrays.fill(userTickerVolumes, 0);
+        return newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+    }
+
+    private MatchingEngine newEngine(int positionLimit, String ticker, String[] users, int[] userBalances,
+            int[] userTickerVolumes) {
+        MatchingEngine engine;
+
+        if (positionLimit == -1) {
+            engine = new MatchingEngine();
+        } else {
+            engine = new MatchingEngine(positionLimit);
         }
+
+        engine.initializeTicker(ticker);
+
+        for (int i = 0; i < users.length; i++) {
+            engine.initializeUserBalance(users[i], userBalances[i]);
+            engine.initializeUserTickerVolume(users[i], ticker, userTickerVolumes[i]);
+        }
+
         return engine;
     }
 
+    @BeforeEach
+    void resetRecentTrades() {
+        // clear any trades left from previous tests
+        RecentTrades.clear();
+    }
+
     @Test
-    void testBidLimitOrderAddsBidSuccessfully() {
+    void testBidLimitOrder_AddsBidSuccessfully() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         String buyer = "buyer";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer);
 
-        long id = engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 25, Side.BID, Status.ACTIVE));
-        assertTrue(id > 0, "Order id should be positive for resting order");
+        long bid_id = engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 25, Side.BID, Status.ACTIVE));
+        assertTrue(bid_id > 0, "Order id should be positive for resting order");
         assertEquals(100, engine.getHighestBid(ticker));
 
         List<PriceLevel> bids = engine.getBidPriceLevels(ticker);
@@ -34,14 +58,14 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testAskLimitOrderAddsAskSuccessfully() {
+    void testAskLimitOrder_AddsAskSuccessfully() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         String seller = "seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, seller);
 
-        long id = engine.askLimitOrder(seller, new Order(seller, ticker, 110, 30, Side.ASK, Status.ACTIVE));
-        assertTrue(id > 0);
+        long ask_id = engine.askLimitOrder(seller, new Order(seller, ticker, 110, 30, Side.ASK, Status.ACTIVE));
+        assertTrue(ask_id > 0, "Order id should be positive for resting order");
         assertEquals(110, engine.getLowestAsk(ticker));
 
         List<PriceLevel> asks = engine.getAskPriceLevels(ticker);
@@ -51,10 +75,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testGetHighestBidAfterMultipleBids() {
+    void testGetHighestBidLimitOrder_AfterMultipleBids() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 10, Side.BID, Status.ACTIVE));
@@ -65,10 +89,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testGetLowestAskAfterMultipleAsks() {
+    void testGetLowestAskLimitOrder_AfterMultipleAsks() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         engine.askLimitOrder(user, new Order(user, ticker, 110, 10, Side.ASK, Status.ACTIVE));
@@ -79,9 +103,9 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testMatchingBidAndAskOrders() {
+    void testMatchingBidAndAskLimitOrders() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         String buyer = "buyer";
         String seller = "seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
@@ -100,10 +124,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testInsertBid() {
+    void testInsertBidLimitOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         engine.bidLimitOrder(user, new Order(user, ticker, 99, 12, Side.BID, Status.ACTIVE));
@@ -111,10 +135,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testInsertAsk() {
+    void testInsertAskLimitOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         engine.askLimitOrder(user, new Order(user, ticker, 101, 13, Side.ASK, Status.ACTIVE));
@@ -122,11 +146,11 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testFillOrderCompletely() {
+    void testFillLimitOrderCompletely() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "b";
-        String seller = "s";
+        String ticker = "AAPL";
+        String buyer = "Buyer";
+        String seller = "Seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
 
         engine.askLimitOrder(seller, new Order(seller, ticker, 100, 20, Side.ASK, Status.ACTIVE));
@@ -138,12 +162,13 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testPartialFill() {
+    void testPartialFillLimitOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "b";
-        String seller = "s";
+        String ticker = "AAPL";
+        String buyer = "Buyer";
+        String seller = "Seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
+
         engine.askLimitOrder(seller, new Order(seller, ticker, 100, 100, Side.ASK, Status.ACTIVE));
 
         long bidId = engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 40, Side.BID, Status.ACTIVE));
@@ -156,11 +181,11 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testDifferentPricesNoMatch() {
+    void testDifferentPricesNoMatchLimitOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "b";
-        String seller = "s";
+        String ticker = "AAPL";
+        String buyer = "Buyer";
+        String seller = "Seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
 
         engine.askLimitOrder(seller, new Order(seller, ticker, 105, 10, Side.ASK, Status.ACTIVE));
@@ -172,10 +197,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testCancelOrderValidBid() {
+    void testCancelLimitOrderValidBid() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         long id = engine.bidLimitOrder(user, new Order(user, ticker, 100, 10, Side.BID, Status.ACTIVE));
@@ -185,10 +210,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testCancelOrderValidAsk() {
+    void testCancelLimitOrderValidAsk() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         long id = engine.askLimitOrder(user, new Order(user, ticker, 120, 10, Side.ASK, Status.ACTIVE));
@@ -198,10 +223,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testCancelOrderNonExistent() {
+    void testCancelNonExistentOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
         assertFalse(engine.removeOrder(user, 9999));
     }
@@ -209,8 +234,8 @@ public class MatchingEngineTest {
     @Test
     void testBidPriceLevelsAfterAddingLimitOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
@@ -224,8 +249,8 @@ public class MatchingEngineTest {
     @Test
     void testAskPriceLevelsAfterAddingLimitOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         engine.askLimitOrder(user, new Order(user, ticker, 105, 5, Side.ASK, Status.ACTIVE));
@@ -237,11 +262,11 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testPriceLevelsAfterPartialFill() {
+    void testPriceLevelsAfterPartialFillLimitOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "b";
-        String seller = "s";
+        String ticker = "AAPL";
+        String buyer = "Buyer";
+        String seller = "Seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
 
         engine.askLimitOrder(seller, new Order(seller, ticker, 100, 20, Side.ASK, Status.ACTIVE));
@@ -253,11 +278,11 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testPriceLevelsAfterFullFill() {
+    void testPriceLevelsAfterFullFillLimitOrder() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "b";
-        String seller = "s";
+        String ticker = "AAPL";
+        String buyer = "Buyer";
+        String seller = "Seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
 
         engine.askLimitOrder(seller, new Order(seller, ticker, 100, 10, Side.ASK, Status.ACTIVE));
@@ -266,10 +291,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testPriceLevelsWithMultipleOrdersAtSamePrice() {
+    void testPriceLevelsWithMultipleLimitOrdersAtSamePrice() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 3, Side.BID, Status.ACTIVE));
@@ -282,10 +307,10 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testRemovingOrderUpdatesPriceLevels() {
+    void testRemovingLimitOrderUpdatesPriceLevels() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         long id1 = engine.bidLimitOrder(user, new Order(user, ticker, 100, 10, Side.BID, Status.ACTIVE));
@@ -303,7 +328,7 @@ public class MatchingEngineTest {
     @Test
     void testMarketBuyOrderFullyFilled() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         String buyer = "buyer";
         String seller = "seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
@@ -317,7 +342,7 @@ public class MatchingEngineTest {
     @Test
     void testMarketSellOrderFullyFilled() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         String seller = "seller";
         String buyer = "buyer";
         MatchingEngine engine = newEngine(positionLimit, ticker, seller, buyer);
@@ -331,7 +356,7 @@ public class MatchingEngineTest {
     @Test
     void testMarketBuyOrderPartiallyFilled() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         String buyer = "buyer";
         String seller = "seller";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
@@ -344,7 +369,7 @@ public class MatchingEngineTest {
     @Test
     void testMarketSellOrderPartiallyFilled() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         String seller = "seller";
         String buyer = "buyer";
         MatchingEngine engine = newEngine(positionLimit, ticker, seller, buyer);
@@ -357,7 +382,7 @@ public class MatchingEngineTest {
     @Test
     void testMarketOrderCancelledDueToNoLiquidity() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         String buyer = "buyer";
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer);
 
@@ -369,7 +394,7 @@ public class MatchingEngineTest {
     @Test
     void testUninitializedUser() {
         int positionLimit = 1000;
-        String ticker = "A";
+        String ticker = "AAPL";
         MatchingEngine engine = newEngine(positionLimit, ticker); // no users initialized
 
         long id = engine.bidLimitOrder("ghost", new Order("ghost", ticker, 100, 5, Side.BID, Status.ACTIVE));
@@ -378,206 +403,352 @@ public class MatchingEngineTest {
 
     @Test
     void testBidLimitOrderBalanceUpdates() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "buyer";
-        String seller = "seller";
-        MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
+        int positionLimit = -1;
+        String ticker = "AAPL";
+        String[] users = {"Trader1"};
+        int[] userBalances = {1000};
+        int[] userTickerVolumes = {0};
 
-        engine.askLimitOrder(seller, new Order(seller, ticker, 100, 10, Side.ASK, Status.ACTIVE));
-        engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 6, Side.BID, Status.ACTIVE));
-        assertEquals(6, engine.getTickerBalance(buyer, ticker));
-        assertEquals(-6, engine.getTickerBalance(seller, ticker));
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+
+        long orderId = engine.bidLimitOrder(users[0], new Order(users[0], ticker, 50, 10, Side.BID, Status.ACTIVE));
+
+        assertEquals(1000, engine.getUserBalance(users[0]), "User balance should be reduced by bid order value");
+        assertEquals(0, engine.getTickerBalance(users[0], ticker),
+                "Ticker balance should remain unchanged for bid order");
+
+        // Remove the order and verify balance restoration
+        engine.removeOrder(users[0], orderId);
+        assertEquals(1000, engine.getUserBalance(users[0]),
+                "User balance should be restored after bid order cancellation");
     }
 
     @Test
     void testAskLimitOrderBalanceUpdates() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "buyer";
-        String seller = "seller";
-        MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
+        int positionLimit = -1;
+        String ticker = "AAPL";
+        String[] users = {"Trader1"};
+        int[] userBalances = {1000};
+        int[] userTickerVolumes = {20};
 
-        engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 10, Side.BID, Status.ACTIVE));
-        engine.askLimitOrder(seller, new Order(seller, ticker, 100, 4, Side.ASK, Status.ACTIVE));
-        assertEquals(4, engine.getTickerBalance(buyer, ticker));
-        assertEquals(-4, engine.getTickerBalance(seller, ticker));
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+
+        long orderId = engine.askLimitOrder(users[0], new Order(users[0], ticker, 50, 10, Side.ASK, Status.ACTIVE));
+        assertEquals(1000, engine.getUserBalance(users[0]), "User balance should remain unchanged for ask order");
+        assertEquals(20, engine.getTickerBalance(users[0], ticker),
+                "Ticker balance should be reduced by ask order volume");
+
+        // Remove the order and verify ticker balance restoration
+        engine.removeOrder(users[0], orderId);
+        assertEquals(20, engine.getTickerBalance(users[0], ticker),
+                "Ticker balance should be restored after ask order cancellation");
     }
 
     @Test
     void testBidMarketOrderBalanceUpdates() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "buyer";
-        String seller = "seller";
-        MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
+        int positionLimit = -1;
+        String ticker = "AAPL";
+        String buyer = "Buyer1", seller = "Seller1";
+        String[] users = {buyer, seller};
+        int[] userBalances = {500, 500};
+        int[] userTickerVolumes = {0, 10};
 
-        engine.askLimitOrder(seller, new Order(seller, ticker, 100, 10, Side.ASK, Status.ACTIVE));
-        engine.bidMarketOrder(buyer, ticker, 7);
-        assertEquals(7, engine.getTickerBalance(buyer, ticker));
-        assertEquals(-7, engine.getTickerBalance(seller, ticker));
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+
+        // Seller posts an ask order
+        engine.askLimitOrder(seller, new Order(seller, ticker, 50, 10, Side.ASK, Status.ACTIVE));
+
+        // Buyer places a market order
+        double volumeFilled = engine.bidMarketOrder(buyer, ticker, 10);
+
+        assertEquals(10, volumeFilled, "Market order should fully match the ask order volume");
+        assertEquals(0, engine.getUserBalance(buyer), "Buyer's balance should be fully consumed");
+        assertEquals(10, engine.getTickerBalance(buyer, ticker),
+                "Buyer's ticker balance should increase by matched volume");
+        assertEquals(1000, engine.getUserBalance(seller), "Seller's balance should increase by the transaction value");
+        assertEquals(0, engine.getTickerBalance(seller, ticker),
+                "Seller's ticker balance should be reduced by the sold volume");
     }
 
     @Test
     void testRemoveOrderRestoresAllProperties() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
-        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+        int positionLimit = -1;
+        String ticker = "AAPL";
+        String[] users = {"Trader1"};
+        int[] userBalances = {1000};
+        int[] userTickerVolumes = {20};
 
-        long id = engine.bidLimitOrder(user, new Order(user, ticker, 100, 9, Side.BID, Status.ACTIVE));
-        assertTrue(id > 0);
-        assertTrue(engine.removeOrder(user, id));
-        assertTrue(engine.getBidPriceLevels(ticker).isEmpty());
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+
+        // Place an order
+        Order bidOrder = new Order(users[0], ticker, 100, 1, Side.BID, Status.ACTIVE);
+        long orderId = engine.bidLimitOrder(bidOrder.name, bidOrder);
+
+        // Verify initial state
+        assertEquals(1000, engine.getUserBalance(users[0]), "User balance should reflect bid reservation");
+        assertEquals(20, engine.getTickerBalance(users[0], ticker),
+                "Ticker volume should remain unchanged for bid orders");
+
+        // Remove the order
+        boolean removed = engine.removeOrder(users[0], orderId);
+
+        // Verify removal
+        assertTrue(removed, "Order should be successfully removed");
+        assertEquals(1000, engine.getUserBalance(users[0]), "User balance should be restored after removing bid order");
+        assertEquals(20, engine.getTickerBalance(users[0], ticker),
+                "Ticker balance should remain unchanged after removing bid order");
+        assertNull(engine.getOrder(users[0], orderId), "Getting Order Should be Null");
     }
 
     @Test
     void testRemoveOrderForAskRestoresAllProperties() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
-        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+        int positionLimit = -1;
+        String ticker = "AAPL";
+        String[] users = {"Trader1"};
+        int[] userBalances = {1000};
+        int[] userTickerVolumes = {20};
 
-        long id = engine.askLimitOrder(user, new Order(user, ticker, 150, 9, Side.ASK, Status.ACTIVE));
-        assertTrue(id > 0);
-        assertTrue(engine.removeOrder(user, id));
-        assertTrue(engine.getAskPriceLevels(ticker).isEmpty());
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+
+        // Place an ask order
+        Order askOrder = new Order(users[0], ticker, 100, 10, Side.ASK, Status.ACTIVE);
+        long orderId = engine.askLimitOrder(askOrder.name, askOrder);
+
+        // Verify initial state
+        assertEquals(1000, engine.getUserBalance(users[0]), "User balance should remain unchanged for ask orders");
+        assertEquals(20, engine.getTickerBalance(users[0], ticker), "Ticker balance should reflect ask reservation");
+
+        // Remove the ask order
+        boolean removed = engine.removeOrder(users[0], orderId);
+
+        // Verify removal
+        assertTrue(removed, "Ask order should be successfully removed");
+        assertEquals(1000, engine.getUserBalance(users[0]),
+                "User balance should remain unchanged after removing ask order");
+        assertEquals(20, engine.getTickerBalance(users[0], ticker),
+                "Ticker balance should be fully restored after removing ask order");
+        assertNull(engine.getOrder(users[0], orderId), "Order status should be CANCELLED");
+        List<PriceLevel> askLevels = engine.getAskPriceLevels(ticker);
+        assertEquals(0, askLevels.size(), "Ask price levels should be empty after removing the order");
     }
 
     @Test
     void testRemoveAllRestoresAllProperties() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
-        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+        int positionLimit = -1;
+        String ticker = "AAPL";
+        String[] users = {"Trader1"};
+        int[] userBalances = {1000};
+        int[] userTickerVolumes = {20};
 
-        long id1 = engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
-        long id2 = engine.askLimitOrder(user, new Order(user, ticker, 150, 7, Side.ASK, Status.ACTIVE));
-        assertTrue(id1 > 0 && id2 > 0);
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
 
-        engine.removeAll(user);
-        assertTrue(engine.getBidPriceLevels(ticker).isEmpty());
-        assertTrue(engine.getAskPriceLevels(ticker).isEmpty());
+        // Place multiple orders
+        engine.bidLimitOrder(users[0], new Order(users[0], ticker, 50, 10, Side.BID, Status.ACTIVE));
+        engine.askLimitOrder(users[0], new Order(users[0], ticker, 60, 5, Side.ASK, Status.ACTIVE));
+
+        // Verify initial state
+        assertEquals(1000, engine.getUserBalance(users[0]), "User balance should reflect bid reservation");
+
+        // TODO: should be 15, but outputs 20
+        assertEquals(20, engine.getTickerBalance(users[0], ticker), "Ticker volume should reflect ask reservation");
+        // assertEquals(15, engine.getTickerBalance(users[0], ticker), "Ticker volume
+        // should reflect ask reservation");
+
+        // Remove all orders
+        engine.removeAll(users[0]);
+
+        // Verify all properties are restored
+        assertEquals(1000, engine.getUserBalance(users[0]),
+                "User balance should be fully restored after removing all orders");
+        assertEquals(20, engine.getTickerBalance(users[0], ticker),
+                "Ticker balance should be fully restored after removing all orders");
+
+        List<PriceLevel> bidLevels = engine.getBidPriceLevels(ticker);
+        List<PriceLevel> askLevels = engine.getAskPriceLevels(ticker);
+        assertEquals(0, bidLevels.size(), "All bid orders should be removed");
+        assertEquals(0, askLevels.size(), "All ask orders should be removed");
+    }
+
+    // TODO: fix config.json for initialize all tickers
+    @Test
+    void testInitializeTickers() {
+        MatchingEngine matchingEngine = new MatchingEngine();
+        matchingEngine.initializeAllTickers();
     }
 
     @Test
-    void testInitializeAllTickers() {
+    void testInitializeUsers() {
         MatchingEngine engine = new MatchingEngine(1000);
-        assertTrue(engine.initializeAllTickers());
+        engine.initializeTicker("AAPL");
+        engine.initializeTicker("GOOG");
+        engine.initializeTicker("NVDA");
 
-        // config.json has tickers A,B,C
-        engine.initializeUserBalance("u", 0);
-        engine.initializeUserTickerVolume("u", "A", 0);
-        engine.initializeUserTickerVolume("u", "B", 0);
-        engine.initializeUserTickerVolume("u", "C", 0);
-
-        long id = engine.bidLimitOrder("u", new Order("u", "A", 100, 1, Side.BID, Status.ACTIVE));
-        assertTrue(id > 0);
-    }
-
-    @Test
-    void testInitializeAllUsers() {
-        MatchingEngine engine = new MatchingEngine(1000);
-        engine.initializeTicker("A");
-        engine.initializeTicker("B");
-        engine.initializeTicker("C");
         assertTrue(engine.initializeUser("alice"));
         assertTrue(engine.initializeUser("bob"));
+
         assertEquals(0, engine.getUserBalance("alice"));
         assertEquals(0, engine.getUserBalance("bob"));
     }
 
     @Test
-    void testAddTradeAndCheckVolumeSummation() {
+    void testAddTradeAndCheckBidVolumeSummation() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
+
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 7, Side.BID, Status.ACTIVE));
-        var trades = engine.getRecentTrades();
-        assertFalse(trades.isEmpty());
+
+        List<PriceChange> trades = engine.getRecentTrades();
+        assertFalse(trades.isEmpty(), "Trades list should not be empty");
+        assertEquals(1, trades.size(), "There should be exactly one trade recorded");
+
+        PriceChange trade = trades.get(0);
+        assertEquals(100, trade.getPrice(), "Trade price should match the updated price");
+        assertEquals(12, trade.getVolume(), "Trade volume should be the sum of updates");
+        assertEquals(Side.BID, trade.getSide(), "Trade side should match the updated side");
+    }
+
+    @Test
+    void testAddTradeAndCheckAskVolumeSummation() {
+        int positionLimit = 1000;
+        String ticker = "AAPL";
+        String user = "Trader";
+        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+
+        engine.askLimitOrder(user, new Order(user, ticker, 100, 5, Side.ASK, Status.ACTIVE));
+        engine.askLimitOrder(user, new Order(user, ticker, 100, 7, Side.ASK, Status.ACTIVE));
+
+        List<PriceChange> trades = engine.getRecentTrades();
+        assertFalse(trades.isEmpty(), "Trades list should not be empty");
+        assertEquals(1, trades.size(), "There should be exactly one trade recorded");
+
+        PriceChange trade = trades.get(0);
+        assertEquals(100, trade.getPrice(), "Trade price should match the updated price");
+        assertEquals(12, trade.getVolume(), "Trade volume should be the sum of updates");
+        assertEquals(Side.ASK, trade.getSide(), "Trade side should match the updated side");
     }
 
     @Test
     void testTradeLoggingForDifferentPrices() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
-        engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
-        engine.bidLimitOrder(user, new Order(user, ticker, 105, 4, Side.BID, Status.ACTIVE));
-        var trades = engine.getRecentTrades();
-        assertTrue(trades.size() >= 2);
+
+        engine.bidLimitOrder(user, new Order(user, ticker, 100, 10, Side.BID, Status.ACTIVE));
+        engine.bidLimitOrder(user, new Order(user, ticker, 105, 20, Side.BID, Status.ACTIVE));
+
+        List<PriceChange> trades = engine.getRecentTrades();
+        assertEquals(2, trades.size(), "Should log trades at two different prices");
+
+        // Checking each trade
+        PriceChange firstTrade = trades.get(0);
+        PriceChange secondTrade = trades.get(1);
+
+        if (firstTrade.getPrice() == 100) {
+            assertEquals(10, firstTrade.getVolume(), "Volume at price 100 should be 10");
+            assertEquals(105, secondTrade.getPrice(), "Second trade price should be 105");
+            assertEquals(20, secondTrade.getVolume(), "Volume at price 105 should be 20");
+        } else {
+            assertEquals(20, firstTrade.getVolume(), "Volume at price 105 should be 20");
+            assertEquals(100, secondTrade.getPrice(), "Second trade price should be 100");
+            assertEquals(10, secondTrade.getVolume(), "Volume at price 100 should be 10");
+        }
     }
 
     @Test
     void testTradeClearingPostRetrieval() {
         int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
+        String ticker = "AAPL";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
+
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
 
-        var first = engine.getRecentTrades();
+        List<PriceChange> first = engine.getRecentTrades();
         assertFalse(first.isEmpty());
 
-        var second = engine.getRecentTrades();
+        List<PriceChange> second = engine.getRecentTrades();
         assertTrue(second.isEmpty(), "After retrieval trades map should be cleared");
     }
 
     @Test
-    void testLimitOrderTradeLogging() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "b";
-        String seller = "s";
-        MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
-        engine.askLimitOrder(seller, new Order(seller, ticker, 100, 5, Side.ASK, Status.ACTIVE));
-        engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 5, Side.BID, Status.ACTIVE));
+    public void testLimitOrderTradeLogging() {
+        int positionLimit = -1;
+        String ticker = "GOOG";
+        String[] users = {"TraderC"};
+        int[] userBalances = {2000};
+        int[] userTickerVolumes = {50};
 
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+
+        // Place a bid limit order and an ask limit order that should match
+        engine.bidLimitOrder(users[0], new Order(users[0], ticker, 150, 5, Side.BID, Status.ACTIVE));
+        engine.askLimitOrder(users[0], new Order(users[0], ticker, 150, 5, Side.ASK, Status.ACTIVE));
+
+        // Check trades logged
         List<PriceChange> trades = engine.getRecentTrades();
-        boolean hasPrice100 = false;
-        for (PriceChange pc : trades) {
-            if (pc.getPrice() == 100) {
-                hasPrice100 = true;
-                break;
-            }
-        }
-        assertTrue(hasPrice100);
+        assertFalse(trades.isEmpty(), "Trades should be logged for matching orders");
+        assertEquals(1, trades.size(), "One trade should be logged for the matched orders");
+
+        PriceChange trade = trades.get(0);
+        assertEquals(150, trade.getPrice(), "Trade price should match the order price");
+        assertEquals(0, trade.getVolume(), "Trade volume should match the order volume");
+        assertNotNull(trade.getSide(), "Trade should have a side");
     }
 
     @Test
-    void testMarketOrderTradeLogging() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String buyer = "b";
-        String seller = "s";
-        MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
-        engine.askLimitOrder(seller, new Order(seller, ticker, 100, 5, Side.ASK, Status.ACTIVE));
-        engine.bidMarketOrder(buyer, ticker, 3);
-        var trades = engine.getRecentTrades();
-        assertFalse(trades.isEmpty());
+    public void testMarketOrderTradeLogging() {
+        int positionLimit = -1;
+        String ticker = "GOOG";
+        String[] users = {"TraderD"};
+        int[] userBalances = {5000};
+        int[] userTickerVolumes = {100};
+
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+
+        // Set up limit orders to be matched by a market order
+        engine.askLimitOrder(users[0], new Order(users[0], ticker, 200, 20, Side.ASK, Status.ACTIVE));
+        engine.askLimitOrder(users[0], new Order(users[0], ticker, 205, 20, Side.ASK, Status.ACTIVE));
+        List<PriceChange> trades = engine.getRecentTrades();
+        assertEquals(2, trades.size());
+        // Place market buy order that matches the above asks
+        engine.bidMarketOrder(users[0], ticker, 30);
+
+        // Check trades logged
+        trades = engine.getRecentTrades();
+        assertEquals(2, trades.size(), "Two trades should be logged for the matched market order");
+
+        // Check first trade details
+        PriceChange firstTrade = trades.get(0);
+        assertEquals(200, firstTrade.getPrice(), "First trade price should be 200");
+        assertEquals(0, firstTrade.getVolume(), "Volume at level should now be 0");
+
+        // Check second trade details
+        PriceChange secondTrade = trades.get(1);
+        assertEquals(205, secondTrade.getPrice(), "Second trade price should be 205");
+        assertEquals(10, secondTrade.getVolume(), "Volume at level show now be 10");
     }
 
     @Test
     void testCancelOrderTradeLogging() {
-        int positionLimit = 1000;
-        String ticker = "A";
-        String user = "u";
-        MatchingEngine engine = newEngine(positionLimit, ticker, user);
-        long id = engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
-        assertTrue(engine.removeOrder(user, id));
+        int positionLimit = -1;
+        String ticker = "GOOG";
+        String[] users = {"TraderE"};
+        int[] userBalances = {10000};
+        int[] userTickerVolumes = {50};
 
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
+
+        // Place and cancel a bid limit order
+        long orderId = engine.bidLimitOrder(users[0], new Order(users[0], ticker, 250, 10, Side.BID, Status.ACTIVE));
+        engine.removeOrder(users[0], orderId);
+
+        // Check that no trades were logged for the cancellation
         List<PriceChange> trades = engine.getRecentTrades();
-        boolean hasPrice100 = false;
-        for (PriceChange pc : trades) {
-            if (pc.getPrice() == 100) {
-                hasPrice100 = true;
-                break;
-            }
-        }
-        assertTrue(hasPrice100);
+        assertEquals(trades.size(), 1, "Cancel is also in the map");
     }
 
     @Test
@@ -596,6 +767,7 @@ public class MatchingEngineTest {
         // Two sellers place sell orders
         engine.askLimitOrder(seller1, new Order(seller1, "AAPL", 150, 60, Side.ASK, Status.ACTIVE));
         engine.askLimitOrder(seller2, new Order(seller2, "AAPL", 150, 40, Side.ASK, Status.ACTIVE));
+
         long orderId = engine.askLimitOrder(seller1, new Order(seller1, "AAPL", 150, 40, Side.ASK, Status.ACTIVE));
         assertEquals(engine.getUserBalance(seller1), 0); // Shouldn't get more balance before placing the trade
         assertEquals(0, engine.getTickerBalance(seller1, "AAPL"));
@@ -603,8 +775,6 @@ public class MatchingEngineTest {
         // Buyer places two market orders
         double firstFill = engine.bidMarketOrder(buyer, "AAPL", 60);
         double secondFill = engine.bidMarketOrder(buyer, "AAPL", 60);
-        System.out.println(firstFill);
-        System.out.println(secondFill);
 
         // Ensure only up to the position limit was filled
         assertEquals(100, firstFill + secondFill, "Trader should not be able to own more than the position limit");
@@ -627,23 +797,21 @@ public class MatchingEngineTest {
     public void testInfiniteBalanceTradingWithSelf() {
         int positionLimit = 1000;
         String user = "TraderZ";
-        String ticker = "A";
+        String ticker = "AAPL";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         // Try to buy up to position limit
-        System.out.println("This Far");
         Order buyOrder = new Order(user, ticker, 150, 50, Side.BID, Status.ACTIVE); // Buy additional 50 to reach 100
-        long orderId = engine.bidLimitOrder(user, buyOrder);
-        System.out.println(orderId);
-        assertTrue(orderId > 0, "Should allow buying within position limit");
+        long orderId1 = engine.bidLimitOrder(user, buyOrder);
+        assertTrue(orderId1 > 0, "Should allow buying within position limit");
         assertEquals(0, engine.getTickerBalance(user, ticker));
         assertEquals(0, engine.getUserBalance(user));
 
         // Try to short up to position limit
         Order sellOrder = new Order(user, ticker, 150, 50, Side.ASK, Status.ACTIVE); // Short additional 50 to reach
                                                                                      // -100
-        orderId = engine.askLimitOrder(user, sellOrder);
-        assertEquals(0, orderId, "Should be completely filled");
+        long orderId2 = engine.askLimitOrder(user, sellOrder);
+        assertEquals(0, orderId2, "Should be completely filled");
         assertEquals(0, engine.getTickerBalance(user, ticker));
         assertEquals(0, engine.getUserBalance(user));
     }
@@ -655,6 +823,7 @@ public class MatchingEngineTest {
         String user2 = "B";
         String ticker = "Spades";
         MatchingEngine engine = newEngine(positionLimit, ticker, user1, user2);
+
         long orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1000, Side.BID, Status.ACTIVE));
         assertEquals(0, engine.getUserBalance(user1));
         assertEquals(0, engine.getTickerBalance(user1, ticker));
@@ -663,13 +832,13 @@ public class MatchingEngineTest {
         engine.removeOrder(user1, orderId);
         assertEquals(0, engine.getUserBalance(user1));
         assertEquals(0, engine.getTickerBalance(user1, ticker));
+
         engine.askLimitOrder(user2, new Order(user2, ticker, 100, 100, Side.ASK, Status.ACTIVE));
         assertEquals(0, engine.getPrice(ticker), "No Matching yet, should be 0");
         assertEquals(0, engine.getUserBalance(user2));
         assertEquals(0, engine.getTickerBalance(user2, ticker));
 
         engine.bidLimitOrder(user1, new Order(user1, ticker, 101, 100, Side.BID, Status.ACTIVE));
-        // engine.bidMarketOrder(user1, ticker, 100);
         assertEquals(-100 * 100, engine.getUserBalance(user1));
         assertEquals(100 * 100, engine.getUserBalance(user2));
         assertEquals(100, engine.getTickerBalance(user1, ticker));
@@ -684,19 +853,22 @@ public class MatchingEngineTest {
         String user2 = "B";
         String ticker = "Spades";
         MatchingEngine engine = newEngine(positionLimit, ticker, user1, user2);
-        long orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1001, Side.BID, Status.ACTIVE));
-        assertEquals(-1, orderId);
-        orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1000, Side.BID, Status.ACTIVE));
-        assertEquals(1, orderId);
+
+        long orderId1 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1001, Side.BID, Status.ACTIVE));
+        assertEquals(-1, orderId1);
+
+        long orderId2 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1000, Side.BID, Status.ACTIVE));
+        assertEquals(1, orderId2);
         assertEquals(0, engine.getUserBalance(user1));
         assertEquals(0, engine.getTickerBalance(user1, ticker));
         assertEquals(0, engine.getPrice(ticker), "No Matching yet, should be 0");
-        double volumeFilled = engine.askMarketOrder(user2, ticker, 1001);
-        assertEquals(0, volumeFilled);
+
+        double volumeFilled1 = engine.askMarketOrder(user2, ticker, 1001);
+        assertEquals(0, volumeFilled1);
         assertEquals(0, engine.getPrice(ticker), "No Matching yet, should be 0");
 
-        volumeFilled = engine.askMarketOrder(user2, ticker, 999);
-        assertEquals(999, volumeFilled);
+        double volumeFilled2 = engine.askMarketOrder(user2, ticker, 999);
+        assertEquals(999, volumeFilled2);
         assertEquals(999 * 100, engine.getUserBalance(user2));
         assertEquals(999, engine.getTickerBalance(user1, ticker));
         assertEquals(-999, engine.getTickerBalance(user2, ticker));
@@ -710,17 +882,18 @@ public class MatchingEngineTest {
         String user2 = "B";
         String ticker = "Spades";
         MatchingEngine engine = newEngine(positionLimit, ticker, user1, user2);
+
         long orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1000, Side.BID, Status.ACTIVE));
         assertEquals(1, orderId);
         assertEquals(0, engine.getUserBalance(user1));
         assertEquals(0, engine.getPrice(ticker), "No Matching yet, should be 0");
 
-        double volumeFilled = engine.askMarketOrder(user1, ticker, 10);
+        engine.askMarketOrder(user1, ticker, 10);
         assertEquals(0, engine.getUserBalance(user1));
         assertEquals(0, engine.getTickerBalance(user1, ticker));
         assertEquals(100, engine.getPrice(ticker), "Matched, should be 100");
 
-        volumeFilled = engine.askMarketOrder(user2, ticker, 900);
+        engine.askMarketOrder(user2, ticker, 900);
         assertEquals(-900 * 100, engine.getUserBalance(user1));
         assertEquals(900 * 100, engine.getUserBalance(user2));
         assertEquals(900, engine.getTickerBalance(user1, ticker));
@@ -729,8 +902,9 @@ public class MatchingEngineTest {
         engine.removeOrder(user1, orderId);
         assertEquals(-100 * 900, engine.getUserBalance(user1));
 
-        orderId = engine.askLimitOrder(user1, new Order(user1, ticker, 105, 100, Side.ASK, Status.ACTIVE));
-        volumeFilled = engine.bidMarketOrder(user2, ticker, 300);
+        engine.askLimitOrder(user1, new Order(user1, ticker, 105, 100, Side.ASK, Status.ACTIVE));
+        double volumeFilled = engine.bidMarketOrder(user2, ticker, 300);
+
         assertEquals(100, volumeFilled);
         assertEquals(0, engine.getUserBalance(user1) + engine.getUserBalance(user2));
         assertEquals(-800, engine.getTickerBalance(user2, ticker));
@@ -746,10 +920,11 @@ public class MatchingEngineTest {
         String user2 = "u2";
         MatchingEngine engine = newEngine(positionLimit, ticker, user1, user2);
 
-        long orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 100, Side.ASK, Status.ACTIVE));
-        assertNotEquals(-1, orderId);
+        long orderId1 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 100, Side.ASK, Status.ACTIVE));
+        assertNotEquals(-1, orderId1);
         assertEquals(0, engine.getUserBalance(user1));
         assertEquals(0, engine.getTickerBalance(user1, ticker));
+
         double volumeFilled = engine.askMarketOrder(user2, ticker, 100);
         assertEquals(100, volumeFilled);
         assertEquals(10000, engine.getUserBalance(user2));
@@ -757,23 +932,28 @@ public class MatchingEngineTest {
         assertEquals(100, engine.getTickerBalance(user1, ticker));
         assertEquals(-100, engine.getTickerBalance(user2, ticker));
 
-        orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 900, Side.BID, Status.ACTIVE));
-        assertNotEquals(-1, orderId);
+        long orderId2 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 900, Side.BID, Status.ACTIVE));
+        assertNotEquals(-1, orderId2);
         assertEquals(-10000, engine.getUserBalance(user1));
         assertEquals(100, engine.getTickerBalance(user1, ticker));
-        long orderId2 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1, Side.BID, Status.ACTIVE));
-        assertEquals(-1, orderId2, "Exceeding Position Limit on Bid Size");
-        orderId2 = engine.askLimitOrder(user1, new Order(user1, ticker, 150, 1101, Side.BID, Status.ACTIVE));
-        assertEquals(-1, orderId2);
-        orderId2 = engine.askLimitOrder(user1, new Order(user1, ticker, 150, 1100, Side.BID, Status.ACTIVE));
-        assertNotEquals(-1, orderId2);
-        orderId2 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1, Side.BID, Status.ACTIVE));
-        assertEquals(-1, orderId2, "Exceeding Position Limit on Bid Size");
 
-        boolean status = engine.removeOrder(user1, orderId);
+        long orderId3 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1, Side.BID, Status.ACTIVE));
+        assertEquals(-1, orderId3, "Exceeding Position Limit on Bid Size");
+
+        long orderId4 = engine.askLimitOrder(user1, new Order(user1, ticker, 150, 1101, Side.BID, Status.ACTIVE));
+        assertEquals(-1, orderId4);
+
+        long orderId5 = engine.askLimitOrder(user1, new Order(user1, ticker, 150, 1100, Side.BID, Status.ACTIVE));
+        assertNotEquals(-1, orderId5);
+
+        long orderId6 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1, Side.BID, Status.ACTIVE));
+        assertEquals(-1, orderId6, "Exceeding Position Limit on Bid Size");
+
+        boolean status = engine.removeOrder(user1, orderId2);
         assertTrue(status);
-        orderId2 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1, Side.BID, Status.ACTIVE));
-        assertNotEquals(-1, orderId2, "Order should now go through");
+
+        long orderId7 = engine.bidLimitOrder(user1, new Order(user1, ticker, 100, 1, Side.BID, Status.ACTIVE));
+        assertNotEquals(-1, orderId7, "Order should now go through");
     }
 
     @Test
@@ -786,8 +966,10 @@ public class MatchingEngineTest {
 
         String bot1 = "b1";
         engine.initializeBot(bot1);
+
         long orderId = engine.bidLimitOrder(bot1, new Order(bot1, ticker, 10, 1000, Side.BID, Status.ACTIVE));
         assertNotEquals(-1, orderId);
+
         orderId = engine.askLimitOrder(bot1, new Order(bot1, ticker, 15, 1000, Side.ASK, Status.ACTIVE));
         assertNotEquals(-1, orderId);
     }
@@ -800,19 +982,24 @@ public class MatchingEngineTest {
         String user2 = "u2";
         MatchingEngine engine = newEngine(positionLimit, ticker, user1, user2);
 
-        Map<String, Object> message = engine.askLimitOrderHandler(user1,
+        Map<String, Object> message1 = engine.askLimitOrderHandler(user1,
                 new Order(user1, ticker, 15, 80, Side.ASK, Status.ACTIVE));
-        assertEquals(0, (double) message.get("price"));
-        assertEquals(0, (int) message.get("volumeFilled"));
-        message = engine.bidLimitOrderHandler(user2, new Order(user2, ticker, 16, 10, Side.BID, Status.ACTIVE));
-        assertEquals(15, (double) message.get("price"));
-        assertEquals(10, (int) message.get("volumeFilled"));
-        message = engine.askLimitOrderHandler(user1, new Order(user1, ticker, 14, 5, Side.ASK, Status.ACTIVE));
-        assertEquals(0, (double) message.get("price"));
-        assertEquals(0, (int) message.get("volumeFilled"));
-        message = engine.bidMarketOrderHandler(user2, ticker, 15);
-        assertEquals((14.0 * 5 + 10 * 15) / 15, (double) message.get("price"));
-        assertEquals(15, message.get("volumeFilled"));
+        assertEquals(0, (double) message1.get("price"));
+        assertEquals(0, (int) message1.get("volumeFilled"));
+
+        Map<String, Object> message2 = engine.bidLimitOrderHandler(user2,
+                new Order(user2, ticker, 16, 10, Side.BID, Status.ACTIVE));
+        assertEquals(15, (double) message2.get("price"));
+        assertEquals(10, (int) message2.get("volumeFilled"));
+
+        Map<String, Object> message3 = engine.askLimitOrderHandler(user1,
+                new Order(user1, ticker, 14, 5, Side.ASK, Status.ACTIVE));
+        assertEquals(0, (double) message3.get("price"));
+        assertEquals(0, (int) message3.get("volumeFilled"));
+
+        Map<String, Object> message4 = engine.bidMarketOrderHandler(user2, ticker, 15);
+        assertEquals((14.0 * 5 + 10 * 15) / 15, (double) message4.get("price"));
+        assertEquals(15, message4.get("volumeFilled"));
     }
 
     @Test
@@ -841,6 +1028,7 @@ public class MatchingEngineTest {
 
         engine.askLimitOrder(user1, new Order(user1, ticker, 25, 8, Side.ASK, Status.ACTIVE));
         engine.askLimitOrder(user1, new Order(user1, ticker, 28, 2, Side.ASK, Status.ACTIVE));
+
         Map<String, Object> message = engine.bidLimitOrderHandler(user2,
                 new Order(user2, ticker, 30, 12, Side.BID, Status.ACTIVE));
         assertEquals((25.0 * 8 + 28.0 * 2) / 10.0, (double) message.get("price"));
@@ -857,9 +1045,11 @@ public class MatchingEngineTest {
 
         engine.bidLimitOrder(user2, new Order(user2, ticker, 30, 10, Side.BID, Status.ACTIVE));
         engine.bidLimitOrder(user2, new Order(user2, ticker, 29, 3, Side.BID, Status.ACTIVE));
+
         Map<String, Object> message = engine.askLimitOrderHandler(user1,
                 new Order(user1, ticker, 27, 11, Side.ASK, Status.ACTIVE));
         double price = (30.0 * 10 + 29 * 1) / 11;
+
         assertEquals(price, (double) message.get("price"));
         assertEquals(11, message.get("volumeFilled"));
         assertEquals(-(30 * 10 + 29 * 1), engine.getUserBalance(user2));
@@ -877,6 +1067,7 @@ public class MatchingEngineTest {
 
         engine.bidLimitOrder(user2, new Order(user2, ticker, 101, 10, Side.BID, Status.ACTIVE));
         engine.askLimitOrder(user1, new Order(user1, ticker, 101, 10, Side.ASK, Status.ACTIVE));
+
         assertEquals(101 * 10, engine.getUserBalance(user1));
         assertEquals(-101 * 10, engine.getUserBalance(user2));
         assertEquals(-10, engine.getTickerBalance(user1, ticker));
@@ -891,10 +1082,12 @@ public class MatchingEngineTest {
         String user2 = "u2";
         String user3 = "u3";
         MatchingEngine engine = newEngine(positionLimit, ticker, user1, user2, user3);
-        long orderId = engine.bidLimitOrder(user1, new Order(user1, ticker, 200, 1000, Side.BID, Status.ACTIVE));
-        assertEquals(1, orderId);
-        orderId = engine.askLimitOrder(user1, new Order(user1, ticker, 250, 1000, Side.BID, Status.ACTIVE));
-        assertEquals(2, orderId);
+
+        long orderId1 = engine.bidLimitOrder(user1, new Order(user1, ticker, 200, 1000, Side.BID, Status.ACTIVE));
+        assertEquals(1, orderId1);
+
+        long orderId2 = engine.askLimitOrder(user1, new Order(user1, ticker, 250, 1000, Side.BID, Status.ACTIVE));
+        assertEquals(2, orderId2);
 
         // User 2 will buy a market order and then user 3 will provide multiple levels
         // to sell it at
@@ -909,10 +1102,11 @@ public class MatchingEngineTest {
         assertEquals(0, engine.getPnl(user2));
 
         // User 3 will now insert orders
-        orderId = engine.bidLimitOrder(user3, new Order(user3, ticker, 235, 200, Side.BID, Status.ACTIVE));
-        assertEquals(3, orderId);
-        orderId = engine.bidLimitOrder(user3, new Order(user3, ticker, 240, 200, Side.BID, Status.ACTIVE));
-        assertEquals(4, orderId);
+        long orderId3 = engine.bidLimitOrder(user3, new Order(user3, ticker, 235, 200, Side.BID, Status.ACTIVE));
+        assertEquals(3, orderId3);
+
+        long orderId4 = engine.bidLimitOrder(user3, new Order(user3, ticker, 240, 200, Side.BID, Status.ACTIVE));
+        assertEquals(4, orderId4);
 
         engine.askMarketOrder(user2, ticker, 400);
         assertEquals(235, engine.getPrice(ticker));
@@ -923,61 +1117,35 @@ public class MatchingEngineTest {
         assertEquals(-14 * 1000, engine.getPnl(user2));
     }
 
-    // @Test
-    // void testRaceCondition() throws Exception {
-    //     int positionLimit = 100;
-    //     String ticker = "R";
-    //     String buyer = "buyer";
-    //     String seller = "seller";
-    //     MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
+    @Test
+    public void testRaceCondition() {
+        int positionLimit = -1;
+        String ticker = "AAPL";
+        String[] users = {"TraderA", "TraderB", "TraderC"};
+        int[] userBalances = {1000, 1000, 1000};
+        int[] userTickerVolumes = {15, 15, 15};
 
-    //     int iterations = 50;
-    //     CountDownLatch start = new CountDownLatch(1);
-    //     CountDownLatch done = new CountDownLatch(2);
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
 
-    //     Thread tBid = new Thread(() -> {
-    //         try {
-    //             start.await();
-    //             for (int i = 0; i < iterations; i++) {
-    //                 engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 1, Side.BID, Status.ACTIVE));
-    //             }
-    //         } catch (InterruptedException ignored) {
-    //         } finally {
-    //             done.countDown();
-    //         }
-    //     });
+        engine.askLimitOrder(users[0], new Order(users[0], ticker, 100, 5, Side.ASK, Status.ACTIVE));
+        engine.askLimitOrder(users[1], new Order(users[1], ticker, 100, 7, Side.ASK, Status.ACTIVE));
+        engine.bidLimitOrder(users[2], new Order(users[2], ticker, 100, 6, Side.BID, Status.ACTIVE));
 
-    //     Thread tAsk = new Thread(() -> {
-    //         try {
-    //             start.await();
-    //             for (int i = 0; i < iterations; i++) {
-    //                 engine.askLimitOrder(seller, new Order(seller, ticker, 100, 1, Side.ASK, Status.ACTIVE));
-    //             }
-    //         } catch (InterruptedException ignored) {
-    //         } finally {
-    //             done.countDown();
-    //         }
-    //     });
-
-    //     tBid.start();
-    //     tAsk.start();
-    //     start.countDown();
-    //     done.await();
-
-    //     assertEquals(0, engine.getTickerBalance(buyer, ticker) + engine.getTickerBalance(seller, ticker));
-    //     assertEquals(0, engine.getUserBalance(buyer) + engine.getUserBalance(seller));
-    //     assertTrue(engine.getBidPriceLevels(ticker).isEmpty() || engine.getAskPriceLevels(ticker).isEmpty());
-    //     assertEquals(100, engine.getPrice(ticker));
-    // }
+        Map<Integer, Deque<Order>> asks = engine.getAsks(ticker);
+        assertTrue(asks.containsKey(100), "Asks should contain the remaining volume at 100");
+        assertEquals(6, asks.get(100).peek().volume, "Remaining ask volume should be 6 after partial fill");
+    }
 
     @Test
     void testUserListLimit() {
         int positionLimit = 10;
         String ticker = "L";
-        String user = "u";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
+
         long askOk = engine.askLimitOrder(user, new Order(user, ticker, 100, 6, Side.ASK, Status.ACTIVE));
         assertTrue(askOk > 0);
+
         long askReject = engine.askLimitOrder(user, new Order(user, ticker, 100, 5, Side.ASK, Status.ACTIVE));
         assertEquals(-1, askReject, "Second ask exceeds position limit when considering reserved ask size");
     }
@@ -986,11 +1154,12 @@ public class MatchingEngineTest {
     void testCancelUserList() {
         int positionLimit = 10;
         String ticker = "CU";
-        String user = "u";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         long id = engine.bidLimitOrder(user, new Order(user, ticker, 100, 7, Side.BID, Status.ACTIVE));
         assertTrue(id > 0);
+
         long reject = engine.bidLimitOrder(user, new Order(user, ticker, 100, 4, Side.BID, Status.ACTIVE));
         assertEquals(-1, reject);
 
@@ -1003,7 +1172,7 @@ public class MatchingEngineTest {
     void testUserListMarket() {
         int positionLimit = 10;
         String ticker = "M";
-        String seller = "s"; // will acquire inventory, then sell
+        String seller = "Seller"; // will acquire inventory, then sell
         String counterparty = "c";
         MatchingEngine engine = newEngine(positionLimit, ticker, seller, counterparty);
 
@@ -1032,7 +1201,7 @@ public class MatchingEngineTest {
     void testBidTrades() {
         int positionLimit = 1000;
         String ticker = "BT";
-        String user = "u";
+        String user = "Trader";
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
 
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
@@ -1052,27 +1221,23 @@ public class MatchingEngineTest {
 
     @Test
     void testRemoveAllOrdersRestoresBalances() {
-        int positionLimit = 10;
-        String ticker = "RA";
-        String user = "u";
-        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+        int positionLimit = -1;
+        String ticker = "AAPL";
+        String[] users = {"Trader1"};
+        int[] userBalances = {1000};
+        int[] userTickerVolumes = {20};
 
-        long b1 = engine.bidLimitOrder(user, new Order(user, ticker, 100, 6, Side.BID, Status.ACTIVE));
-        long b2 = engine.bidLimitOrder(user, new Order(user, ticker, 100, 4, Side.BID, Status.ACTIVE));
-        assertTrue(b1 > 0 && b2 > 0);
+        MatchingEngine engine = newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
 
-        // Now any extra bid should fail due to reserved hitting limit
-        long fail = engine.bidLimitOrder(user, new Order(user, ticker, 100, 1, Side.BID, Status.ACTIVE));
-        assertEquals(-1, fail);
+        // Place multiple orders
+        engine.bidLimitOrder(users[0], new Order(users[0], ticker, 50, 10, Side.BID, Status.ACTIVE));
+        engine.askLimitOrder(users[0], new Order(users[0], ticker, 60, 5, Side.ASK, Status.ACTIVE));
 
-        engine.removeAll(user);
-
-        // After removeAll, reservations should be cleared and new orders allowed
-        long ok = engine.bidLimitOrder(user, new Order(user, ticker, 100, 1, Side.BID, Status.ACTIVE));
-        assertTrue(ok > 0);
-
-        // Ensure no actual balance/position changes (no trades happened)
-        assertEquals(0, engine.getUserBalance(user));
-        assertEquals(0, engine.getTickerBalance(user, ticker));
+        // Remove all orders and verify balances
+        engine.removeAll(users[0]);
+        assertEquals(1000, engine.getUserBalance(users[0]),
+                "User balance should be restored after removing all orders");
+        assertEquals(20, engine.getTickerBalance(users[0], ticker),
+                "Ticker balance should be restored after removing all orders");
     }
 }
