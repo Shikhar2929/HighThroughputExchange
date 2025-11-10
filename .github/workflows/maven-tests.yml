@@ -11,11 +11,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
-  test:
+  maven-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
