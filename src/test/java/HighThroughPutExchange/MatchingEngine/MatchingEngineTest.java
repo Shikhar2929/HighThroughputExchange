@@ -2,6 +2,7 @@ package HighThroughPutExchange.MatchingEngine;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.Test;
 
 public class MatchingEngineTest {
@@ -869,5 +870,159 @@ public class MatchingEngineTest {
         assertEquals(-5 * 200, engine.getPnl(user3));
         assertEquals(15 * 1000, engine.getPnl(user1));
         assertEquals(-14 * 1000, engine.getPnl(user2));
+    }
+
+    @Test
+    void testRaceCondition() throws Exception {
+        int positionLimit = 100;
+        String ticker = "R";
+        String buyer = "buyer";
+        String seller = "seller";
+        MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
+
+        int iterations = 50;
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(2);
+
+        Thread tBid = new Thread(() -> {
+            try {
+                start.await();
+                for (int i = 0; i < iterations; i++) {
+                    engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 1, Side.BID, Status.ACTIVE));
+                }
+            } catch (InterruptedException ignored) {
+            } finally {
+                done.countDown();
+            }
+        });
+
+        Thread tAsk = new Thread(() -> {
+            try {
+                start.await();
+                for (int i = 0; i < iterations; i++) {
+                    engine.askLimitOrder(seller, new Order(seller, ticker, 100, 1, Side.ASK, Status.ACTIVE));
+                }
+            } catch (InterruptedException ignored) {
+            } finally {
+                done.countDown();
+            }
+        });
+
+        tBid.start();
+        tAsk.start();
+        start.countDown();
+        done.await();
+
+        assertEquals(0, engine.getTickerBalance(buyer, ticker) + engine.getTickerBalance(seller, ticker));
+        assertEquals(0, engine.getUserBalance(buyer) + engine.getUserBalance(seller));
+        assertTrue(engine.getBidPriceLevels(ticker).isEmpty() || engine.getAskPriceLevels(ticker).isEmpty());
+        assertEquals(100, engine.getPrice(ticker));
+    }
+
+    @Test
+    void testUserListLimit() {
+        int positionLimit = 10;
+        String ticker = "L";
+        String user = "u";
+        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+        long askOk = engine.askLimitOrder(user, new Order(user, ticker, 100, 6, Side.ASK, Status.ACTIVE));
+        assertTrue(askOk > 0);
+        long askReject = engine.askLimitOrder(user, new Order(user, ticker, 100, 5, Side.ASK, Status.ACTIVE));
+        assertEquals(-1, askReject, "Second ask exceeds position limit when considering reserved ask size");
+    }
+
+    @Test
+    void testCancelUserList() {
+        int positionLimit = 10;
+        String ticker = "CU";
+        String user = "u";
+        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+
+        long id = engine.bidLimitOrder(user, new Order(user, ticker, 100, 7, Side.BID, Status.ACTIVE));
+        assertTrue(id > 0);
+        long reject = engine.bidLimitOrder(user, new Order(user, ticker, 100, 4, Side.BID, Status.ACTIVE));
+        assertEquals(-1, reject);
+
+        assertTrue(engine.removeOrder(user, id));
+        long ok = engine.bidLimitOrder(user, new Order(user, ticker, 100, 4, Side.BID, Status.ACTIVE));
+        assertTrue(ok > 0, "After cancel, reservation should free and allow new order");
+    }
+
+    @Test
+    void testUserListMarket() {
+        int positionLimit = 10;
+        String ticker = "M";
+        String seller = "s"; // will acquire inventory, then sell
+        String counterparty = "c";
+        MatchingEngine engine = newEngine(positionLimit, ticker, seller, counterparty);
+
+        // Provide liquidity on the ask so seller can first buy inventory (within
+        // positionLimit)
+        engine.askLimitOrder(counterparty, new Order(counterparty, ticker, 100, 10, Side.ASK, Status.ACTIVE));
+        int bought = engine.bidMarketOrder(seller, ticker, 10);
+        assertEquals(10, bought);
+        assertEquals(10, engine.getTickerBalance(seller, ticker));
+
+        // Add bid liquidity to sell into
+        engine.bidLimitOrder(counterparty, new Order(counterparty, ticker, 100, 20, Side.BID, Status.ACTIVE));
+
+        // Attempt to sell over allowed amount (owned + positionLimit = 20) should be
+        // rejected
+        int filled = engine.askMarketOrder(seller, ticker, 25);
+        assertEquals(0, filled);
+
+        // Selling exactly owned amount should work
+        filled = engine.askMarketOrder(seller, ticker, 10);
+        assertEquals(10, filled);
+        assertEquals(0, engine.getTickerBalance(seller, ticker));
+    }
+
+    @Test
+    void testBidTrades() {
+        int positionLimit = 1000;
+        String ticker = "BT";
+        String user = "u";
+        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+
+        engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
+        engine.bidLimitOrder(user, new Order(user, ticker, 100, 7, Side.BID, Status.ACTIVE));
+
+        @SuppressWarnings("unchecked")
+        var trades = (List<PriceChange>) engine.getRecentTrades();
+        boolean sawBidAt100With12 = false;
+        for (PriceChange pc : trades) {
+            if (pc.getTicker().equals(ticker) && pc.getPrice() == 100 && pc.getVolume() == 12
+                    && pc.getSide() == Side.BID) {
+                sawBidAt100With12 = true;
+                break;
+            }
+        }
+        assertTrue(sawBidAt100With12);
+    }
+
+    @Test
+    void testRemoveAllOrdersRestoresBalances() {
+        int positionLimit = 10;
+        String ticker = "RA";
+        String user = "u";
+        MatchingEngine engine = newEngine(positionLimit, ticker, user);
+
+        long b1 = engine.bidLimitOrder(user, new Order(user, ticker, 100, 6, Side.BID, Status.ACTIVE));
+        long b2 = engine.bidLimitOrder(user, new Order(user, ticker, 100, 4, Side.BID, Status.ACTIVE));
+        assertTrue(b1 > 0 && b2 > 0);
+
+        // Now any extra bid should fail due to reserved hitting limit
+        long fail = engine.bidLimitOrder(user, new Order(user, ticker, 100, 1, Side.BID, Status.ACTIVE));
+        assertEquals(-1, fail);
+
+        engine.removeAll(user);
+
+        // After removeAll, reservations should be cleared and new orders allowed
+        long ok = engine.bidLimitOrder(user, new Order(user, ticker, 100, 1, Side.BID, Status.ACTIVE));
+        assertTrue(ok > 0);
+
+        // Ensure no actual balance/position changes (no trades happened)
+        assertEquals(0, engine.getUserBalance(user));
+        assertEquals(0, engine.getTickerBalance(user, ticker));
     }
 }
