@@ -80,7 +80,7 @@ public class MatchingEngineTest {
         assertTrue(askId > 0);
         long bidResultOrderId = engine.bidLimitOrder(buyer,
                 new Order(buyer, ticker, 100, 50, Side.BID, Status.ACTIVE));
-        
+
         // Fully matched bid returns 0 according to handler logic
         assertEquals(0, bidResultOrderId, "Fully matched bid order should return orderId 0");
         assertEquals(100, engine.getPrice(ticker));
