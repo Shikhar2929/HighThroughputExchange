@@ -535,8 +535,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = newEngine(positionLimit, ticker, buyer, seller);
         engine.askLimitOrder(seller, new Order(seller, ticker, 100, 5, Side.ASK, Status.ACTIVE));
         engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 5, Side.BID, Status.ACTIVE));
-        @SuppressWarnings("unchecked")
-        var trades = (List<PriceChange>) engine.getRecentTrades();
+
+        List<PriceChange> trades = engine.getRecentTrades();
         boolean hasPrice100 = false;
         for (PriceChange pc : trades) {
             if (pc.getPrice() == 100) {
@@ -568,8 +568,8 @@ public class MatchingEngineTest {
         MatchingEngine engine = newEngine(positionLimit, ticker, user);
         long id = engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
         assertTrue(engine.removeOrder(user, id));
-        @SuppressWarnings("unchecked")
-        var trades = (List<PriceChange>) engine.getRecentTrades();
+
+        List<PriceChange> trades = engine.getRecentTrades();
         boolean hasPrice100 = false;
         for (PriceChange pc : trades) {
             if (pc.getPrice() == 100) {
@@ -1038,8 +1038,7 @@ public class MatchingEngineTest {
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 5, Side.BID, Status.ACTIVE));
         engine.bidLimitOrder(user, new Order(user, ticker, 100, 7, Side.BID, Status.ACTIVE));
 
-        @SuppressWarnings("unchecked")
-        var trades = (List<PriceChange>) engine.getRecentTrades();
+        List<PriceChange> trades = engine.getRecentTrades();
         boolean sawBidAt100With12 = false;
         for (PriceChange pc : trades) {
             if (pc.getTicker().equals(ticker) && pc.getPrice() == 100 && pc.getVolume() == 12

@@ -102,7 +102,7 @@ public class MatchingEngine {
         return userList.getUnrealizedPnl(username, latestPrice);
     }
 
-    public ArrayList getRecentTrades() {
+    public ArrayList<PriceChange> getRecentTrades() {
         ArrayList<PriceChange> recentTrades = RecentTrades.getRecentTrades();
         // for (Trade trade : recentTrades)
         /// System.out.println(trade);
