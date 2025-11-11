@@ -37,7 +37,7 @@ public class MatchingEngineTest {
     @BeforeEach
     void resetRecentTrades() {
         // clear any trades left from previous tests
-        RecentTrades.clear();
+        RecentTrades.clearRecentTrades();
     }
 
     @Test
@@ -569,11 +569,24 @@ public class MatchingEngineTest {
         assertEquals(0, askLevels.size(), "All ask orders should be removed");
     }
 
-    // TODO: fix config.json for initialize all tickers
     @Test
     void testInitializeTickers() {
-        MatchingEngine matchingEngine = new MatchingEngine();
-        matchingEngine.initializeAllTickers();
+        MatchingEngine engine = new MatchingEngine();
+        String[] tickers = {"AAPL", "GOOG", "NVDA"};
+
+        for (String t : tickers) {
+            engine.initializeTicker(t);
+
+            // No price set yet
+            assertEquals(0, engine.getPrice(t), "Price should be 0 after initialization for " + t);
+
+            // No orders yet
+            assertEquals(0, engine.getHighestBid(t), "Highest bid should be 0 after initialization for " + t);
+            assertEquals(Integer.MAX_VALUE, engine.getLowestAsk(t),
+                    "Lowest ask should be Integer.MAX_VALUE after initialization for " + t);
+            assertTrue(engine.getBidPriceLevels(t).isEmpty(), "Bid price levels should be empty for " + t);
+            assertTrue(engine.getAskPriceLevels(t).isEmpty(), "Ask price levels should be empty for " + t);
+        }
     }
 
     @Test
