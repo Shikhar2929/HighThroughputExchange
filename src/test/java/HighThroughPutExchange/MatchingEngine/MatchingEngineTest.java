@@ -41,7 +41,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testBidLimitOrder_AddsBidSuccessfully() {
+    void testBidLimitOrder_RestsInBook_WhenNoMatch() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "buyer";
@@ -58,7 +58,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testAskLimitOrder_AddsAskSuccessfully() {
+    void testAskLimitOrder_RestsInBook_WhenNoMatch() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String seller = "seller";
@@ -75,7 +75,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testGetHighestBidLimitOrder_AfterMultipleBids() {
+    void testBidLimitOrder_HighestBidUpdated_WithMultiplePrices() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -89,7 +89,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testGetLowestAskLimitOrder_AfterMultipleAsks() {
+    void testAskLimitOrder_LowestAskUpdated_WithMultiplePrices() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -103,7 +103,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testMatchingBidAndAskLimitOrders() {
+    void testLimitOrders_FullyMatch_OnEqualPriceAndVolume() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "buyer";
@@ -124,7 +124,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testInsertBidLimitOrder() {
+    void testBidLimitOrder_HighestBidSet_OnFirstInsert() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -135,7 +135,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testInsertAskLimitOrder() {
+    void testAskLimitOrder_LowestAskSet_OnFirstInsert() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -146,7 +146,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testFillLimitOrderCompletely() {
+    void testLimitOrders_FullFill_RemovesPriceLevels() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "Buyer";
@@ -162,7 +162,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testPartialFillLimitOrder() {
+    void testLimitOrders_PartialFill_ReducesRestingAskVolume() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "Buyer";
@@ -181,7 +181,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testDifferentPricesNoMatchLimitOrder() {
+    void testLimitOrders_NoMatch_WhenBidBelowBestAsk() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "Buyer";
@@ -197,7 +197,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testCancelLimitOrderValidBid() {
+    void testBidLimitOrder_Cancel_RemovesBidPriceLevel() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -210,7 +210,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testCancelLimitOrderValidAsk() {
+    void testAskLimitOrder_Cancel_RemovesAskPriceLevel() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -223,7 +223,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testCancelNonExistentOrder() {
+    void testOrder_CancelFails_ForNonexistentId() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -232,7 +232,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testBidPriceLevelsAfterAddingLimitOrder() {
+    void testBidLimitOrder_VolumeAggregates_OnSamePrice() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -247,7 +247,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testAskPriceLevelsAfterAddingLimitOrder() {
+    void testAskLimitOrder_VolumeAggregates_OnSamePrice() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -262,7 +262,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testPriceLevelsAfterPartialFillLimitOrder() {
+    void testAskPriceLevels_VolumeReduced_AfterPartialBidFill() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "Buyer";
@@ -278,7 +278,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testPriceLevelsAfterFullFillLimitOrder() {
+    void testAskPriceLevels_Removed_AfterFullBidFill() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "Buyer";
@@ -291,7 +291,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testPriceLevelsWithMultipleLimitOrdersAtSamePrice() {
+    void testBidPriceLevels_VolumeAggregates_MultipleOrdersSamePrice() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -307,7 +307,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testRemovingLimitOrderUpdatesPriceLevels() {
+    void testBidLimitOrder_CancelPartial_MaintainsRemainingVolume() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -326,7 +326,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testMarketBuyOrderFullyFilled() {
+    void testMarketBuy_FullFill_UpdatesLastPrice() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "buyer";
@@ -340,7 +340,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testMarketSellOrderFullyFilled() {
+    void testMarketSell_FullFill_UpdatesLastPrice() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String seller = "seller";
@@ -354,7 +354,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testMarketBuyOrderPartiallyFilled() {
+    void testMarketBuy_PartialFill_WhenInsufficientAskLiquidity() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "buyer";
@@ -367,7 +367,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testMarketSellOrderPartiallyFilled() {
+    void testMarketSell_PartialFill_WhenInsufficientBidLiquidity() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String seller = "seller";
@@ -380,7 +380,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testMarketOrderCancelledDueToNoLiquidity() {
+    void testMarketBuy_Fails_WhenNoAskLiquidity() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String buyer = "buyer";
@@ -392,7 +392,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testUninitializedUser() {
+    void testBidLimitOrder_Rejected_ForUninitializedUser() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         MatchingEngine engine = newEngine(positionLimit, ticker); // no users initialized
@@ -402,7 +402,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testBidLimitOrderBalanceUpdates() {
+    void testBidLimitOrder_BalanceReservedAndRestored_OnCancel() {
         int positionLimit = -1;
         String ticker = "AAPL";
         String[] users = {"Trader1"};
@@ -424,7 +424,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testAskLimitOrderBalanceUpdates() {
+    void testAskLimitOrder_TickerReservedAndRestored_OnCancel() {
         int positionLimit = -1;
         String ticker = "AAPL";
         String[] users = {"Trader1"};
@@ -445,7 +445,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testBidMarketOrderBalanceUpdates() {
+    void testMarketBuy_BalancesAndVolumesUpdated_OnFullFill() {
         int positionLimit = -1;
         String ticker = "AAPL";
         String buyer = "Buyer1", seller = "Seller1";
@@ -471,7 +471,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testRemoveOrderRestoresAllProperties() {
+    void testBidLimitOrder_Cancel_RestoresBalancesAndTicker() {
         int positionLimit = -1;
         String ticker = "AAPL";
         String[] users = {"Trader1"};
@@ -501,7 +501,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testRemoveOrderForAskRestoresAllProperties() {
+    void testAskLimitOrder_Cancel_RestoresBalancesAndTicker() {
         int positionLimit = -1;
         String ticker = "AAPL";
         String[] users = {"Trader1"};
@@ -533,7 +533,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testRemoveAllRestoresAllProperties() {
+    void testRemoveAllOrders_RestoresBalancesAndTicker() {
         int positionLimit = -1;
         String ticker = "AAPL";
         String[] users = {"Trader1"};
@@ -571,13 +571,13 @@ public class MatchingEngineTest {
 
     // TODO: fix config.json for initialize all tickers
     @Test
-    void testInitializeTickers() {
+    void testTickerInitialization_LoadsConfiguredTickers() {
         MatchingEngine matchingEngine = new MatchingEngine();
         matchingEngine.initializeAllTickers();
     }
 
     @Test
-    void testInitializeUsers() {
+    void testUserInitialization_SetsZeroBalances() {
         MatchingEngine engine = new MatchingEngine(1000);
         engine.initializeTicker("AAPL");
         engine.initializeTicker("GOOG");
@@ -591,7 +591,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testAddTradeAndCheckBidVolumeSummation() {
+    void testTradeLogging_AggregatesBidVolume_OnSamePrice() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -611,7 +611,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testAddTradeAndCheckAskVolumeSummation() {
+    void testTradeLogging_AggregatesAskVolume_OnSamePrice() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -631,7 +631,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testTradeLoggingForDifferentPrices() {
+    void testTradeLogging_SeparatesEntries_ForDifferentPrices() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -659,7 +659,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testTradeClearingPostRetrieval() {
+    void testTradeLogging_ClearsTrades_OnSecondRetrieval() {
         int positionLimit = 1000;
         String ticker = "AAPL";
         String user = "Trader";
@@ -675,7 +675,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testLimitOrderTradeLogging() {
+    public void testLimitOrder_Matching_LogsSingleTrade() {
         int positionLimit = -1;
         String ticker = "GOOG";
         String[] users = {"TraderC"};
@@ -700,7 +700,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testMarketOrderTradeLogging() {
+    public void testMarketOrder_PartialMatchAcrossLevels_LogsTradesPerLevel() {
         int positionLimit = -1;
         String ticker = "GOOG";
         String[] users = {"TraderD"};
@@ -733,7 +733,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testCancelOrderTradeLogging() {
+    void testLimitOrder_Cancel_LogsReservationChange() {
         int positionLimit = -1;
         String ticker = "GOOG";
         String[] users = {"TraderE"};
@@ -752,7 +752,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testInfiniteBalanceBuyer() {
+    void testPositionLimit_InfiniteBuyer_CapsPositionAndBalancesCorrect() {
         int positionLimit = 100;
         String ticker = "AAPL";
 
@@ -794,7 +794,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testInfiniteBalanceTradingWithSelf() {
+    public void testPositionLimit_SelfTrading_WithinLimitUpdates() {
         int positionLimit = 1000;
         String user = "TraderZ";
         String ticker = "AAPL";
@@ -817,7 +817,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testInfiniteRemove() {
+    public void testLimitOrder_InfiniteReservation_CancelReleasesCompletely() {
         int positionLimit = 1000;
         String user1 = "A";
         String user2 = "B";
@@ -847,7 +847,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testExceedPositionLimit() {
+    public void testPositionLimit_BidRejected_WhenExceedsLimit() {
         int positionLimit = 1000;
         String user1 = "A";
         String user2 = "B";
@@ -876,7 +876,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testInfiniteMarketOrder() {
+    public void testMarketOrders_InfinitePosition_HandlesMixedFills() {
         int positionLimit = 1000;
         String user1 = "A";
         String user2 = "B";
@@ -913,7 +913,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testPositionLimitEdgeCases() {
+    public void testPositionLimit_EdgeCases_MultipleScenarios() {
         int positionLimit = 1000;
         String ticker = "A";
         String user1 = "u1";
@@ -957,7 +957,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testBots() {
+    public void testBots_OrderPlacement_RespectsPositionLimit() {
         String ticker = "A";
         int positionLimit = 100;
         String user1 = "u1";
@@ -975,7 +975,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testPrice() {
+    public void testAveragePrice_Computed_AcrossMatchedTrades() {
         String ticker = "A";
         int positionLimit = 100;
         String user1 = "u1";
@@ -1003,7 +1003,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testAskMarketOrderPrice() {
+    public void testAskMarketOrder_AveragePrice_ComputedFromBidDepth() {
         String ticker = "B";
         int positionLimit = 100;
         String user1 = "u1";
@@ -1019,7 +1019,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testBidLimitOrderPrice() {
+    public void testBidLimitOrder_AveragePrice_ComputedFromAskDepth() {
         String ticker = "C";
         int positionLimit = 100;
         String user1 = "u1";
@@ -1036,7 +1036,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testAskLimitOrderPrice() {
+    public void testAskLimitOrder_AveragePrice_ComputedFromBidDepth() {
         String ticker = "D";
         int positionLimit = 100;
         String user1 = "u1";
@@ -1045,7 +1045,6 @@ public class MatchingEngineTest {
 
         engine.bidLimitOrder(user2, new Order(user2, ticker, 30, 10, Side.BID, Status.ACTIVE));
         engine.bidLimitOrder(user2, new Order(user2, ticker, 29, 3, Side.BID, Status.ACTIVE));
-
         Map<String, Object> message = engine.askLimitOrderHandler(user1,
                 new Order(user1, ticker, 27, 11, Side.ASK, Status.ACTIVE));
         double price = (30.0 * 10 + 29 * 1) / 11;
@@ -1058,7 +1057,7 @@ public class MatchingEngineTest {
 
     // Place Bid LimitOrder and its filled askLimitOrder
     @Test
-    public void testInfiniteBrokenTest() {
+    public void testPositionLimit_InfiniteLimit_MatchingBalancesAndPositions() {
         String ticker = "D";
         int positionLimit = 100;
         String user1 = "u1";
@@ -1075,7 +1074,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testMarketOrdersRigorously() {
+    public void testMarketOrders_ComplexSequence_UpdatesPnlAndBalances() {
         String ticker = "D";
         int positionLimit = 1000;
         String user1 = "u1";
@@ -1118,7 +1117,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    public void testRaceCondition() {
+    public void testRaceCondition_OrderArrival_PartialFillMaintainsRemainingVolume() {
         int positionLimit = -1;
         String ticker = "AAPL";
         String[] users = {"TraderA", "TraderB", "TraderC"};
@@ -1137,7 +1136,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testUserListLimit() {
+    void testPositionLimit_AskRejected_WhenReservationExceedsLimit() {
         int positionLimit = 10;
         String ticker = "L";
         String user = "Trader";
@@ -1151,7 +1150,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testCancelUserList() {
+    void testPositionLimit_BidReservationFreed_OnCancelAllowsNewOrder() {
         int positionLimit = 10;
         String ticker = "CU";
         String user = "Trader";
@@ -1169,7 +1168,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testUserListMarket() {
+    void testPositionLimit_MarketSellRejected_WhenExceedsOwnershipPlusLimit() {
         int positionLimit = 10;
         String ticker = "M";
         String seller = "Seller"; // will acquire inventory, then sell
@@ -1198,7 +1197,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testBidTrades() {
+    void testTradeLogging_BidAggregatedEntryExists() {
         int positionLimit = 1000;
         String ticker = "BT";
         String user = "Trader";
@@ -1220,7 +1219,7 @@ public class MatchingEngineTest {
     }
 
     @Test
-    void testRemoveAllOrdersRestoresBalances() {
+    void testRemoveAllOrders_InfinitePosition_RestoresBalancesAndTicker() {
         int positionLimit = -1;
         String ticker = "AAPL";
         String[] users = {"Trader1"};
