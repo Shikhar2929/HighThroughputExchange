@@ -2,6 +2,7 @@ package HighThroughPutExchange.MatchingEngine;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -15,8 +16,8 @@ public class RecentTrades {
     public RecentTrades() {
     }
 
-    // Clear any accumulated trades and reset counters (for test isolation)
-    protected static void clear() {
+    @VisibleForTesting
+    protected static void clearRecentTrades() {
         tradeMap.clear();
         tradeCounter = 0;
     }
