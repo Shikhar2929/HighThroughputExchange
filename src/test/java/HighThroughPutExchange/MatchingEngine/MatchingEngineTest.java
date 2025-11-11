@@ -37,7 +37,7 @@ public class MatchingEngineTest {
     @BeforeEach
     void resetRecentTrades() {
         // clear any trades left from previous tests
-        RecentTrades.clear();
+        RecentTrades.clearRecentTrades();
     }
 
     @Test
