@@ -15,6 +15,12 @@ public class RecentTrades {
     public RecentTrades() {
     }
 
+    // Clear any accumulated trades and reset counters (for test isolation)
+    protected static void clear() {
+        tradeMap.clear();
+        tradeCounter = 0;
+    }
+
     // Method to add a new trade to the queue
     public static void addTrade(String ticker, int price, int volume, Side side) {
         tradeCounter++;
