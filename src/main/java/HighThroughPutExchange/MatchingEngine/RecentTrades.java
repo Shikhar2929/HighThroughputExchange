@@ -2,6 +2,7 @@ package HighThroughPutExchange.MatchingEngine;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -13,6 +14,12 @@ public class RecentTrades {
     private static long tradeCounter = 0;
 
     public RecentTrades() {
+    }
+
+    @VisibleForTesting
+    protected static void clearRecentTrades() {
+        tradeMap.clear();
+        tradeCounter = 0;
     }
 
     // Method to add a new trade to the queue

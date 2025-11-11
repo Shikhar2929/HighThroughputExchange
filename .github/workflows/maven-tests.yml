@@ -2,19 +2,17 @@ name: Maven Tests
 
 on:
   push:
-    branches: [ "**" ]
+    branches: ["**"]
   pull_request:
-    branches: [ "**" ]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
-  test:
+  maven-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,6 +28,7 @@ jobs:
       # verify formatting and linting
       - name: Verify formatting
         run: mvn -B -ntp spotless:check
+
       - name: Checkstyle
         run: mvn -B -ntp -Dcheckstyle.failOnViolation=true checkstyle:check
 
