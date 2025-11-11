@@ -582,7 +582,8 @@ public class MatchingEngineTest {
 
             // No orders yet
             assertEquals(0, engine.getHighestBid(t), "Highest bid should be 0 after initialization for " + t);
-            assertEquals(Integer.MAX_VALUE, engine.getLowestAsk(t), "Lowest ask should be 0 after initialization for " + t);
+            assertEquals(Integer.MAX_VALUE, engine.getLowestAsk(t),
+                    "Lowest ask should be Integer.MAX_VALUE after initialization for " + t);
             assertTrue(engine.getBidPriceLevels(t).isEmpty(), "Bid price levels should be empty for " + t);
             assertTrue(engine.getAskPriceLevels(t).isEmpty(), "Ask price levels should be empty for " + t);
         }
