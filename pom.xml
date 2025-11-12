@@ -82,6 +82,7 @@
                 <version>2.43.0</version>
                 <configuration>
                     <java>
+                        <googleJavaFormat/>
                         <eclipse>
                             <version>4.26</version>
                             <file>config/eclipse-java-formatter.properties</file>
@@ -96,9 +97,10 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.5.0</version>
                 <configuration>
-                    <configLocation>google_checks.xml</configLocation>
+                    <configLocation>config/google_checks.xml</configLocation>
+                    <failsOnError>true</failsOnError>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <linkXRef>false</linkXRef>
+                    <consoleOutput>true</consoleOutput>
                 </configuration>
                 <dependencies>
                     <dependency>

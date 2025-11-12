@@ -57,13 +57,12 @@ public class SocketController {
 
     @Scheduled(fixedRate = 200)
     public void sendUserBalances() {
-        TaskQueue.addTask(
-                () -> {
-                    for (SimpUser user : simpUserRegistry.getUsers()) {
-                        String userDetailsJson = matchingEngine.getUserDetails(user.getName());
-                        sendUserInfo(user.getName(), userDetailsJson);
-                    }
-                });
+        TaskQueue.addTask(() -> {
+            for (SimpUser user : simpUserRegistry.getUsers()) {
+                String userDetailsJson = matchingEngine.getUserDetails(user.getName());
+                sendUserInfo(user.getName(), userDetailsJson);
+            }
+        });
     }
 
     public void sendUserInfo(String username, String resp) {

@@ -13,15 +13,8 @@ public abstract class AbstractLimitOrderRequest extends AbstractOrderRequest {
 
     private final IntUnaryOperator priceProcessor;
 
-    protected AbstractLimitOrderRequest(
-            String username,
-            String sessionToken,
-            String ticker,
-            int volume,
-            int price,
-            boolean isBid,
-            IntUnaryOperator volumeProcessor,
-            IntUnaryOperator priceProcessor) {
+    protected AbstractLimitOrderRequest(String username, String sessionToken, String ticker, int volume, int price, boolean isBid,
+            IntUnaryOperator volumeProcessor, IntUnaryOperator priceProcessor) {
         super(username, sessionToken, ticker, volume, isBid, volumeProcessor);
         this.priceProcessor = priceProcessor;
         this.price = applyPriceProcessor(price);

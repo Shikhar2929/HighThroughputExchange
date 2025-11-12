@@ -15,10 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class SocketInterceptor implements HandshakeInterceptor {
     @Override
-    public boolean beforeHandshake(
-            ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler wsHandler,
+    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
             Map<String, Object> attributes) {
         // Use the sessions bean to validate the session ID
         URI uri = request.getURI();
@@ -35,11 +32,7 @@ public class SocketInterceptor implements HandshakeInterceptor {
     }
 
     @Override
-    public void afterHandshake(
-            ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler wsHandler,
-            Exception exception) {
+    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
     }
 
     private static class UserPrincipal implements Principal {

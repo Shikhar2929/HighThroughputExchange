@@ -19,8 +19,7 @@ public class RateLimiter {
             deque = new ConcurrentLinkedDeque<>();
             rates.put(req.getUsername(), deque);
         }
-        if (deque.size() < MAX_REQUESTS_PER_SECOND
-                || System.currentTimeMillis() - deque.getLast() > 1000) {
+        if (deque.size() < MAX_REQUESTS_PER_SECOND || System.currentTimeMillis() - deque.getLast() > 1000) {
             if (deque.size() == MAX_REQUESTS_PER_SECOND) {
                 deque.removeLast();
             }

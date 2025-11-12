@@ -14,13 +14,7 @@ public abstract class AbstractOrderRequest extends BasePrivateRequest {
 
     private final IntUnaryOperator volumeProcessor;
 
-    protected AbstractOrderRequest(
-            String username,
-            String sessionToken,
-            String ticker,
-            int volume,
-            boolean isBid,
-            IntUnaryOperator volumeProcessor) {
+    protected AbstractOrderRequest(String username, String sessionToken, String ticker, int volume, boolean isBid, IntUnaryOperator volumeProcessor) {
         super(username, sessionToken);
         this.ticker = ticker;
         this.isBid = isBid;
