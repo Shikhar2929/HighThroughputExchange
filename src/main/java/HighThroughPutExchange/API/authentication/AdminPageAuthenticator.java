@@ -19,7 +19,6 @@ public class AdminPageAuthenticator {
     }
 
     public boolean authenticate(BaseAdminRequest req) {
-        return req.getAdminUsername().equals(adminUsername)
-                && req.getAdminPassword().equals(adminPassword);
+        return req.getAdminUsername().equals(adminUsername) && req.getAdminPassword().equals(adminPassword);
     }
 }
