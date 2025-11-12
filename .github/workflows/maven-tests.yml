@@ -30,7 +30,7 @@ jobs:
         run: mvn -B -ntp spotless:check
 
       - name: Checkstyle
-        run: mvn -B -ntp -Dcheckstyle.failOnViolation=true checkstyle:check
+        run: mvn -B -ntp checkstyle:check
 
       - name: Run tests
         run: mvn -B -ntp test
