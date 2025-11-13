@@ -12,20 +12,20 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LocalDBClient<T extends DBEntry> extends AbstractDBClient<T> {
+public class LocalDBClient extends AbstractDBClient {
 
     private File file;
     private ObjectMapper objectMapper;
-    private ConcurrentHashMap<String, LocalDBTable<T>> tables;
+    private ConcurrentHashMap<String, LocalDBTable> tables;
 
-    public LocalDBClient(String path, HashMap<String, Class<T>> tableMapping) {
+    public LocalDBClient(String path, HashMap<String, Class<? extends DBEntry>> tableMapping) {
         file = new File(path);
         objectMapper = new ObjectMapper();
         tables = new ConcurrentHashMap<>();
         HashMap<String, LinkedHashMap<String, LinkedHashMap<String, Object>>> temp;
         try {
             temp = objectMapper.readerFor(HashMap.class).readValue(file);
-            LocalDBTable<T> table;
+            LocalDBTable table;
             for (String tableName : temp.keySet()) {
                 table = new LocalDBTable<>(tableName);
                 for (String key : temp.get(tableName).get("backing").keySet()) {
@@ -44,17 +44,17 @@ public class LocalDBClient<T extends DBEntry> extends AbstractDBClient<T> {
     }
 
     @Override
-    public LocalDBTable<T> createTable(String tableName) throws AlreadyExistsException {
+    public LocalDBTable<DBEntry> createTable(String tableName) throws AlreadyExistsException {
         if (tables.containsKey(tableName)) {
             throw new AlreadyExistsException();
         }
-        LocalDBTable<T> output = new LocalDBTable<T>(tableName);
+        LocalDBTable<DBEntry> output = new LocalDBTable<DBEntry>(tableName);
         tables.put(tableName, output);
         return output;
     }
 
     @Override
-    public LocalDBTable<T> getTable(String tableName) throws NotFoundException {
+    public LocalDBTable getTable(String tableName) throws NotFoundException {
         if (!tables.containsKey(tableName)) {
             throw new NotFoundException();
         }
