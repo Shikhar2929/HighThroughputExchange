@@ -12,20 +12,20 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LocalDBClient extends AbstractDBClient {
+public class LocalDBClient<T extends DBEntry> extends AbstractDBClient<T> {
 
     private File file;
     private ObjectMapper objectMapper;
-    private ConcurrentHashMap<String, LocalDBTable> tables;
+    private ConcurrentHashMap<String, LocalDBTable<T>> tables;
 
-    public LocalDBClient(String path, HashMap<String, Class<? extends DBEntry>> tableMapping) {
+    public LocalDBClient(String path, HashMap<String, Class<T>> tableMapping) {
         file = new File(path);
         objectMapper = new ObjectMapper();
         tables = new ConcurrentHashMap<>();
         HashMap<String, LinkedHashMap<String, LinkedHashMap<String, Object>>> temp;
         try {
             temp = objectMapper.readerFor(HashMap.class).readValue(file);
-            LocalDBTable table;
+            LocalDBTable<T> table;
             for (String tableName : temp.keySet()) {
                 table = new LocalDBTable<>(tableName);
                 for (String key : temp.get(tableName).get("backing").keySet()) {
@@ -44,17 +44,17 @@ public class LocalDBClient extends AbstractDBClient {
     }
 
     @Override
-    public LocalDBTable<DBEntry> createTable(String tableName) throws AlreadyExistsException {
+    public LocalDBTable<T> createTable(String tableName) throws AlreadyExistsException {
         if (tables.containsKey(tableName)) {
             throw new AlreadyExistsException();
         }
-        LocalDBTable<DBEntry> output = new LocalDBTable<DBEntry>(tableName);
+        LocalDBTable<T> output = new LocalDBTable<T>(tableName);
         tables.put(tableName, output);
         return output;
     }
 
     @Override
-    public LocalDBTable getTable(String tableName) throws NotFoundException {
+    public LocalDBTable<T> getTable(String tableName) throws NotFoundException {
         if (!tables.containsKey(tableName)) {
             throw new NotFoundException();
         }
