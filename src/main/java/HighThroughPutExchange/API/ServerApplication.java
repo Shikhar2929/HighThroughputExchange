@@ -156,6 +156,22 @@ public class ServerApplication {
         return state;
     }
 
+    public LocalDBTable<User> getUsersTable() {
+        return users;
+    }
+
+    public LocalDBTable<User> getBotsTable() {
+        return bots;
+    }
+
+    public LocalDBTable<Session> getSessionsTable() {
+        return sessions;
+    }
+
+    public LocalDBTable<Session> getBotSessionsTable() {
+        return botSessions;
+    }
+
     /*
      * HTTP Status Codes: - OK: success - UNAUTHORIZED: failed authentication -
      * TOO_MANY_REQUESTS: rate limited - BAD_REQUEST: bad input in HTTP request form
@@ -352,94 +368,6 @@ public class ServerApplication {
     }
 
     // -------------------- private pages --------------------
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/buildup")
-    public ResponseEntity<BuildupResponse> buildup(@Valid @RequestBody BuildupRequest form) {
-        /*
-         * Note that BuildupRequest does not inherit from BasePrivateRequest because it
-         * uses the API key, as opposed to session token.
-         */
-        // if username not found
-        if (!users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        User u = users.getItem(form.getUsername());
-        // if username and api key mismatch
-        if (!u.getApiKey().equals(form.getApiKey()) && !u.getApiKey2().equals(form.getApiKey())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        String sessionToken = generateKey();
-        if (sessions.containsItem(form.getUsername())) {
-            if (u.getApiKey().equals(form.getApiKey())) {
-                sessions.getItem(form.getUsername()).setSessionToken(sessionToken);
-            } else {
-                sessions.getItem(form.getUsername()).setSessionToken2(sessionToken);
-            }
-        } else {
-            Session s = new Session(sessionToken, u.getUsername());
-            try {
-                sessions.putItem(s);
-            } catch (AlreadyExistsException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), sessionToken, matchingEngine.serializeOrderBooks()),
-                HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/bot_buildup")
-    public ResponseEntity<BuildupResponse> botBuildup(@Valid @RequestBody BuildupRequest form) {
-        /*
-         * Note that BuildupRequest does not inherit from BasePrivateRequest because it
-         * uses the API key, as oppsed to session token.
-         */
-        // if username not found
-        if (!bots.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        User u = bots.getItem(form.getUsername());
-        // if username and api key mismatch
-        if (!u.getApiKey().equals(form.getApiKey())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        Session s = new Session(generateKey(), u.getUsername());
-        if (botSessions.containsItem(s.getUsername())) {
-            botSessions.deleteItem(s.getUsername());
-        }
-        try {
-            botSessions.putItem(s);
-        } catch (AlreadyExistsException e) {
-            throw new RuntimeException(e);
-        }
-        if (sessions.containsItem(s.getUsername())) {
-            sessions.deleteItem(s.getUsername());
-        }
-        try {
-            sessions.putItem(s);
-        } catch (AlreadyExistsException e) {
-            throw new RuntimeException(e);
-        }
-        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()),
-                HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/teardown")
-    public ResponseEntity<TeardownResponse> teardown(@Valid @RequestBody TeardownRequest form) {
-        if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new TeardownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-
-        sessions.deleteItem(form.getUsername());
-
-        return new ResponseEntity<>(new TeardownResponse(Message.SUCCESS.toString()), HttpStatus.OK);
-    }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/batch")
