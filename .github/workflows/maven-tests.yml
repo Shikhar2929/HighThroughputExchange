@@ -1,11 +1,13 @@
 name: Maven Tests
 
 on:
+  # Trigger the workflow on push or pull request, but only for the main branch
   push:
-    branches: ["**"]
+    branches:
+      - main
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-  workflow_dispatch:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
