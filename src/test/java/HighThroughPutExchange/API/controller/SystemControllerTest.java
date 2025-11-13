@@ -42,7 +42,13 @@ class SystemControllerTest {
     when(rateLimiter.processRequest(any())).thenReturn(true);
     when(systemService.getUserDetails("trader")).thenReturn("DETAILS");
 
-    String body = "{\"username\":\"trader\",\"sessionToken\":\"tok\"}";
+    String body =
+        """
+        {
+          "username": "trader",
+          "sessionToken": "tok"
+        }
+        """;
     mockMvc
         .perform(post("/get_details").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk())

@@ -31,7 +31,13 @@ class AuthControllerTest {
   void adminPage_success() throws Exception {
     when(authService.authenticateAdmin(any())).thenReturn(true);
 
-    String body = "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\"}";
+    String body =
+        """
+        {
+            "adminUsername": "root",
+            "adminPassword": "pw"
+        }
+        """;
     mockMvc
         .perform(post("/admin_page").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk());
@@ -42,7 +48,13 @@ class AuthControllerTest {
     when(authService.authenticatePrivate(any())).thenReturn(true);
     when(rateLimiter.processRequest(any())).thenReturn(false);
 
-    String body = "{\"username\":\"trader\",\"sessionToken\":\"tok\"}";
+    String body =
+        """
+        {
+            "username": "trader",
+            "sessionToken": "tok"
+        }
+        """;
     mockMvc
         .perform(post("/privatePage").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isTooManyRequests());

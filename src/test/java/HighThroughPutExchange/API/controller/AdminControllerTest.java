@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = AdminController.class)
 @AutoConfigureMockMvc
 class AdminControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -40,7 +39,15 @@ class AdminControllerTest {
         .thenReturn(new User("trader", "trader", "KEY1", "KEY2", "a@b.com"));
 
     String body =
-        "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\",\"username\":\"trader\",\"name\":\"trader\",\"email\":\"trader@example.com\"}";
+        """
+        {
+          "adminUsername": "root",
+          "adminPassword": "pw",
+          "username": "trader",
+          "name": "trader",
+          "email": "trader@example.com"
+        }
+        """;
     mockMvc
         .perform(post("/add_user").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk())
@@ -54,7 +61,14 @@ class AdminControllerTest {
     when(authService.authenticateAdmin(any())).thenReturn(true);
     when(adminService.applyState(1)).thenReturn(1);
 
-    String body = "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\",\"targetState\":1}";
+    String body =
+        """
+        {
+          "adminUsername": "root",
+          "adminPassword": "pw",
+          "targetState": 1
+        }
+        """;
     mockMvc
         .perform(post("/set_state").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk())
@@ -67,7 +81,13 @@ class AdminControllerTest {
     when(authService.authenticateAdmin(any())).thenReturn(true);
     when(adminService.getLeaderboard()).thenReturn(new java.util.ArrayList<>());
 
-    String body = "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\"}";
+    String body =
+        """
+        {
+          "adminUsername": "root",
+          "adminPassword": "pw"
+        }
+        """;
     mockMvc
         .perform(post("/leaderboard").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk())
@@ -79,7 +99,14 @@ class AdminControllerTest {
     when(authService.authenticateAdmin(any())).thenReturn(true);
     when(adminService.setPrice(Mockito.anyMap())).thenReturn("OK");
 
-    String body = "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\",\"prices\":{\"AAPL\":100}}";
+    String body =
+        """
+        {
+          "adminUsername": "root",
+          "adminPassword": "pw",
+          "prices": { "AAPL": 100 }
+        }
+        """;
     mockMvc
         .perform(post("/set_price").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk())
@@ -90,7 +117,13 @@ class AdminControllerTest {
   void shutdown_success() throws Exception {
     when(authService.authenticateAdmin(any())).thenReturn(true);
 
-    String body = "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\"}";
+    String body =
+        """
+        {
+          "adminUsername": "root",
+          "adminPassword": "pw"
+        }
+        """;
     mockMvc
         .perform(post("/shutdown").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk())
@@ -103,7 +136,14 @@ class AdminControllerTest {
     when(adminService.usernameExists("bot1")).thenReturn(false);
     when(adminService.addBot("bot1")).thenReturn("BOTKEY");
 
-    String body = "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\",\"username\":\"bot1\"}";
+    String body =
+        """
+        {
+          "adminUsername": "root",
+          "adminPassword": "pw",
+          "username": "bot1"
+        }
+        """;
     mockMvc
         .perform(post("/add_bot").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk())

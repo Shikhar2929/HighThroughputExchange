@@ -43,7 +43,14 @@ class BatchControllerTest {
     when(batchService.processBatch(Mockito.eq("bot1"), Mockito.anyList()))
         .thenReturn(new ArrayList<OperationResponse>());
 
-    String body = "{\"username\":\"bot1\",\"sessionToken\":\"t\",\"operations\":[]}";
+    String body =
+        """
+        {
+            "username": "bot1",
+            "sessionToken": "t",
+            "operations": []
+        }
+        """;
     mockMvc
         .perform(post("/batch").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk());

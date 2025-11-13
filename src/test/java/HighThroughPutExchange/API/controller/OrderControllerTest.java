@@ -62,7 +62,16 @@ class OrderControllerTest {
         .thenReturn("OK");
 
     String body =
-        "{\"username\":\"trader\",\"sessionToken\":\"tok\",\"ticker\":\"AAPL\",\"price\":100,\"volume\":1,\"bid\":true}";
+        """
+        {
+            "username": "trader",
+            "sessionToken": "tok",
+            "ticker": "AAPL",
+            "price": 100,
+            "volume": 1,
+            "bid": true
+        }
+        """;
     mockMvc
         .perform(post("/limit_order").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk());

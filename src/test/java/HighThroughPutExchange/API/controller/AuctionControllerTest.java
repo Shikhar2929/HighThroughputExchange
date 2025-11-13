@@ -43,7 +43,13 @@ class AuctionControllerTest {
     when(auctionService.getLeadingAuctionBid())
         .thenReturn(new GetLeadingAuctionBidResponse("SUCCESS"));
 
-    String body = "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\"}";
+    String body =
+        """
+        {
+            "adminUsername": "root",
+            "adminPassword": "pw"
+        }
+        """;
     mockMvc
         .perform(
             post("/get_leading_auction_bid").contentType(MediaType.APPLICATION_JSON).content(body))
@@ -55,7 +61,13 @@ class AuctionControllerTest {
     when(authService.authenticateAdmin(any())).thenReturn(true);
     when(app.getState()).thenReturn(State.STOP);
 
-    String body = "{\"adminUsername\":\"root\",\"adminPassword\":\"pw\"}";
+    String body =
+        """
+        {
+            "adminUsername": "root",
+            "adminPassword": "pw"
+        }
+        """;
     mockMvc
         .perform(post("/terminate_auction").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isLocked());
