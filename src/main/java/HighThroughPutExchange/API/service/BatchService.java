@@ -33,7 +33,7 @@ public class BatchService {
         List<OperationResponse> responses = new ArrayList<>();
         List<TaskFuture<String>> futures = new ArrayList<>();
         boolean success = true;
-        
+
         for (Operation operation : operations) {
             TaskFuture<String> future = new TaskFuture<>();
             futures.add(future);
