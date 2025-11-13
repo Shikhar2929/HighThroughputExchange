@@ -1,5 +1,6 @@
 package HighThroughPutExchange.API.config;
 
+import HighThroughPutExchange.Auction.Auction;
 import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import org.springframework.context.annotation.Bean;
@@ -13,5 +14,10 @@ public class AppConfig {
         MatchingEngine engine = MatchingEngineSingleton.getMatchingEngine();
         engine.initializeAllTickers();
         return engine;
+    }
+
+    @Bean
+    public Auction auction(MatchingEngine matchingEngine) {
+        return new Auction(matchingEngine);
     }
 }

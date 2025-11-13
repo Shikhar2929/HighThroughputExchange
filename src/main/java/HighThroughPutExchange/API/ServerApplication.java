@@ -9,7 +9,6 @@ import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.authentication.RateLimiter;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
-import HighThroughPutExchange.Auction.Auction;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
@@ -58,7 +57,6 @@ public class ServerApplication {
     private BotAuthenticator botAuthenticator;
     private RateLimiter rateLimiter;
 
-    private Auction auction;
     private static final int KEY_LENGTH = 16;
     private static final int MAX_OPERATIONS = 20;
     private MatchingEngine matchingEngine;
@@ -102,7 +100,6 @@ public class ServerApplication {
         privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
         BotAuthenticator.buildInstance(botSessions);
         botAuthenticator = BotAuthenticator.getInstance();
-        auction = new Auction(matchingEngine);
     }
 
     public static void main(String[] args) {
@@ -113,20 +110,8 @@ public class ServerApplication {
         return state;
     }
 
-    public LocalDBTable<User> getUsersTable() {
-        return users;
-    }
-
-    public LocalDBTable<User> getBotsTable() {
-        return bots;
-    }
-
-    public LocalDBTable<Session> getSessionsTable() {
-        return sessions;
-    }
-
-    public LocalDBTable<Session> getBotSessionsTable() {
-        return botSessions;
+    public void setStateInternal(State newState) {
+        this.state = newState;
     }
 
     /*
@@ -274,56 +259,6 @@ public class ServerApplication {
         return new ResponseEntity<>(new SetPriceResponse(future.getData()), HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "*")
-    @PostMapping("/get_leading_auction_bid")
-    public ResponseEntity<GetLeadingAuctionBidResponse> getLeadingAuctionBid(@Valid @RequestBody BaseAdminRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-
-        TaskFuture<GetLeadingAuctionBidResponse> future = new TaskFuture<>();
-        future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
-        TaskQueue.addTask(() -> {
-            future.getData().setUser(auction.getBestUser());
-            future.getData().setBid(auction.getBestBid());
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        return new ResponseEntity<>(future.getData(), HttpStatus.OK);
-    }
-
-    /*
-     * Method with the following behavior: 1. sets state to STOP, stopping the
-     * auctioning phase 2. gets best bid by best user 3. executes auction 4. resets
-     * auction object 5. returns who won auction and at what amount
-     */
-    @CrossOrigin(origins = "*")
-    @PostMapping("/terminate_auction")
-    public ResponseEntity<GetLeadingAuctionBidResponse> terminateAuction(@Valid @RequestBody BaseAdminRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-
-        if (state != State.TRADE_WITH_AUCTION) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.LOCKED);
-        }
-
-        state = State.STOP;
-
-        TaskFuture<GetLeadingAuctionBidResponse> future = new TaskFuture<>();
-        future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
-
-        TaskQueue.addTask(() -> {
-            future.getData().setUser(auction.getBestUser());
-            future.getData().setBid(auction.getBestBid());
-            auction.executeAuction();
-            auction.reset();
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        return new ResponseEntity<>(future.getData(), HttpStatus.OK);
-    }
-
     // -------------------- private pages --------------------
 
     @CrossOrigin(origins = "*")
@@ -425,32 +360,5 @@ public class ServerApplication {
         }
         return new ResponseEntity<>(new GetDetailsResponse(Message.SUCCESS.toString(), matchingEngine.getUserDetails(form.getUsername())),
                 HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/bid_auction")
-    public ResponseEntity<BidAuctionResponse> bidAuction(@Valid @RequestBody BidAuctionRequest form) {
-        if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-        if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
-        }
-        if (state != State.TRADE_WITH_AUCTION) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.AUCTION_LOCKED.toString()), HttpStatus.LOCKED);
-        }
-
-        if (!auction.isValid(form.getUsername(), form.getBid())) {
-            return new ResponseEntity<>(new BidAuctionResponse(String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
-                    Message.BAD_INPUT.getErrorCode(), String.format("Bad Input! Bid amount cannot exceed %d.", auction.getMaxBid()))),
-                    HttpStatus.BAD_REQUEST);
-        }
-
-        TaskQueue.addTask(() -> {
-            auction.placeBid(form.getUsername(), form.getBid());
-        });
-
-        return new ResponseEntity<>(new BidAuctionResponse(String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
-                Message.SUCCESS.getErrorCode(), String.format("Success! Placed auction bid for %d.", form.getBid()))), HttpStatus.OK);
     }
 }
