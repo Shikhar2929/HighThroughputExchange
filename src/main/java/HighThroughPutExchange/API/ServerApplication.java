@@ -10,10 +10,10 @@ import HighThroughPutExchange.API.authentication.RateLimiter;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
 import HighThroughPutExchange.Auction.Auction;
-import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
+import HighThroughPutExchange.API.service.OrderService;
 import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
 import HighThroughPutExchange.Database.exceptions.NotFoundException;
@@ -65,6 +65,7 @@ public class ServerApplication {
     private static final int KEY_LENGTH = 16;
     private static final int MAX_OPERATIONS = 20;
     private MatchingEngine matchingEngine;
+    private OrderService orderService;
 
     private static char randomChar() {
         return (char) ((int) (Math.random() * 26 + 65));
@@ -78,11 +79,11 @@ public class ServerApplication {
         return output.toString();
     }
 
-    public ServerApplication() {
+    public ServerApplication(MatchingEngine matchingEngine, OrderService orderService) {
+        this.matchingEngine = matchingEngine;
+        this.orderService = orderService;
         state = State.STOP;
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
-        matchingEngine = MatchingEngineSingleton.getMatchingEngine();
-        matchingEngine.initializeAllTickers();
         mapping.put("users", User.class);
         mapping.put("sessions", Session.class);
         mapping.put("bots", User.class);
@@ -474,21 +475,8 @@ public class ServerApplication {
         if (state == State.STOP) {
             return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
-
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(), form.getBid() ? Side.BID : Side.ASK,
-                    Status.ACTIVE);
-            // System.out.println("Adding Limit Order");
-            if (form.getBid())
-                matchingEngine.bidLimitOrder(form.getUsername(), order, future);
-            else
-                matchingEngine.askLimitOrder(form.getUsername(), order, future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new LimitOrderResponse(future.getData()), HttpStatus.OK);
+        String message = orderService.placeLimitOrder(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(), form.getBid());
+        return new ResponseEntity<>(new LimitOrderResponse(message), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -500,20 +488,8 @@ public class ServerApplication {
         if (state == State.STOP) {
             return new ResponseEntity<>(new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            Order order = new Order(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(), form.getBid() ? Side.BID : Side.ASK,
-                    Status.ACTIVE);
-            // System.out.println("Adding Limit Order");
-            if (form.getBid())
-                matchingEngine.bidLimitOrder(form.getUsername(), order, future);
-            else
-                matchingEngine.askLimitOrder(form.getUsername(), order, future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new LimitOrderResponse(future.getData()), HttpStatus.OK);
+        String message = orderService.placeLimitOrder(form.getUsername(), form.getTicker(), form.getPrice(), form.getVolume(), form.getBid());
+        return new ResponseEntity<>(new LimitOrderResponse(message), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -530,14 +506,8 @@ public class ServerApplication {
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.removeAll(form.getUsername(), future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
+        String message = orderService.removeAll(form.getUsername());
+        return new ResponseEntity<>(new RemoveAllResponse(message), HttpStatus.OK);
     }
 
     @PostMapping("/bot_remove_all")
@@ -553,14 +523,8 @@ public class ServerApplication {
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.removeAll(form.getUsername(), future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
+        String message = orderService.removeAll(form.getUsername());
+        return new ResponseEntity<>(new RemoveAllResponse(message), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -577,16 +541,8 @@ public class ServerApplication {
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        // System.out.println("Removing Order");
-        // System.out.println(form.getOrderID());
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
+        String message = orderService.removeOrder(form.getUsername(), form.getOrderID());
+        return new ResponseEntity<>(new RemoveAllResponse(message), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -600,16 +556,8 @@ public class ServerApplication {
         }
         if (form.getUsername() == null)
             return new ResponseEntity<>(new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        // System.out.println("Removing Order");
-        // System.out.println(form.getOrderID());
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.removeOrder(form.getUsername(), form.getOrderID(), future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new RemoveAllResponse(future.getData()), HttpStatus.OK);
+        String message = orderService.removeOrder(form.getUsername(), form.getOrderID());
+        return new ResponseEntity<>(new RemoveAllResponse(message), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -624,18 +572,8 @@ public class ServerApplication {
         if (state == State.STOP) {
             return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            // System.out.println("Adding Market Order: " + form);
-            if (form.getBid())
-                matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
-            else
-                matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new MarketOrderResponse(future.getData()), HttpStatus.OK);
+        String message = orderService.placeMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), form.getBid());
+        return new ResponseEntity<>(new MarketOrderResponse(message), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -647,18 +585,8 @@ public class ServerApplication {
         if (state == State.STOP) {
             return new ResponseEntity<>(new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            // System.out.println("Adding Market Order: " + form);
-            if (form.getBid())
-                matchingEngine.bidMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
-            else
-                matchingEngine.askMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        // todo set message to volume filled
-        return new ResponseEntity<>(new MarketOrderResponse(future.getData()), HttpStatus.OK);
+        String message = orderService.placeMarketOrder(form.getUsername(), form.getTicker(), form.getVolume(), form.getBid());
+        return new ResponseEntity<>(new MarketOrderResponse(message), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
