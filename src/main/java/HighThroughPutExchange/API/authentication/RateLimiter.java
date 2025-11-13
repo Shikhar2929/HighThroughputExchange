@@ -3,7 +3,9 @@ package HighThroughPutExchange.API.authentication;
 import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RateLimiter {
 
     private ConcurrentHashMap<String, ConcurrentLinkedDeque<Long>> rates;
