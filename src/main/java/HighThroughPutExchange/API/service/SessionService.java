@@ -8,8 +8,8 @@ import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import HighThroughPutExchange.API.ServerApplication;
 
 @Service
 public class SessionService {
@@ -20,11 +20,13 @@ public class SessionService {
     private final LocalDBTable<Session> botSessions;
     private final MatchingEngine matchingEngine;
 
-    public SessionService(ServerApplication app, MatchingEngine matchingEngine) {
-        this.users = app.getUsersTable();
-        this.bots = app.getBotsTable();
-        this.sessions = app.getSessionsTable();
-        this.botSessions = app.getBotSessionsTable();
+    public SessionService(@Qualifier("usersTable") LocalDBTable<User> users, @Qualifier("botsTable") LocalDBTable<User> bots,
+            @Qualifier("sessionsTable") LocalDBTable<Session> sessions, @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions,
+            MatchingEngine matchingEngine) {
+        this.users = users;
+        this.bots = bots;
+        this.sessions = sessions;
+        this.botSessions = botSessions;
         this.matchingEngine = matchingEngine;
     }
 

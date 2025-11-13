@@ -13,9 +13,7 @@ import HighThroughPutExchange.Auction.Auction;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
-import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.exceptions.NotFoundException;
 import HighThroughPutExchange.Database.localdb.LocalDBClient;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
@@ -25,8 +23,8 @@ import HighThroughPutExchange.MatchingEngine.Side;
 import HighThroughPutExchange.MatchingEngine.Status;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
@@ -77,65 +75,24 @@ public class ServerApplication {
         return output.toString();
     }
 
-    public ServerApplication(MatchingEngine matchingEngine, RateLimiter rateLimiter) {
+    public ServerApplication(MatchingEngine matchingEngine, RateLimiter rateLimiter, LocalDBClient dbClient,
+            @Qualifier("usersTable") LocalDBTable<User> users, @Qualifier("botsTable") LocalDBTable<User> bots,
+            @Qualifier("sessionsTable") LocalDBTable<Session> sessions, @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions) {
         this.matchingEngine = matchingEngine;
         this.rateLimiter = rateLimiter;
+        this.dbClient = dbClient;
+        this.users = users;
+        this.bots = bots;
+        this.sessions = sessions;
+        this.botSessions = botSessions;
         state = State.STOP;
-        HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
-        mapping.put("users", User.class);
-        mapping.put("sessions", Session.class);
-        mapping.put("bots", User.class);
-        mapping.put("botSessions", Session.class);
-        dbClient = new LocalDBClient("data.json", mapping);
-        try {
-            users = dbClient.getTable("users");
-            Iterable<String> iterable = users.getAllKeys();
-            for (String user : iterable) {
-                matchingEngine.initializeUser(user);
-            }
-
-        } catch (NotFoundException e) {
-            try {
-                dbClient.createTable("users");
-                users = dbClient.getTable("users");
-            } catch (AlreadyExistsException ex) {
-                throw new RuntimeException(ex);
-            }
+        Iterable<String> userKeys = this.users.getAllKeys();
+        for (String user : userKeys) {
+            matchingEngine.initializeUser(user);
         }
-        try {
-            bots = dbClient.getTable("bots");
-            Iterable<String> iterable = bots.getAllKeys();
-            for (String bot : iterable) {
-                matchingEngine.initializeBot(bot);
-            }
-
-        } catch (NotFoundException e) {
-            try {
-                dbClient.createTable("bots");
-                bots = dbClient.getTable("bots");
-            } catch (AlreadyExistsException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        try {
-            sessions = dbClient.getTable("sessions");
-        } catch (NotFoundException e) {
-            try {
-                dbClient.createTable("sessions");
-                sessions = dbClient.getTable("sessions");
-            } catch (AlreadyExistsException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        try {
-            botSessions = dbClient.getTable("botSessions");
-        } catch (NotFoundException e) {
-            try {
-                dbClient.createTable("botSessions");
-                botSessions = dbClient.getTable("botSessions");
-            } catch (AlreadyExistsException existsException) {
-                throw new RuntimeException(existsException);
-            }
+        Iterable<String> botKeys = this.bots.getAllKeys();
+        for (String bot : botKeys) {
+            matchingEngine.initializeBot(bot);
         }
 
         // PrivatePageAuthenticator privatePageAuthenticator = new
