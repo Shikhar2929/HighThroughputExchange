@@ -370,11 +370,15 @@ public class MatchingEngine {
                 orders.poll();
             } else if (order.volume > aggressor.volume) {
                 int volumeTraded = aggressor.volume;
+                int cashDelta = volumeTraded * order.price;
+                if (!userList.adjustUserBalance(aggressor.name, -cashDelta)) {
+                    aggressor.status = Status.CANCELLED;
+                    aggressor.volume = 0;
+                    return orderData;
+                }
+                userList.adjustUserBalance(order.name, cashDelta);
                 updateVolume(askVolumes, order.price, -volumeTraded, order.ticker, Side.ASK);
                 userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
-
-                userList.adjustUserBalance(order.name, volumeTraded * order.price);
-                userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
 
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
                 userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
@@ -386,11 +390,15 @@ public class MatchingEngine {
                 orderData.linearCombination(order.price, volumeTraded);
             } else {
                 int volumeTraded = order.volume;
+                int cashDelta = volumeTraded * order.price;
+                if (!userList.adjustUserBalance(aggressor.name, -cashDelta)) {
+                    aggressor.status = Status.CANCELLED;
+                    aggressor.volume = 0;
+                    return orderData;
+                }
+                userList.adjustUserBalance(order.name, cashDelta);
                 updateVolume(askVolumes, order.price, -volumeTraded, order.ticker, Side.ASK);
                 userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
-
-                userList.adjustUserBalance(order.name, volumeTraded * order.price);
-                userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
 
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
                 userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
@@ -414,11 +422,19 @@ public class MatchingEngine {
                 orders.poll();
             } else if (order.volume > aggressor.volume) {
                 int volumeTraded = aggressor.volume;
+                int cashDelta = volumeTraded * order.price;
+                if (!userList.adjustUserBalance(order.name, -cashDelta)) {
+                    updateVolume(bidVolumes, order.price, -order.volume, order.ticker, Side.BID);
+                    userList.adjustUserBidBalance(order.name, order.ticker, -order.volume);
+                    order.status = Status.CANCELLED;
+                    order.volume = 0;
+                    orders.poll();
+                    continue;
+                }
                 updateVolume(bidVolumes, order.price, -volumeTraded, order.ticker, Side.BID);
                 userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
 
-                userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
-                userList.adjustUserBalance(order.name, -volumeTraded * order.price);
+                userList.adjustUserBalance(aggressor.name, cashDelta);
 
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
@@ -431,11 +447,19 @@ public class MatchingEngine {
                 orderData.linearCombination(order.price, volumeTraded);
             } else {
                 int volumeTraded = order.volume;
+                int cashDelta = volumeTraded * order.price;
+                if (!userList.adjustUserBalance(order.name, -cashDelta)) {
+                    updateVolume(bidVolumes, order.price, -order.volume, order.ticker, Side.BID);
+                    userList.adjustUserBidBalance(order.name, order.ticker, -order.volume);
+                    order.status = Status.CANCELLED;
+                    order.volume = 0;
+                    orders.poll();
+                    continue;
+                }
                 updateVolume(bidVolumes, order.price, -volumeTraded, order.ticker, Side.BID);
                 userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
 
-                userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
-                userList.adjustUserBalance(order.name, -volumeTraded * order.price);
+                userList.adjustUserBalance(aggressor.name, cashDelta);
 
                 userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
                 userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
@@ -726,20 +750,31 @@ public class MatchingEngine {
                 int volumeTraded = aggressorVolume;
                 int tradePrice = order.price;
                 if (side == Side.BID) {
+                    int cashDelta = volumeTraded * order.price;
+                    if (!userList.adjustUserBalance(aggressor.name, -cashDelta)) {
+                        aggressor.status = Status.CANCELLED;
+                        aggressor.volume = 0;
+                        break;
+                    }
+                    userList.adjustUserBalance(order.name, cashDelta);
                     userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
-
-                    userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
-                    userList.adjustUserBalance(order.name, volumeTraded * order.price);
                     // Add volume to the aggressor's ticker balance, since it is buying
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
                     userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
                     // Update the ask volume map and the ask if it is a bid order
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
                 } else {
+                    int cashDelta = volumeTraded * order.price;
+                    if (!userList.adjustUserBalance(order.name, -cashDelta)) {
+                        updateVolume(volumeMap, tradePrice, -order.volume, order.ticker, Side.BID);
+                        userList.adjustUserBidBalance(order.name, order.ticker, -order.volume);
+                        order.status = Status.CANCELLED;
+                        order.volume = 0;
+                        orders.poll();
+                        continue;
+                    }
+                    userList.adjustUserBalance(aggressor.name, cashDelta);
                     userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
-
-                    userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
-                    userList.adjustUserBalance(order.name, -volumeTraded * order.price);
                     // Remove volume from the aggressor's ticker balance and add to the order's
                     // balance
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
@@ -757,18 +792,29 @@ public class MatchingEngine {
                 int volumeTraded = order.volume;
                 int tradePrice = order.price;
                 if (side == Side.BID) {
+                    int cashDelta = volumeTraded * order.price;
+                    if (!userList.adjustUserBalance(aggressor.name, -cashDelta)) {
+                        aggressor.status = Status.CANCELLED;
+                        aggressor.volume = 0;
+                        break;
+                    }
+                    userList.adjustUserBalance(order.name, cashDelta);
                     userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
-
-                    userList.adjustUserBalance(aggressor.name, -volumeTraded * order.price);
-                    userList.adjustUserBalance(order.name, volumeTraded * order.price);
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, volumeTraded, order.price);
                     userList.adjustUserTickerBalance(order.name, order.ticker, -volumeTraded, order.price);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.ASK);
                 } else {
+                    int cashDelta = volumeTraded * order.price;
+                    if (!userList.adjustUserBalance(order.name, -cashDelta)) {
+                        updateVolume(volumeMap, tradePrice, -order.volume, order.ticker, Side.BID);
+                        userList.adjustUserBidBalance(order.name, order.ticker, -order.volume);
+                        order.status = Status.CANCELLED;
+                        order.volume = 0;
+                        orders.poll();
+                        continue;
+                    }
+                    userList.adjustUserBalance(aggressor.name, cashDelta);
                     userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
-
-                    userList.adjustUserBalance(aggressor.name, volumeTraded * order.price);
-                    userList.adjustUserBalance(order.name, -volumeTraded * order.price);
                     userList.adjustUserTickerBalance(aggressor.name, order.ticker, -volumeTraded, order.price);
                     userList.adjustUserTickerBalance(order.name, order.ticker, volumeTraded, order.price);
                     updateVolume(volumeMap, tradePrice, -volumeTraded, order.ticker, Side.BID);
