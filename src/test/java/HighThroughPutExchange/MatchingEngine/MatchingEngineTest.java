@@ -64,7 +64,7 @@ public class MatchingEngineTest {
         String buyer = "buyer";
         String seller = "seller";
 
-        MatchingEngine engine = newEngine(positionLimit, ticker, new String[] { buyer, seller }, new int[] { 10_000, 0 }, new int[] { 0, 200 });
+        MatchingEngine engine = newEngine(positionLimit, ticker, new String[]{buyer, seller}, new int[]{10000, 0}, new int[]{0, 200});
 
         long bid1 = engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 100, Side.BID, Status.ACTIVE));
         long bid2 = engine.bidLimitOrder(buyer, new Order(buyer, ticker, 100, 100, Side.BID, Status.ACTIVE));
@@ -74,10 +74,10 @@ public class MatchingEngineTest {
         engine.askLimitOrder(seller, new Order(seller, ticker, 100, 200, Side.ASK, Status.ACTIVE));
 
         int totalCash = engine.getUserBalance(buyer) + engine.getUserBalance(seller);
-        assertEquals(10_000, totalCash, "Cash must be conserved even if a buyer overcommits bids");
+        assertEquals(10000, totalCash, "Cash must be conserved even if a buyer overcommits bids");
 
         assertEquals(0, engine.getUserBalance(buyer));
-        assertEquals(10_000, engine.getUserBalance(seller));
+        assertEquals(10000, engine.getUserBalance(seller));
         assertEquals(100, engine.getTickerBalance(buyer, ticker));
         assertEquals(100, engine.getTickerBalance(seller, ticker));
     }
