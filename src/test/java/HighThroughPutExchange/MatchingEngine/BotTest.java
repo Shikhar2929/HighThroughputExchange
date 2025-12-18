@@ -1,16 +1,18 @@
-package Runner;
+package HighThroughPutExchange.MatchingEngine;
 
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
-import HighThroughPutExchange.MatchingEngine.Order;
-import HighThroughPutExchange.MatchingEngine.Side;
-import HighThroughPutExchange.MatchingEngine.Status;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class BotTest {
-    public static void main(String[] args) {
+    private static final int MAX_ACTIONS = 1000;
+    private static final int CHECK_EVERY_N_ACTIONS = 50;
+
+    @Test
+    void testRandomOrdersConserveTotalBalance() {
         MatchingEngine matchingEngine = new MatchingEngine();
         ConcurrentLinkedQueue<Runnable> queue = new ConcurrentLinkedQueue<>();
         List<String> users = Arrays.asList("User1", "User2");
@@ -72,37 +74,41 @@ public class BotTest {
         }
 
         int count = 0;
-        while (true) {
+        while (count <= MAX_ACTIONS) {
             while (!queue.isEmpty()) {
                 count++;
                 Runnable action = queue.poll();
                 if (action != null) {
                     // System.out.println(action);
                     action.run();
-                    if (count % 50 == 0) {
+                    if (count % CHECK_EVERY_N_ACTIONS == 0) {
                         matchingEngine.removeAll("User1");
                         matchingEngine.removeAll("User2");
 
-                        System.out.println("Reset Occuring");
+                        // System.out.println("Reset Occuring");
 
-                        double balance1 = matchingEngine.getUserBalance("User1");
-                        double balance2 = matchingEngine.getUserBalance("User2");
-                        double total = balance1 + balance2;
-
-                        System.out.println("User 1 Balance: " + balance1);
-                        System.out.println("User 2 Balance:" + balance2);
-                        System.out.println("User 1 Owned: " + matchingEngine.getTickerBalance("User1", ticker));
-                        System.out.println("User 2 Owned: " + matchingEngine.getTickerBalance("User2", ticker));
-                        System.out.println("Total Balance " + total);
+                        int balance1 = matchingEngine.getUserBalance("User1");
+                        int balance2 = matchingEngine.getUserBalance("User2");
+                        int total = balance1 + balance2;
 
                         if (total > 20001) {
-                            throw new RuntimeException("Money created out of nowhere");
+                            Assertions.fail("Money created out of nowhere. " + "Expected total balance of 20000 after resets, but got total=" + total
+                                    + " (User1 Balance =" + balance1 + ", User2 Balance =" + balance2 + ")." + " (User1 Owned ="
+                                    + matchingEngine.getTickerBalance("User1", ticker) + ", User2 Owned ="
+                                    + matchingEngine.getTickerBalance("User2", ticker) + ").");
                         }
 
                         if (total < 19999) {
-                            throw new RuntimeException("Money destroyed");
+                            Assertions.fail("Money destroyed. " + "Expected total balance of 20000 after resets, but got total=" + total
+                                    + " (User1 Balance =" + balance1 + ", User2 Balance =" + balance2 + ")." + " (User1 Owned ="
+                                    + matchingEngine.getTickerBalance("User1", ticker) + ", User2 Owned ="
+                                    + matchingEngine.getTickerBalance("User2", ticker) + ").");
                         }
                     }
+                }
+
+                if (count > MAX_ACTIONS) {
+                    break;
                 }
             }
         }
