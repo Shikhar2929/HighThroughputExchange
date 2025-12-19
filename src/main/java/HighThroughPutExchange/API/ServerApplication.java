@@ -191,16 +191,6 @@ public class ServerApplication {
     // -------------------- admin pages --------------------
 
     @CrossOrigin(origins = "*")
-    @PostMapping("/admin_page")
-    public ResponseEntity<AdminDashboardResponse> adminPage(@Valid @RequestBody AdminDashboardRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AdminDashboardResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        return new ResponseEntity<>(new AdminDashboardResponse(Message.SUCCESS.toString(), ""), HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
     @PostMapping("/add_bot")
     public ResponseEntity<AddUserResponse> addBot(@Valid @RequestBody AddBotRequest form) {
         if (!adminPageAuthenticator.authenticate(form)) {
@@ -449,19 +439,6 @@ public class ServerApplication {
         sessions.deleteItem(form.getUsername());
 
         return new ResponseEntity<>(new TeardownResponse(Message.SUCCESS.toString()), HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/privatePage")
-    public ResponseEntity<PrivatePageResponse> privatePage(@Valid @RequestBody PrivatePageRequest form) {
-        if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new PrivatePageResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-        if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new PrivatePageResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
-        }
-
-        return new ResponseEntity<>(new PrivatePageResponse(Message.SUCCESS.toString()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
