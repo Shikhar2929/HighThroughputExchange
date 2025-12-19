@@ -3,7 +3,6 @@ package HighThroughPutExchange.API;
 import HighThroughPutExchange.API.api_objects.Operations.*;
 import HighThroughPutExchange.API.api_objects.requests.*;
 import HighThroughPutExchange.API.api_objects.responses.*;
-import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
 import HighThroughPutExchange.API.authentication.BotAuthenticator;
 import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.authentication.RateLimiter;
@@ -12,10 +11,7 @@ import HighThroughPutExchange.API.database_objects.User;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
-import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.localdb.LocalDBClient;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
-import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import HighThroughPutExchange.MatchingEngine.Order;
 import HighThroughPutExchange.MatchingEngine.Side;
@@ -47,38 +43,22 @@ todo
 @EnableScheduling
 public class ServerApplication {
     private State state;
-    private LocalDBClient dbClient;
     private LocalDBTable<User> users;
     private LocalDBTable<User> bots;
     private LocalDBTable<Session> botSessions;
     private LocalDBTable<Session> sessions;
     private PrivatePageAuthenticator privatePageAuthenticator;
-    private AdminPageAuthenticator adminPageAuthenticator;
     private BotAuthenticator botAuthenticator;
     private RateLimiter rateLimiter;
 
-    private static final int KEY_LENGTH = 16;
     private static final int MAX_OPERATIONS = 20;
     private MatchingEngine matchingEngine;
 
-    private static char randomChar() {
-        return (char) ((int) (Math.random() * 26 + 65));
-    }
-
-    private static String generateKey() {
-        StringBuilder output = new StringBuilder();
-        for (int i = 0; i < KEY_LENGTH; ++i) {
-            output.append(randomChar());
-        }
-        return output.toString();
-    }
-
-    public ServerApplication(MatchingEngine matchingEngine, RateLimiter rateLimiter, LocalDBClient dbClient,
-            @Qualifier("usersTable") LocalDBTable<User> users, @Qualifier("botsTable") LocalDBTable<User> bots,
-            @Qualifier("sessionsTable") LocalDBTable<Session> sessions, @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions) {
+    public ServerApplication(MatchingEngine matchingEngine, RateLimiter rateLimiter, @Qualifier("usersTable") LocalDBTable<User> users,
+            @Qualifier("botsTable") LocalDBTable<User> bots, @Qualifier("sessionsTable") LocalDBTable<Session> sessions,
+            @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions) {
         this.matchingEngine = matchingEngine;
         this.rateLimiter = rateLimiter;
-        this.dbClient = dbClient;
         this.users = users;
         this.bots = bots;
         this.sessions = sessions;
@@ -93,12 +73,9 @@ public class ServerApplication {
             matchingEngine.initializeBot(bot);
         }
 
-        // PrivatePageAuthenticator privatePageAuthenticator = new
-        // PrivatePageAuthenticator(sessions);
-        adminPageAuthenticator = AdminPageAuthenticator.getInstance();
-        PrivatePageAuthenticator.buildInstance(sessions);
+        PrivatePageAuthenticator.buildInstance(this.sessions);
         privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
-        BotAuthenticator.buildInstance(botSessions);
+        BotAuthenticator.buildInstance(this.botSessions);
         botAuthenticator = BotAuthenticator.getInstance();
     }
 
@@ -144,119 +121,6 @@ public class ServerApplication {
     @GetMapping("/get_state")
     public ResponseEntity<String> state() {
         return new ResponseEntity<>(String.format("{\"state\": %d}", state.ordinal()), HttpStatus.OK);
-    }
-
-    // -------------------- admin pages --------------------
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/add_bot")
-    public ResponseEntity<AddUserResponse> addBot(@Valid @RequestBody AddBotRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AddUserResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
-        }
-        if (users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
-        }
-        try {
-            String key = generateKey();
-            users.putItem(new User(form.getUsername(), "", key, ""));
-            bots.putItem(new User(form.getUsername(), "", key, ""));
-            TaskQueue.addTask(() -> {
-                System.out.println("Bot Initialized");
-                matchingEngine.initializeBot(form.getUsername());
-            });
-        } catch (AlreadyExistsException e) {
-            throw new RuntimeException(e);
-        }
-        return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey()), HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/add_user")
-    public ResponseEntity<AddUserResponse> addUser(@Valid @RequestBody AddUserRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new AddUserResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        // no duplicate usernames
-        if (users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new AddUserResponse("Username already exists.", ""), HttpStatus.BAD_REQUEST);
-        }
-        try {
-            users.putItem(new User(form.getUsername(), form.getName(), generateKey(), generateKey(), form.getEmail()));
-            TaskQueue.addTask(() -> {
-                System.out.println("User initialized" + form.getUsername());
-                matchingEngine.initializeUser(form.getUsername());
-            });
-        } catch (AlreadyExistsException e) {
-            throw new RuntimeException(e);
-        }
-        return new ResponseEntity<>(new AddUserResponse(Message.SUCCESS.toString(), users.getItem(form.getUsername()).getApiKey(),
-                users.getItem(form.getUsername()).getApiKey2()), HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/shutdown")
-    public ResponseEntity<ShutdownResponse> shutdown(@Valid @RequestBody ShutdownRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new ShutdownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-
-        try {
-            dbClient.closeClient();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return new ResponseEntity<>(new ShutdownResponse(Message.SUCCESS.toString()), HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/leaderboard")
-    public ResponseEntity<LeaderboardResponse> leaderboard(@Valid @RequestBody LeaderboardRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new LeaderboardResponse(Message.AUTHENTICATION_FAILED.toString(), null), HttpStatus.UNAUTHORIZED);
-        }
-
-        TaskFuture<ArrayList<LeaderboardEntry>> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.getLeaderboard(future);
-        });
-
-        future.waitForCompletion();
-
-        return new ResponseEntity<>(new LeaderboardResponse(Message.SUCCESS.toString(), future.getData()), HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/set_state")
-    public ResponseEntity<SetStateResponse> setState(@Valid @RequestBody SetStateRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new SetStateResponse(Message.AUTHENTICATION_FAILED.toString(), state.ordinal()), HttpStatus.UNAUTHORIZED);
-        }
-
-        if (form.getTargetState() >= State.values().length || form.getTargetState() < 0) {
-            return new ResponseEntity<>(new SetStateResponse(Message.BAD_INPUT.toString(), state.ordinal()), HttpStatus.BAD_REQUEST);
-        }
-
-        state = State.values()[form.getTargetState()];
-
-        return new ResponseEntity<>(new SetStateResponse(Message.SUCCESS.toString(), state.ordinal()), HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/set_price")
-    public ResponseEntity<SetPriceResponse> setPrice(@Valid @RequestBody SetPriceRequest form) {
-        if (!adminPageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new SetPriceResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-        TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.setPriceClearOrderBook(form.getPrices(), future);
-            future.markAsComplete();
-        });
-        future.waitForCompletion();
-        System.out.println(future.getData());
-        return new ResponseEntity<>(new SetPriceResponse(future.getData()), HttpStatus.OK);
     }
 
     // -------------------- private pages --------------------
