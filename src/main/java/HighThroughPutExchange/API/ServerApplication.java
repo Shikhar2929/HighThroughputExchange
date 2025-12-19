@@ -13,9 +13,7 @@ import HighThroughPutExchange.Auction.Auction;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
-import HighThroughPutExchange.Database.entry.DBEntry;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.exceptions.NotFoundException;
 import HighThroughPutExchange.Database.localdb.LocalDBClient;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
@@ -25,8 +23,8 @@ import HighThroughPutExchange.MatchingEngine.Side;
 import HighThroughPutExchange.MatchingEngine.Status;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
@@ -77,65 +75,24 @@ public class ServerApplication {
         return output.toString();
     }
 
-    public ServerApplication(MatchingEngine matchingEngine, RateLimiter rateLimiter) {
+    public ServerApplication(MatchingEngine matchingEngine, RateLimiter rateLimiter, LocalDBClient dbClient,
+            @Qualifier("usersTable") LocalDBTable<User> users, @Qualifier("botsTable") LocalDBTable<User> bots,
+            @Qualifier("sessionsTable") LocalDBTable<Session> sessions, @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions) {
         this.matchingEngine = matchingEngine;
         this.rateLimiter = rateLimiter;
+        this.dbClient = dbClient;
+        this.users = users;
+        this.bots = bots;
+        this.sessions = sessions;
+        this.botSessions = botSessions;
         state = State.STOP;
-        HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
-        mapping.put("users", User.class);
-        mapping.put("sessions", Session.class);
-        mapping.put("bots", User.class);
-        mapping.put("botSessions", Session.class);
-        dbClient = new LocalDBClient("data.json", mapping);
-        try {
-            users = dbClient.getTable("users");
-            Iterable<String> iterable = users.getAllKeys();
-            for (String user : iterable) {
-                matchingEngine.initializeUser(user);
-            }
-
-        } catch (NotFoundException e) {
-            try {
-                dbClient.createTable("users");
-                users = dbClient.getTable("users");
-            } catch (AlreadyExistsException ex) {
-                throw new RuntimeException(ex);
-            }
+        Iterable<String> userKeys = this.users.getAllKeys();
+        for (String user : userKeys) {
+            matchingEngine.initializeUser(user);
         }
-        try {
-            bots = dbClient.getTable("bots");
-            Iterable<String> iterable = bots.getAllKeys();
-            for (String bot : iterable) {
-                matchingEngine.initializeBot(bot);
-            }
-
-        } catch (NotFoundException e) {
-            try {
-                dbClient.createTable("bots");
-                bots = dbClient.getTable("bots");
-            } catch (AlreadyExistsException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        try {
-            sessions = dbClient.getTable("sessions");
-        } catch (NotFoundException e) {
-            try {
-                dbClient.createTable("sessions");
-                sessions = dbClient.getTable("sessions");
-            } catch (AlreadyExistsException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        try {
-            botSessions = dbClient.getTable("botSessions");
-        } catch (NotFoundException e) {
-            try {
-                dbClient.createTable("botSessions");
-                botSessions = dbClient.getTable("botSessions");
-            } catch (AlreadyExistsException existsException) {
-                throw new RuntimeException(existsException);
-            }
+        Iterable<String> botKeys = this.bots.getAllKeys();
+        for (String bot : botKeys) {
+            matchingEngine.initializeBot(bot);
         }
 
         // PrivatePageAuthenticator privatePageAuthenticator = new
@@ -154,6 +111,22 @@ public class ServerApplication {
 
     public State getState() {
         return state;
+    }
+
+    public LocalDBTable<User> getUsersTable() {
+        return users;
+    }
+
+    public LocalDBTable<User> getBotsTable() {
+        return bots;
+    }
+
+    public LocalDBTable<Session> getSessionsTable() {
+        return sessions;
+    }
+
+    public LocalDBTable<Session> getBotSessionsTable() {
+        return botSessions;
     }
 
     /*
@@ -352,94 +325,6 @@ public class ServerApplication {
     }
 
     // -------------------- private pages --------------------
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/buildup")
-    public ResponseEntity<BuildupResponse> buildup(@Valid @RequestBody BuildupRequest form) {
-        /*
-         * Note that BuildupRequest does not inherit from BasePrivateRequest because it
-         * uses the API key, as opposed to session token.
-         */
-        // if username not found
-        if (!users.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        User u = users.getItem(form.getUsername());
-        // if username and api key mismatch
-        if (!u.getApiKey().equals(form.getApiKey()) && !u.getApiKey2().equals(form.getApiKey())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        String sessionToken = generateKey();
-        if (sessions.containsItem(form.getUsername())) {
-            if (u.getApiKey().equals(form.getApiKey())) {
-                sessions.getItem(form.getUsername()).setSessionToken(sessionToken);
-            } else {
-                sessions.getItem(form.getUsername()).setSessionToken2(sessionToken);
-            }
-        } else {
-            Session s = new Session(sessionToken, u.getUsername());
-            try {
-                sessions.putItem(s);
-            } catch (AlreadyExistsException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), sessionToken, matchingEngine.serializeOrderBooks()),
-                HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/bot_buildup")
-    public ResponseEntity<BuildupResponse> botBuildup(@Valid @RequestBody BuildupRequest form) {
-        /*
-         * Note that BuildupRequest does not inherit from BasePrivateRequest because it
-         * uses the API key, as oppsed to session token.
-         */
-        // if username not found
-        if (!bots.containsItem(form.getUsername())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        User u = bots.getItem(form.getUsername());
-        // if username and api key mismatch
-        if (!u.getApiKey().equals(form.getApiKey())) {
-            return new ResponseEntity<>(new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", ""), HttpStatus.UNAUTHORIZED);
-        }
-
-        Session s = new Session(generateKey(), u.getUsername());
-        if (botSessions.containsItem(s.getUsername())) {
-            botSessions.deleteItem(s.getUsername());
-        }
-        try {
-            botSessions.putItem(s);
-        } catch (AlreadyExistsException e) {
-            throw new RuntimeException(e);
-        }
-        if (sessions.containsItem(s.getUsername())) {
-            sessions.deleteItem(s.getUsername());
-        }
-        try {
-            sessions.putItem(s);
-        } catch (AlreadyExistsException e) {
-            throw new RuntimeException(e);
-        }
-        return new ResponseEntity<>(new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks()),
-                HttpStatus.OK);
-    }
-
-    @CrossOrigin(origins = "*")
-    @PostMapping("/teardown")
-    public ResponseEntity<TeardownResponse> teardown(@Valid @RequestBody TeardownRequest form) {
-        if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new TeardownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
-        }
-
-        sessions.deleteItem(form.getUsername());
-
-        return new ResponseEntity<>(new TeardownResponse(Message.SUCCESS.toString()), HttpStatus.OK);
-    }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/batch")
