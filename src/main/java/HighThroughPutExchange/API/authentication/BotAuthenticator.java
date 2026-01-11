@@ -3,21 +3,15 @@ package HighThroughPutExchange.API.authentication;
 import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
+@Component
 public class BotAuthenticator {
-    private static BotAuthenticator instance;
     private final LocalDBTable<Session> sessions;
 
-    private BotAuthenticator(LocalDBTable<Session> sessions) {
+    public BotAuthenticator(@Qualifier("botSessionsTable") LocalDBTable<Session> sessions) {
         this.sessions = sessions;
-    }
-
-    public static void buildInstance(LocalDBTable<Session> sessions) {
-        instance = new BotAuthenticator(sessions);
-    }
-
-    public static BotAuthenticator getInstance() {
-        return instance;
     }
 
     public boolean authenticate(BasePrivateRequest req) {

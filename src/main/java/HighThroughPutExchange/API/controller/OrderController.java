@@ -23,12 +23,13 @@ public class OrderController {
     private final PrivatePageAuthenticator privatePageAuthenticator;
     private final BotAuthenticator botAuthenticator;
 
-    public OrderController(OrderService orderService, ServerApplication app, RateLimiter rateLimiter) {
+    public OrderController(OrderService orderService, ServerApplication app, RateLimiter rateLimiter,
+            PrivatePageAuthenticator privatePageAuthenticator, BotAuthenticator botAuthenticator) {
         this.orderService = orderService;
         this.app = app;
         this.rateLimiter = rateLimiter;
-        this.privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
-        this.botAuthenticator = BotAuthenticator.getInstance();
+        this.privatePageAuthenticator = privatePageAuthenticator;
+        this.botAuthenticator = botAuthenticator;
     }
 
     private boolean rateLimit(BasePrivateRequest form) {

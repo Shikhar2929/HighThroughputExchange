@@ -10,15 +10,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
+    private final PrivatePageAuthenticator privatePageAuthenticator;
+    private final BotAuthenticator botAuthenticator;
+    private final AdminPageAuthenticator adminPageAuthenticator;
+
+    public AuthService(PrivatePageAuthenticator privatePageAuthenticator, BotAuthenticator botAuthenticator,
+            AdminPageAuthenticator adminPageAuthenticator) {
+        this.privatePageAuthenticator = privatePageAuthenticator;
+        this.botAuthenticator = botAuthenticator;
+        this.adminPageAuthenticator = adminPageAuthenticator;
+    }
+
     public boolean authenticatePrivate(BasePrivateRequest form) {
-        return PrivatePageAuthenticator.getInstance().authenticate(form);
+        return privatePageAuthenticator.authenticate(form);
     }
 
     public boolean authenticateBot(BasePrivateRequest form) {
-        return BotAuthenticator.getInstance().authenticate(form);
+        return botAuthenticator.authenticate(form);
     }
 
     public boolean authenticateAdmin(BaseAdminRequest form) {
-        return AdminPageAuthenticator.getInstance().authenticate(form);
+        return adminPageAuthenticator.authenticate(form);
     }
 }
