@@ -1,6 +1,5 @@
 package HighThroughPutExchange.API;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +29,7 @@ public class ServerApplication {
         this.state = newState;
     }
 
-    public static void main(String[] args) {
-        SpringApplication.run(ServerApplication.class, args);
-    }
+    // public static void main(String[] args) {
+    // SpringApplication.run(ServerApplication.class, args);
+    // }
 }
