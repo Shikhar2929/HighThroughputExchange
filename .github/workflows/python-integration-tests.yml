@@ -1,0 +1,95 @@
+name: Python integration tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build server (skip unit tests)
+        run: mvn -q -DskipTests package
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            src/test/requirements.txt
+
+      - name: Install Python test dependencies
+        run: pip install -r src/test/requirements.txt
+
+      - name: Start server
+        env:
+          # Keep server config consistent across CI.
+          SERVER_PORT: '8080'
+        run: |
+          JAR="$(ls -1 target/*.jar | grep -v '\.original$' | head -n 1)"
+          if [ -z "$JAR" ]; then
+            echo "No runnable jar found in target/"
+            ls -la target || true
+            exit 1
+          fi
+          echo "Starting jar: $JAR"
+          nohup java -jar "$JAR" > server.log 2>&1 &
+          echo $! > server.pid
+
+      - name: Wait for server
+        env:
+          HTTP_URL: http://localhost:8080
+        run: |
+          python - <<'PY'
+          import time
+          import requests
+
+          url = 'http://localhost:8080/get_state'
+          deadline = time.time() + 60
+          last = None
+          while time.time() < deadline:
+              try:
+                  r = requests.get(url, timeout=2)
+                  if r.status_code == 200:
+                      print('Server is up:', r.text)
+                      raise SystemExit(0)
+                  last = f"HTTP {r.status_code}: {r.text}"
+              except Exception as e:
+                  last = str(e)
+              time.sleep(1)
+          raise SystemExit(f"Server did not come up in time: {last}")
+          PY
+
+      - name: Run pytest integration suite
+        env:
+          HTTP_URL: http://localhost:8080
+          # These default creds are already present in public.env.
+          # CI sets them explicitly so tests don't depend on dotenv parsing.
+          ADMIN_USERNAME: trading_club_admin
+          ADMIN_PASSWORD: ZY3yoQL5v8MahcmcWBnG
+        run: pytest
+
+      - name: Dump server log on failure
+        if: failure()
+        run: |
+          echo '--- server.log ---'
+          cat server.log || true
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            kill "$(cat server.pid)" || true
+          fi

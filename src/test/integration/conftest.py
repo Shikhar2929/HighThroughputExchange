@@ -1,0 +1,62 @@
+from __future__ import annotations
+
+import os
+import sys
+import time
+from pathlib import Path
+
+import pytest
+
+
+def _repo_root() -> Path:
+    # conftest.py -> integration -> test -> src -> repo
+    return Path(__file__).resolve().parents[3]
+
+
+# Make existing helpers available (src/test/env_loader.py)
+_REPO = _repo_root()
+_SYS_TEST_DIR = _REPO / "src" / "test"
+if str(_SYS_TEST_DIR) not in sys.path:
+    sys.path.insert(0, str(_SYS_TEST_DIR))
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _load_env_once() -> None:
+    # Reuse existing env loading logic, but allow CI to override via env vars.
+    try:
+        from env_loader import load_env  # type: ignore
+
+        load_env()
+    except Exception:
+        # Don't hard-fail if dotenv isn't installed; env_loader already has fallback.
+        pass
+
+
+@pytest.fixture(scope="session")
+def base_url() -> str:
+    return os.getenv("HTTP_URL", "http://localhost:8080").rstrip("/")
+
+
+def _wait_for_http_up(url: str, timeout_s: float = 45.0) -> None:
+    import requests
+
+    deadline = time.time() + timeout_s
+    last_err: Exception | None = None
+    while time.time() < deadline:
+        try:
+            r = requests.get(f"{url}/get_state", timeout=2)
+            if r.status_code == 200:
+                return
+        except Exception as e:  # pragma: no cover
+            last_err = e
+        time.sleep(0.5)
+
+    if last_err:
+        raise RuntimeError(f"Server not reachable at {url}: {last_err}")
+    raise RuntimeError(f"Server not reachable at {url}")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _ensure_server_is_running(base_url: str) -> None:
+    # CI starts the server as a separate step, but local runs benefit too.
+    _wait_for_http_up(base_url)
