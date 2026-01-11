@@ -27,6 +27,8 @@ public class SocketController {
     private SimpMessagingTemplate template;
     @Autowired
     private SimpUserRegistry simpUserRegistry;
+    @Autowired
+    private AdminPageAuthenticator adminPageAuthenticator;
     private MatchingEngine matchingEngine = MatchingEngineSingleton.getMatchingEngine();
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
 
@@ -36,7 +38,7 @@ public class SocketController {
 
     @MessageMapping("/start")
     public void startStream(StartSocketRequest req) throws Exception {
-        if (!AdminPageAuthenticator.getInstance().authenticate(req)) {
+        if (!adminPageAuthenticator.authenticate(req)) {
             throw new Exception("authentication failed");
         }
         /*

@@ -18,9 +18,9 @@ public class SessionController {
     private final SessionService sessionService;
     private final PrivatePageAuthenticator privatePageAuthenticator;
 
-    public SessionController(SessionService sessionService) {
+    public SessionController(SessionService sessionService, PrivatePageAuthenticator privatePageAuthenticator) {
         this.sessionService = sessionService;
-        this.privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
+        this.privatePageAuthenticator = privatePageAuthenticator;
     }
 
     @CrossOrigin(origins = "*")
