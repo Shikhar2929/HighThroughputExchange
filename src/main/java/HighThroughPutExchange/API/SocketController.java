@@ -50,7 +50,7 @@ public class SocketController {
     @Scheduled(fixedRate = 200) // sends an update every 500 milliseconds
     public void sendRecentTrades() {
         String recentTradesJson = RecentTrades.getRecentTradesAsJson();
-        if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[]")) { // Ensure JSON is not empty
+        if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
             sendMessage(new SocketResponse(recentTradesJson));
         } else {
             sendMessage(new SocketResponse("No recent trades"));
