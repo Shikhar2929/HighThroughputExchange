@@ -34,10 +34,10 @@ class OrderControllerTest {
 
     @MockBean
     private ServerApplication app;
-    
+
     @MockBean
     private PrivatePageAuthenticator privatePageAuthenticator;
-    
+
     @MockBean
     private BotAuthenticator botAuthenticator;
 
