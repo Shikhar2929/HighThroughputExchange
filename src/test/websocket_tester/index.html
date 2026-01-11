@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hello WebSocket</title>
+    <title>Exchange WebSocket Tester</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <!--    <link href="/main.css" rel="stylesheet">-->
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
@@ -18,12 +18,51 @@
         <div class="col-md-6">
             <form class="form-inline">
                 <div class="form-group">
-                    <label for="connect">WebSocket connection:</label>
-                    <button id="connect" class="btn btn-default" type="button">Connect</button>
-                    <button id="disconnect" class="btn btn-default" type="button" disabled="disabled">Disconnect
-                    </button>
-                    <label for="start">Admin-Only Button to start socket stream for the competition:</label>
-                    <button id="start" class="btn btn-default" type="button">Start</button>
+                    <h3>Connection</h3>
+
+                    <div style="margin-bottom: 10px;">
+                        <label for="restBaseUrl">REST base:</label>
+                        <input id="restBaseUrl" class="form-control" style="width: 260px" placeholder="http://localhost:8080" />
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label for="wsBaseUrl">WS endpoint:</label>
+                        <input id="wsBaseUrl" class="form-control" style="width: 300px" placeholder="ws://localhost:8080/exchange-socket" />
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label for="username">Username:</label>
+                        <input id="username" class="form-control" style="width: 160px" placeholder="team49" />
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label for="apiKey">API key:</label>
+                        <input id="apiKey" class="form-control" style="width: 220px" placeholder="..." />
+                        <button id="buildup" class="btn btn-default" type="button">Buildup</button>
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label for="sessionId">Session-ID:</label>
+                        <input id="sessionId" class="form-control" style="width: 260px" placeholder="(click Buildup)" />
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <button id="connect" class="btn btn-primary" type="button">Connect</button>
+                        <button id="disconnect" class="btn btn-default" type="button" disabled="disabled">Disconnect</button>
+                    </div>
+
+                    <h4>Admin</h4>
+                    <div style="margin-bottom: 10px;">
+                        <label for="adminUsername">Admin username:</label>
+                        <input id="adminUsername" class="form-control" style="width: 220px" placeholder="trading_club_admin" />
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label for="adminPassword">Admin password:</label>
+                        <input id="adminPassword" class="form-control" style="width: 220px" placeholder="abcxyz" />
+                        <button id="start" class="btn btn-default" type="button">Start stream</button>
+                    </div>
+
+                    <div id="status" style="margin-top: 10px;"></div>
                 </div>
             </form>
         </div>

@@ -30,7 +30,7 @@ public class ServerApplication {
         this.state = newState;
     }
 
-    public static void main(String[] args) {
-        SpringApplication.run(ServerApplication.class, args);
-    }
+    // public static void main(String[] args) {
+    //     SpringApplication.run(ServerApplication.class, args);
+    // }
 }
