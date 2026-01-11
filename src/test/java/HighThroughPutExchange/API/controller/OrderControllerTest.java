@@ -1,7 +1,6 @@
 package HighThroughPutExchange.API.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -11,9 +10,7 @@ import HighThroughPutExchange.API.State;
 import HighThroughPutExchange.API.authentication.BotAuthenticator;
 import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.authentication.RateLimiter;
-import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.service.OrderService;
-import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,17 +23,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = OrderController.class)
 @AutoConfigureMockMvc
 class OrderControllerTest {
-    static {
-        LocalDBTable<Session> sessions = (LocalDBTable<Session>) mock(LocalDBTable.class);
-        Session s = new Session("tok", "tok", "trader");
-
-        when(sessions.containsItem("trader")).thenReturn(true);
-        when(sessions.getItem("trader")).thenReturn(s);
-
-        PrivatePageAuthenticator.buildInstance(sessions);
-        BotAuthenticator.buildInstance(sessions);
-    }
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -48,10 +34,17 @@ class OrderControllerTest {
 
     @MockBean
     private ServerApplication app;
+    
+    @MockBean
+    private PrivatePageAuthenticator privatePageAuthenticator;
+    
+    @MockBean
+    private BotAuthenticator botAuthenticator;
 
   @Test
   void limitOrder_success() throws Exception {
     when(app.getState()).thenReturn(State.TRADE);
+    when(privatePageAuthenticator.authenticate(any())).thenReturn(true);
     when(rateLimiter.processRequest(any())).thenReturn(true);
     when(orderService.placeLimitOrder(
             Mockito.eq("trader"),
