@@ -1,6 +1,5 @@
 package HighThroughPutExchange.API;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -10,10 +9,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class SocketConfig implements WebSocketMessageBrokerConfigurer {
-    @Bean
-    public SocketInterceptor socketInterceptor() {
-        // Inject socketUsers into SocketInterceptor
-        return new SocketInterceptor();
+
+    private final SocketInterceptor socketInterceptor;
+
+    public SocketConfig(SocketInterceptor socketInterceptor) {
+        this.socketInterceptor = socketInterceptor;
     }
 
     @Override
@@ -25,7 +25,7 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/exchange-socket").setAllowedOriginPatterns("*").addInterceptors(socketInterceptor())
+        registry.addEndpoint("/exchange-socket").setAllowedOriginPatterns("*").addInterceptors(socketInterceptor)
                 .setHandshakeHandler(new HandshakeHandler());
     }
 }

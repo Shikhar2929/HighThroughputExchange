@@ -1,8 +1,5 @@
 package HighThroughPutExchange.API.config;
 
-import HighThroughPutExchange.API.authentication.BotAuthenticator;
-import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
-import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
@@ -17,17 +14,12 @@ public class InitializationRunner implements ApplicationRunner {
     private final MatchingEngine matchingEngine;
     private final LocalDBTable<User> users;
     private final LocalDBTable<User> bots;
-    private final LocalDBTable<Session> sessions;
-    private final LocalDBTable<Session> botSessions;
 
     public InitializationRunner(MatchingEngine matchingEngine, @Qualifier("usersTable") LocalDBTable<User> users,
-            @Qualifier("botsTable") LocalDBTable<User> bots, @Qualifier("sessionsTable") LocalDBTable<Session> sessions,
-            @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions) {
+            @Qualifier("botsTable") LocalDBTable<User> bots) {
         this.matchingEngine = matchingEngine;
         this.users = users;
         this.bots = bots;
-        this.sessions = sessions;
-        this.botSessions = botSessions;
     }
 
     @Override
@@ -40,8 +32,5 @@ public class InitializationRunner implements ApplicationRunner {
         for (String bot : botKeys) {
             matchingEngine.initializeBot(bot);
         }
-
-        PrivatePageAuthenticator.buildInstance(this.sessions);
-        BotAuthenticator.buildInstance(this.botSessions);
     }
 }

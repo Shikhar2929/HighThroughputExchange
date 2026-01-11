@@ -14,6 +14,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class SocketInterceptor implements HandshakeInterceptor {
+
+    private final PrivatePageAuthenticator privatePageAuthenticator;
+
+    public SocketInterceptor(PrivatePageAuthenticator privatePageAuthenticator) {
+        this.privatePageAuthenticator = privatePageAuthenticator;
+    }
+
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
             Map<String, Object> attributes) {
@@ -22,7 +29,6 @@ public class SocketInterceptor implements HandshakeInterceptor {
         Map<String, String> queryParams = UriComponentsBuilder.fromUri(uri).build().getQueryParams().toSingleValueMap();
         String sessionId = queryParams.get("Session-ID");
         String username = queryParams.get("Username");
-        PrivatePageAuthenticator privatePageAuthenticator = PrivatePageAuthenticator.getInstance();
         if (!privatePageAuthenticator.authenticate(new BasePrivateRequest(username, sessionId))) {
             return false;
         }
