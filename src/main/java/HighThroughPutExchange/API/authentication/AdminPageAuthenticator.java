@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AdminPageAuthenticator {
-    // todo read values from env variables
     private final String adminUsername = "trading_club_admin";
     private final String adminPassword = "ZY3yoQL5v8MahcmcWBnG";
 
