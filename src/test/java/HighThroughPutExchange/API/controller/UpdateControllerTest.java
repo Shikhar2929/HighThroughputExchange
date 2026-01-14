@@ -37,23 +37,24 @@ class UpdateControllerTest {
     @MockBean
     private OrderbookUpdateLog orderbookUpdateLog;
 
-    // Present in other controller tests; included to satisfy any wiring expectations.
+    // Present in other controller tests; included to satisfy any wiring
+    // expectations.
     @MockBean
     private ServerApplication app;
 
-    @Test
-    void getVersion_success() throws Exception {
-        when(updateIdGenerator.get()).thenReturn(123L);
+  @Test
+  void getVersion_success() throws Exception {
+    when(updateIdGenerator.get()).thenReturn(123L);
 
-        mockMvc.perform(get("/version"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.version").value(123));
-    }
+    mockMvc
+        .perform(get("/version"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.version").value(123));
+  }
 
     @Test
     void getUpdates_missingFrom_returnsBadRequest() throws Exception {
-        mockMvc.perform(get("/updates"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/updates")).andExpect(status().isBadRequest());
     }
 
     @Test
@@ -65,30 +66,28 @@ class UpdateControllerTest {
         OrderbookUpdate u12 = new OrderbookUpdate(12L, List.of(new PriceChange("ABC", 100, 7, Side.BID)));
         when(orderbookUpdateLog.get(from)).thenReturn(List.of(u11, u12));
 
-        mockMvc.perform(get("/updates").param("from", String.valueOf(from)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.fromExclusive").value(10))
-                .andExpect(jsonPath("$.latestId").value(999))
-                .andExpect(jsonPath("$.updates").isArray())
-                .andExpect(jsonPath("$.updates.length()").value(2))
-                .andExpect(jsonPath("$.updates[0].updateId").value(11))
-                .andExpect(jsonPath("$.updates[1].updateId").value(12))
+        mockMvc.perform(get("/updates").param("from", String.valueOf(from))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.fromExclusive").value(10)).andExpect(jsonPath("$.latestId").value(999))
+                .andExpect(jsonPath("$.updates").isArray()).andExpect(jsonPath("$.updates.length()").value(2))
+                .andExpect(jsonPath("$.updates[0].updateId").value(11)).andExpect(jsonPath("$.updates[1].updateId").value(12))
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].ticker").value("ABC"))
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].price").value(100))
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].volume").value(7))
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].side").value("BID"));
     }
 
-    @Test
-    void snapshot_success_returnsRawSnapshotJsonAndVersion() throws Exception {
-        when(updateIdGenerator.get()).thenReturn(777L);
-        when(matchingEngine.serializeOrderBooks()).thenReturn("{\"ticker\":\"ABC\",\"bids\":[],\"asks\":[]}");
+  @Test
+  void snapshot_success_returnsRawSnapshotJsonAndVersion() throws Exception {
+    when(updateIdGenerator.get()).thenReturn(777L);
+    when(matchingEngine.serializeOrderBooks())
+        .thenReturn("{\"ticker\":\"ABC\",\"bids\":[],\"asks\":[]}");
 
-        mockMvc.perform(post("/snapshot"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.version").value(777))
-                .andExpect(jsonPath("$.snapshot.ticker").value("ABC"))
-                .andExpect(jsonPath("$.snapshot.bids").isArray())
-                .andExpect(jsonPath("$.snapshot.asks").isArray());
-    }
+    mockMvc
+        .perform(post("/snapshot"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.version").value(777))
+        .andExpect(jsonPath("$.snapshot.ticker").value("ABC"))
+        .andExpect(jsonPath("$.snapshot.bids").isArray())
+        .andExpect(jsonPath("$.snapshot.asks").isArray());
+  }
 }

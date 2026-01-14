@@ -1,7 +1,7 @@
 package HighThroughPutExchange.API.controller;
 
-import HighThroughPutExchange.API.api_objects.responses.GetVersionResponse;
 import HighThroughPutExchange.API.api_objects.responses.GetUpdatesResponse;
+import HighThroughPutExchange.API.api_objects.responses.GetVersionResponse;
 import HighThroughPutExchange.API.api_objects.responses.SnapshotResponse;
 import HighThroughPutExchange.Common.OrderbookUpdate;
 import HighThroughPutExchange.Common.OrderbookUpdateLog;
