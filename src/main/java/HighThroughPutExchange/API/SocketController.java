@@ -12,6 +12,7 @@ import HighThroughPutExchange.MatchingEngine.RecentTrades;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class SocketController {
+    private static final AtomicLong currentUpdateId = new AtomicLong(0);
 
     @Autowired
     private SimpMessagingTemplate template;
@@ -51,9 +53,10 @@ public class SocketController {
     public void sendRecentTrades() {
         String recentTradesJson = RecentTrades.getRecentTradesAsJson();
         if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
-            sendMessage(new SocketResponse(recentTradesJson));
+            // TODO: format/cast the update and store it to UpdateLog here
+            sendMessage(new SocketResponse(recentTradesJson, currentUpdateId.getAndIncrement()));
         } else {
-            sendMessage(new SocketResponse("No recent trades"));
+            sendMessage(new SocketResponse("No recent trades", (long) -1));
         }
     }
 

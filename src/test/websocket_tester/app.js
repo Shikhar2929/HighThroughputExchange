@@ -21,10 +21,7 @@ function escapeHtml(s) {
 function safeFormatMessage(body) {
     try {
         const parsed = JSON.parse(body);
-        if (parsed && typeof parsed === 'object') {
-            if (typeof parsed.content === 'string') return parsed.content;
-            return JSON.stringify(parsed);
-        }
+        return JSON.stringify(parsed);
     } catch (e) {
         // ignore
     }
@@ -93,7 +90,7 @@ function ensureClientConnectedStateHandlers(client) {
 
         client.subscribe('/topic/orderbook', (message) => {
             console.log('Orderbook message received:', message.body);
-            showMessage(safeFormatMessage(message.body));
+            showMessage(`Orderbook: ${safeFormatMessage(message.body)}`);
         });
 
         client.subscribe('/user/queue/private', (message) => {
