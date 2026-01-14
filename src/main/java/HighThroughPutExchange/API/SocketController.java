@@ -6,12 +6,16 @@ import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
 import HighThroughPutExchange.Common.ChartTrackerSingleton;
 import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.OHLCData;
+import HighThroughPutExchange.Common.OrderbookUpdate;
+import HighThroughPutExchange.Common.OrderbookUpdateLog;
 import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.Common.UpdateIdGenerator;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.MatchingEngine.PriceChange;
 import HighThroughPutExchange.MatchingEngine.RecentTrades;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -31,6 +35,9 @@ public class SocketController {
     private AdminPageAuthenticator adminPageAuthenticator;
     @Autowired
     private UpdateIdGenerator updateIdGenerator;
+    @Autowired
+    private OrderbookUpdateLog orderbookUpdateLog;
+
     private MatchingEngine matchingEngine = MatchingEngineSingleton.getMatchingEngine();
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
 
@@ -49,12 +56,20 @@ public class SocketController {
          */
     }
 
-    @Scheduled(fixedRate = 200) // sends an update every 500 milliseconds
+    @Scheduled(fixedRate = 200)
     public void sendRecentTrades() {
-        String recentTradesJson = RecentTrades.getRecentTradesAsJson();
+        // get new trades that happened since last update
+        List<PriceChange> recentTrades = RecentTrades.getRecentTrades();
+
+        // atomically get updateId from generator
+        Long updateId = updateIdGenerator.getAndIncrement();
+        String recentTradesJson = RecentTrades.recentTradesToJson(recentTrades);
+
+        // add the current update to the orderbook update log
+        orderbookUpdateLog.append(new OrderbookUpdate(updateId, recentTrades));
+
         if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
-            // TODO: format/cast the update and store it to UpdateLog here
-            sendMessage(new SocketResponse(recentTradesJson, updateIdGenerator.getAndIncrement()));
+            sendMessage(new SocketResponse(recentTradesJson, updateId));
         } else {
             sendMessage(new SocketResponse("No recent trades", updateIdGenerator.getErrorId()));
         }
