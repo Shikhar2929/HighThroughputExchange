@@ -1,5 +1,6 @@
 package HighThroughPutExchange.Common;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -23,7 +24,7 @@ public class OrderbookUpdateLog {
     }
 
     public synchronized List<OrderbookUpdate> get(long from) {
-        java.util.ArrayList<OrderbookUpdate> out = new java.util.ArrayList<>();
+        ArrayList<OrderbookUpdate> out = new ArrayList<>();
 
         for (Entry<Long, OrderbookUpdate> entry : log.entrySet()) {
             Long id = entry.getKey();
