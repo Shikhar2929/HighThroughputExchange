@@ -7,12 +7,12 @@ import HighThroughPutExchange.Common.ChartTrackerSingleton;
 import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.OHLCData;
 import HighThroughPutExchange.Common.TaskQueue;
+import HighThroughPutExchange.Common.UpdateIdGenerator;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import HighThroughPutExchange.MatchingEngine.RecentTrades;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,14 +23,14 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class SocketController {
-    private static final AtomicLong currentUpdateId = new AtomicLong(0);
-
     @Autowired
     private SimpMessagingTemplate template;
     @Autowired
     private SimpUserRegistry simpUserRegistry;
     @Autowired
     private AdminPageAuthenticator adminPageAuthenticator;
+    @Autowired
+    private UpdateIdGenerator updateIdGenerator;
     private MatchingEngine matchingEngine = MatchingEngineSingleton.getMatchingEngine();
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
 
@@ -54,9 +54,9 @@ public class SocketController {
         String recentTradesJson = RecentTrades.getRecentTradesAsJson();
         if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
             // TODO: format/cast the update and store it to UpdateLog here
-            sendMessage(new SocketResponse(recentTradesJson, currentUpdateId.getAndIncrement()));
+            sendMessage(new SocketResponse(recentTradesJson, updateIdGenerator.getAndIncrement()));
         } else {
-            sendMessage(new SocketResponse("No recent trades", (long) -1));
+            sendMessage(new SocketResponse("No recent trades", updateIdGenerator.getErrorId()));
         }
     }
 

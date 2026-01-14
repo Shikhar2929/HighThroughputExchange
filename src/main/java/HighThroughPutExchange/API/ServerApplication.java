@@ -15,7 +15,7 @@ todo
         Durability - guaranteed
  */
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "HighThroughPutExchange")
 @RestController
 @EnableScheduling
 public class ServerApplication {
