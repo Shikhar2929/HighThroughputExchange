@@ -4,17 +4,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RestController;
 
-/*
-todo
-    make all task queue tasks into completable futures
-    fix exception handling of database classes
-    make all DBs threadsafe
-        Atomicity - not guaranteed, but expose backing and mutex
-        Consistency - guaranteed
-        Isolation - guaranteed
-        Durability - guaranteed
- */
-
 @SpringBootApplication(scanBasePackages = "HighThroughPutExchange")
 @RestController
 @EnableScheduling
