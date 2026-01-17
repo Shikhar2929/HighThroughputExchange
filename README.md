@@ -136,7 +136,7 @@ mvn checkstyle:check
         <td>public</td>
         <td>Replay updates with seq &gt; from (from is exclusive).</td>
         <td>Query: from=long</td>
-        <td>200: {"fromExclusive": long, "latestSeq": long, "updates": [{"seq": long, "priceChanges": [...]}, ...]}<br/>410: {"error": "from-too-old", "minAvailableSeq": long, "minFromExclusive": long, "latestSeq": long}</td>
+        <td>200: {"fromExclusive": long, "latestSeq": long, "updates": [{"seq": long, "priceChanges": [...]}, ...]}<br/>410: {"error": "from-too-old", "fromExclusive": long, "minAvailableSeq": long, "minFromExclusive": long, "latestSeq": long}</td>
     </tr>
     <tr>
         <td>Snapshot</td>
