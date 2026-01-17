@@ -68,4 +68,19 @@ class OrderbookSeqLogTest {
         assertEquals(2, all.get(0).getSeq());
         assertEquals(3, all.get(1).getSeq());
     }
+
+    @Test
+    void nextSeqAndAppend_allocatesSeqAndStoresUpdate() {
+        SeqGenerator seqGenerator = new SeqGenerator();
+        seqGenerator.reset();
+
+        OrderbookSeqLog log = new OrderbookSeqLog(10);
+        long seq = log.nextSeqAndAppend(seqGenerator, List.of(new PriceChange("A", 101, 1, Side.BID)));
+
+        assertEquals(0L, seq);
+        List<OrderbookUpdate> got = log.get(-1);
+        assertEquals(1, got.size());
+        assertEquals(0L, got.get(0).getSeq());
+        assertEquals(1, got.get(0).getPriceChanges().size());
+    }
 }

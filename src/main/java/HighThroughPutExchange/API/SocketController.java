@@ -7,7 +7,6 @@ import HighThroughPutExchange.Common.ChartTrackerSingleton;
 import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.OHLCData;
 import HighThroughPutExchange.Common.OrderbookSeqLog;
-import HighThroughPutExchange.Common.OrderbookUpdate;
 import HighThroughPutExchange.Common.SeqGenerator;
 import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
@@ -61,12 +60,9 @@ public class SocketController {
         // get new trades that happened since last update
         List<PriceChange> recentTrades = RecentTrades.getRecentTrades();
 
-        // atomically get sequence number from generator
-        Long seq = seqGenerator.getAndIncrement();
+        // Allocate seq and append to replay log in one step
+        Long seq = orderbookSeqLog.nextSeqAndAppend(seqGenerator, recentTrades);
         String recentTradesJson = RecentTrades.recentTradesToJson(recentTrades);
-
-        // add the current update to the orderbook update log
-        orderbookSeqLog.append(new OrderbookUpdate(seq, recentTrades));
 
         if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
             sendMessage(new SocketResponse(recentTradesJson, seq));

@@ -1,5 +1,6 @@
 package HighThroughPutExchange.Common;
 
+import HighThroughPutExchange.MatchingEngine.PriceChange;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -38,6 +39,23 @@ public class OrderbookSeqLog {
         while (log.size() > maxEntries) {
             log.pollFirstEntry();
         }
+    }
+
+    // Allocates the next sequence number and appends the update to this log in a
+    // single synchronized
+    // block.
+    public synchronized long nextSeqAndAppend(SeqGenerator seqGenerator, List<PriceChange> priceChanges) {
+        if (seqGenerator == null) {
+            throw new IllegalArgumentException("seqGenerator cannot be null");
+        }
+
+        if (priceChanges == null) {
+            throw new IllegalArgumentException("priceChanges cannot be null");
+        }
+
+        long seq = seqGenerator.getAndIncrement();
+        append(new OrderbookUpdate(seq, priceChanges));
+        return seq;
     }
 
     public synchronized List<OrderbookUpdate> get(long from) {
