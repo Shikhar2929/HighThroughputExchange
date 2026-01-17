@@ -8,6 +8,7 @@ import HighThroughPutExchange.Common.OrderbookUpdate;
 import HighThroughPutExchange.Common.SeqGenerator;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -36,7 +37,16 @@ public class SeqController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/updates")
-    public ResponseEntity<GetUpdatesResponse> getUpdates(@RequestParam(name = "from") long from) {
+    public ResponseEntity<?> getUpdates(@RequestParam long from) {
+        Long minSeq = orderbookSeqLog.getMinSeq();
+        if (minSeq != null) {
+            long minFromExclusive = minSeq - 1;
+            if (from < minFromExclusive) {
+                return new ResponseEntity<>(Map.of("error", "from-too-old", "fromExclusive", from, "minAvailableSeq", minSeq, "minFromExclusive",
+                        minFromExclusive, "latestSeq", seqGenerator.get()), HttpStatus.GONE);
+            }
+        }
+
         List<OrderbookUpdate> updates = orderbookSeqLog.get(from);
         return new ResponseEntity<>(new GetUpdatesResponse(from, seqGenerator.get(), updates), HttpStatus.OK);
     }

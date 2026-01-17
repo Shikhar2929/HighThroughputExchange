@@ -51,4 +51,21 @@ class OrderbookSeqLogTest {
         assertEquals(101, got.get(0).getPriceChanges().get(0).getPrice());
         assertEquals(2, got.get(0).getPriceChanges().get(0).getVolume());
     }
+
+    @Test
+    void boundedRetention_evictsOldestSeq() {
+        OrderbookSeqLog log = new OrderbookSeqLog(2);
+
+        log.append(new OrderbookUpdate(1, List.of()));
+        log.append(new OrderbookUpdate(2, List.of()));
+        log.append(new OrderbookUpdate(3, List.of()));
+
+        // Only seq 2 and 3 should remain
+        assertEquals(2L, log.getMinSeq());
+
+        List<OrderbookUpdate> all = log.get(-1);
+        assertEquals(2, all.size());
+        assertEquals(2, all.get(0).getSeq());
+        assertEquals(3, all.get(1).getSeq());
+    }
 }
