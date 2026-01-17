@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import HighThroughPutExchange.API.ServerApplication;
-import HighThroughPutExchange.Common.OrderbookUpdate;
 import HighThroughPutExchange.Common.OrderbookSeqLog;
+import HighThroughPutExchange.Common.OrderbookUpdate;
 import HighThroughPutExchange.Common.SeqGenerator;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import HighThroughPutExchange.MatchingEngine.PriceChange;
@@ -21,10 +21,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = UpdateController.class)
+@WebMvcTest(controllers = SeqController.class)
 @AutoConfigureMockMvc
-class UpdateControllerTest {
-
+class SeqControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -60,7 +59,7 @@ class UpdateControllerTest {
     @Test
     void getUpdates_success_returnsMetadataAndUpdates() throws Exception {
         long from = 10L;
-      when(seqGenerator.get()).thenReturn(999L);
+        when(seqGenerator.get()).thenReturn(999L);
 
         OrderbookUpdate u11 = new OrderbookUpdate(11L, List.<PriceChange>of());
         OrderbookUpdate u12 = new OrderbookUpdate(12L, List.of(new PriceChange("ABC", 100, 7, Side.BID)));

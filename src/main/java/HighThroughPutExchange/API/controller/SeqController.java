@@ -3,8 +3,8 @@ package HighThroughPutExchange.API.controller;
 import HighThroughPutExchange.API.api_objects.responses.GetUpdatesResponse;
 import HighThroughPutExchange.API.api_objects.responses.GetVersionResponse;
 import HighThroughPutExchange.API.api_objects.responses.SnapshotResponse;
-import HighThroughPutExchange.Common.OrderbookUpdate;
 import HighThroughPutExchange.Common.OrderbookSeqLog;
+import HighThroughPutExchange.Common.OrderbookUpdate;
 import HighThroughPutExchange.Common.SeqGenerator;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import java.util.List;
@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class UpdateController {
+public class SeqController {
     private final SeqGenerator seqGenerator;
     private final MatchingEngine matchingEngine;
     private final OrderbookSeqLog orderbookSeqLog;
 
-    public UpdateController(SeqGenerator seqGenerator, MatchingEngine matchingEngine, OrderbookSeqLog orderbookSeqLog) {
+    public SeqController(SeqGenerator seqGenerator, MatchingEngine matchingEngine, OrderbookSeqLog orderbookSeqLog) {
         this.seqGenerator = seqGenerator;
         this.matchingEngine = matchingEngine;
         this.orderbookSeqLog = orderbookSeqLog;
