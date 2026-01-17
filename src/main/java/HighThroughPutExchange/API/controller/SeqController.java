@@ -42,7 +42,7 @@ public class SeqController {
         if (minSeq != null) {
             long minFromExclusive = minSeq - 1;
             if (from < minFromExclusive) {
-                return new ResponseEntity<>(Map.of("error", "from_too_old", "fromExclusive", from, "minAvailableSeq", minSeq, "minFromExclusive",
+                return new ResponseEntity<>(Map.of("error", "from-too-old", "fromExclusive", from, "minAvailableSeq", minSeq, "minFromExclusive",
                         minFromExclusive, "latestSeq", seqGenerator.get()), HttpStatus.GONE);
             }
         }

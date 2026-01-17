@@ -59,15 +59,16 @@ public class SocketController {
     public void sendRecentTrades() {
         // get new trades that happened since last update
         List<PriceChange> recentTrades = RecentTrades.getRecentTrades();
-
-        // Allocate seq and append to replay log in one step
-        Long seq = orderbookSeqLog.nextSeqAndAppend(seqGenerator, recentTrades);
         String recentTradesJson = RecentTrades.recentTradesToJson(recentTrades);
 
-        if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
+        if (recentTrades != null && !recentTrades.isEmpty() && !recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) {
+            // Allocate seq and append to replay log in one step (only for real updates)
+            Long seq = orderbookSeqLog.nextSeqAndAppend(seqGenerator, recentTrades);
             sendMessage(new SocketResponse(recentTradesJson, seq));
         } else {
-            sendMessage(new SocketResponse("No recent trades", seqGenerator.getErrorSeq()));
+            // Heartbeat: do not allocate a seq. Use latest known seq (may repeat).
+            long lastKnownSeq = seqGenerator.get() - 1;
+            sendMessage(new SocketResponse("No recent trades", lastKnownSeq));
         }
     }
 
