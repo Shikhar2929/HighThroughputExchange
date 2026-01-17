@@ -2,14 +2,37 @@
 
 ---
 
-### Run tests
+## Usage
+
+### Run the server (Spring Boot)
+Runs the API locally (defaults to port 8080 unless overridden).
+```sh
+mvn spring-boot:run
+```
+
+### Run Java tests (JUnit/Surefire)
 ```sh
 mvn test
 ```
 
-### Run format and checkstyle
+### Run Python integration tests (pytest)
+Uses `pytest.ini` (default suite is under `src/test/integration`). If you run `pytest` from the repo root, start the server first (`mvn spring-boot:run`) since these are integration tests.
+```sh
+pytest
+```
+
+### Format Java code (Spotless)
 ```sh
 mvn spotless:apply
+```
+
+### Verify formatting (Spotless)
+```sh
+mvn spotless:check
+```
+
+### Lint Java code (Checkstyle)
+```sh
 mvn checkstyle:check
 ```
 
