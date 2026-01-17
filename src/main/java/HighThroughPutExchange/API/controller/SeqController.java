@@ -54,7 +54,8 @@ public class SeqController {
     @CrossOrigin(origins = "*")
     @PostMapping("/snapshot")
     public ResponseEntity<SnapshotResponse> snapshot() {
+        long version = seqGenerator.get();
         String snapshot = matchingEngine.serializeOrderBooks();
-        return new ResponseEntity<>(new SnapshotResponse(snapshot, seqGenerator.get()), HttpStatus.OK);
+        return new ResponseEntity<>(new SnapshotResponse(snapshot, version), HttpStatus.OK);
     }
 }
