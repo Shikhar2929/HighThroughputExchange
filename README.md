@@ -122,4 +122,28 @@ mvn checkstyle:check
         <td>{"username": string, "sessionToken": string, "price": float}</td>
         <td>Success/Fail</td>
     </tr>
+    <tr>
+        <td>Seq Version</td>
+        <td>/version</td>
+        <td>public</td>
+        <td>Current monotonic sequence/version.</td>
+        <td>N/A - simple HTTP GET</td>
+        <td>{"version": long}</td>
+    </tr>
+    <tr>
+        <td>Seq Updates Replay</td>
+        <td>/updates?from=&lt;seq&gt;</td>
+        <td>public</td>
+        <td>Replay updates with seq &gt; from (from is exclusive).</td>
+        <td>Query: from=long</td>
+        <td>200: {"fromExclusive": long, "latestSeq": long, "updates": [{"seq": long, "priceChanges": [...]}, ...]}<br/>410: {"error": "from-too-old", "minAvailableSeq": long, "minFromExclusive": long, "latestSeq": long}</td>
+    </tr>
+    <tr>
+        <td>Snapshot</td>
+        <td>/snapshot</td>
+        <td>public</td>
+        <td>Full orderbook snapshot for recovery.</td>
+        <td>N/A - HTTP POST</td>
+        <td>{"snapshot": object, "version": long}</td>
+    </tr>
 </table>
