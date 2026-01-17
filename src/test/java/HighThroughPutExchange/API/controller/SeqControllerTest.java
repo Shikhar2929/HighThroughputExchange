@@ -66,7 +66,7 @@ class SeqControllerTest {
         OrderbookUpdate u12 = new OrderbookUpdate(12L, List.of(new PriceChange("ABC", 100, 7, Side.BID)));
         when(orderbookSeqLog.get(from)).thenReturn(List.of(u11, u12));
 
-        mockMvc.perform(get("/updates").param("from", String.valueOf(from))).andExpect(status().isOk())
+        mockMvc.perform(get("/updates").param("fromExclusive", String.valueOf(from))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.fromExclusive").value(10)).andExpect(jsonPath("$.latestSeq").value(999))
                 .andExpect(jsonPath("$.updates").isArray()).andExpect(jsonPath("$.updates.length()").value(2))
                 .andExpect(jsonPath("$.updates[0].seq").value(11)).andExpect(jsonPath("$.updates[1].seq").value(12))
@@ -82,7 +82,7 @@ class SeqControllerTest {
     when(seqGenerator.get()).thenReturn(999L);
 
     mockMvc
-        .perform(get("/updates").param("from", "0"))
+        .perform(get("/updates").param("fromExclusive", "0"))
         .andExpect(status().isGone())
         .andExpect(jsonPath("$.error").value("from-too-old"))
         .andExpect(jsonPath("$.minAvailableSeq").value(50))

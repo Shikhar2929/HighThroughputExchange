@@ -37,18 +37,18 @@ public class SeqController {
 
     @CrossOrigin(origins = "*")
     @GetMapping("/updates")
-    public ResponseEntity<?> getUpdates(@RequestParam long from) {
+    public ResponseEntity<?> getUpdates(@RequestParam long fromExclusive) {
         Long minSeq = orderbookSeqLog.getMinSeq();
         if (minSeq != null) {
             long minFromExclusive = minSeq - 1;
-            if (from < minFromExclusive) {
-                return new ResponseEntity<>(Map.of("error", "from-too-old", "fromExclusive", from, "minAvailableSeq", minSeq, "minFromExclusive",
-                        minFromExclusive, "latestSeq", seqGenerator.get()), HttpStatus.GONE);
+            if (fromExclusive < minFromExclusive) {
+                return new ResponseEntity<>(Map.of("error", "from-too-old", "fromExclusive", fromExclusive, "minAvailableSeq", minSeq,
+                        "minFromExclusive", minFromExclusive, "latestSeq", seqGenerator.get()), HttpStatus.GONE);
             }
         }
 
-        List<OrderbookUpdate> updates = orderbookSeqLog.get(from);
-        return new ResponseEntity<>(new GetUpdatesResponse(from, seqGenerator.get(), updates), HttpStatus.OK);
+        List<OrderbookUpdate> updates = orderbookSeqLog.get(fromExclusive);
+        return new ResponseEntity<>(new GetUpdatesResponse(fromExclusive, seqGenerator.get(), updates), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")

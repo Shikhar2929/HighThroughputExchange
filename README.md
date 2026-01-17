@@ -132,10 +132,10 @@ mvn checkstyle:check
     </tr>
     <tr>
         <td>Seq Updates Replay</td>
-        <td>/updates?from=&lt;seq&gt;</td>
+        <td>/updates?fromExclusive=&lt;seq&gt;</td>
         <td>public</td>
-        <td>Replay updates with seq &gt; from (from is exclusive).</td>
-        <td>Query: from=long</td>
+        <td>Replay updates with seq &gt; fromExclusive (cursor is exclusive).</td>
+        <td>Query: fromExclusive=long</td>
         <td>200: {"fromExclusive": long, "latestSeq": long, "updates": [{"seq": long, "priceChanges": [...]}, ...]}<br/>410: {"error": "from-too-old", "fromExclusive": long, "minAvailableSeq": long, "minFromExclusive": long, "latestSeq": long}</td>
     </tr>
     <tr>
