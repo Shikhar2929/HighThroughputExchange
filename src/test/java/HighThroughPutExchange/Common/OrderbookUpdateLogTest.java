@@ -16,7 +16,7 @@ class OrderbookUpdateLogTest {
     }
 
     @Test
-    void get_filtersByFromExclusive_andSortsByUpdateId() {
+    void get_filtersByFromExclusive_andSortsBySeq() {
         OrderbookUpdateLog log = new OrderbookUpdateLog();
 
         // Insert out-of-order to ensure get() sorting is tested.
@@ -26,14 +26,14 @@ class OrderbookUpdateLogTest {
 
         List<OrderbookUpdate> all = log.get(-1);
         assertEquals(3, all.size());
-        assertEquals(2, all.get(0).getUpdateId());
-        assertEquals(3, all.get(1).getUpdateId());
-        assertEquals(5, all.get(2).getUpdateId());
+        assertEquals(2, all.get(0).getSeq());
+        assertEquals(3, all.get(1).getSeq());
+        assertEquals(5, all.get(2).getSeq());
 
         List<OrderbookUpdate> after2 = log.get(2);
         assertEquals(2, after2.size());
-        assertEquals(3, after2.get(0).getUpdateId());
-        assertEquals(5, after2.get(1).getUpdateId());
+        assertEquals(3, after2.get(0).getSeq());
+        assertEquals(5, after2.get(1).getSeq());
 
         assertTrue(log.get(5).isEmpty());
     }
@@ -47,7 +47,7 @@ class OrderbookUpdateLogTest {
 
         List<OrderbookUpdate> got = log.get(-1);
         assertEquals(1, got.size());
-        assertEquals(7, got.get(0).getUpdateId());
+        assertEquals(7, got.get(0).getSeq());
         assertEquals(101, got.get(0).getPriceChanges().get(0).getPrice());
         assertEquals(2, got.get(0).getPriceChanges().get(0).getVolume());
     }

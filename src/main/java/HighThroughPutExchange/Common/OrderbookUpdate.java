@@ -5,16 +5,16 @@ import java.util.List;
 import java.util.Objects;
 
 public class OrderbookUpdate {
-    private final long updateId;
+    private final long seq;
     private final List<PriceChange> priceChanges;
 
-    public OrderbookUpdate(long updateId, List<PriceChange> priceChanges) {
-        this.updateId = updateId;
+    public OrderbookUpdate(long seq, List<PriceChange> priceChanges) {
+        this.seq = seq;
         this.priceChanges = List.copyOf(Objects.requireNonNull(priceChanges));
     }
 
-    public long getUpdateId() {
-        return updateId;
+    public long getSeq() {
+        return seq;
     }
 
     public List<PriceChange> getPriceChanges() {

@@ -5,12 +5,12 @@ import java.util.List;
 
 public class GetUpdatesResponse {
     private long from;
-    private long latestId;
+    private long latestSeq;
     private List<OrderbookUpdate> updates;
 
-    public GetUpdatesResponse(long from, long latestId, List<OrderbookUpdate> updates) {
+    public GetUpdatesResponse(long from, long latestSeq, List<OrderbookUpdate> updates) {
         this.from = from;
-        this.latestId = latestId;
+        this.latestSeq = latestSeq;
         this.updates = updates;
     }
 
@@ -22,12 +22,12 @@ public class GetUpdatesResponse {
         this.from = from;
     }
 
-    public long getLatestId() {
-        return latestId;
+    public long getLatestSeq() {
+        return latestSeq;
     }
 
-    public void setLatestId(long latestId) {
-        this.latestId = latestId;
+    public void setLatestSeq(long latestSeq) {
+        this.latestSeq = latestSeq;
     }
 
     public List<OrderbookUpdate> getUpdates() {

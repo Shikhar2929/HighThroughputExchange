@@ -61,15 +61,15 @@ public class SocketController {
         // get new trades that happened since last update
         List<PriceChange> recentTrades = RecentTrades.getRecentTrades();
 
-        // atomically get updateId from generator
-        Long updateId = updateIdGenerator.getAndIncrement();
+        // atomically get sequence number from generator
+        Long seq = updateIdGenerator.getAndIncrement();
         String recentTradesJson = RecentTrades.recentTradesToJson(recentTrades);
 
         // add the current update to the orderbook update log
-        orderbookUpdateLog.append(new OrderbookUpdate(updateId, recentTrades));
+        orderbookUpdateLog.append(new OrderbookUpdate(seq, recentTrades));
 
         if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
-            sendMessage(new SocketResponse(recentTradesJson, updateId));
+            sendMessage(new SocketResponse(recentTradesJson, seq));
         } else {
             sendMessage(new SocketResponse("No recent trades", updateIdGenerator.getErrorId()));
         }

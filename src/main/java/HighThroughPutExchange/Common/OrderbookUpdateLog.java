@@ -20,7 +20,7 @@ public class OrderbookUpdateLog {
             throw new IllegalArgumentException("update cannot be null");
         }
 
-        log.put(update.getUpdateId(), update);
+        log.put(update.getSeq(), update);
     }
 
     public synchronized List<OrderbookUpdate> get(long from) {
@@ -36,7 +36,7 @@ public class OrderbookUpdateLog {
             }
         }
 
-        out.sort(Comparator.comparingLong(OrderbookUpdate::getUpdateId));
+        out.sort(Comparator.comparingLong(OrderbookUpdate::getSeq));
         return out;
     }
 }

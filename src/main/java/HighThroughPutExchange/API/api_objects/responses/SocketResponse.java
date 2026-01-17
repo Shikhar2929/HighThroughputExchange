@@ -2,11 +2,11 @@ package HighThroughPutExchange.API.api_objects.responses;
 
 public class SocketResponse {
     private String content;
-    private Long updateId;
+    private Long seq;
 
-    public SocketResponse(String content, Long updateId) {
+    public SocketResponse(String content, Long seq) {
         this.content = content;
-        this.updateId = updateId;
+        this.seq = seq;
     }
 
     public String getContent() {
@@ -17,11 +17,11 @@ public class SocketResponse {
         this.content = content;
     }
 
-    public Long getUpdateId() {
-        return updateId;
+    public Long getSeq() {
+        return seq;
     }
 
-    public void setUpdateId(Long updateId) {
-        this.updateId = updateId;
+    public void setSeq(Long seq) {
+        this.seq = seq;
     }
 }

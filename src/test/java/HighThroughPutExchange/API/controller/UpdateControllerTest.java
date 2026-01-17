@@ -67,9 +67,9 @@ class UpdateControllerTest {
         when(orderbookUpdateLog.get(from)).thenReturn(List.of(u11, u12));
 
         mockMvc.perform(get("/updates").param("from", String.valueOf(from))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.fromExclusive").value(10)).andExpect(jsonPath("$.latestId").value(999))
+                .andExpect(jsonPath("$.fromExclusive").value(10)).andExpect(jsonPath("$.latestSeq").value(999))
                 .andExpect(jsonPath("$.updates").isArray()).andExpect(jsonPath("$.updates.length()").value(2))
-                .andExpect(jsonPath("$.updates[0].updateId").value(11)).andExpect(jsonPath("$.updates[1].updateId").value(12))
+                .andExpect(jsonPath("$.updates[0].seq").value(11)).andExpect(jsonPath("$.updates[1].seq").value(12))
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].ticker").value("ABC"))
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].price").value(100))
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].volume").value(7))
