@@ -4,22 +4,22 @@ import HighThroughPutExchange.Common.OrderbookUpdate;
 import java.util.List;
 
 public class GetUpdatesResponse {
-    private long from;
+    private long fromExclusive;
     private long latestSeq;
     private List<OrderbookUpdate> updates;
 
-    public GetUpdatesResponse(long from, long latestSeq, List<OrderbookUpdate> updates) {
-        this.from = from;
+    public GetUpdatesResponse(long fromExclusive, long latestSeq, List<OrderbookUpdate> updates) {
+        this.fromExclusive = fromExclusive;
         this.latestSeq = latestSeq;
         this.updates = updates;
     }
 
     public long getFromExclusive() {
-        return from;
+        return fromExclusive;
     }
 
-    public void setFromExclusive(long from) {
-        this.from = from;
+    public void setFromExclusive(long fromExclusive) {
+        this.fromExclusive = fromExclusive;
     }
 
     public long getLatestSeq() {
