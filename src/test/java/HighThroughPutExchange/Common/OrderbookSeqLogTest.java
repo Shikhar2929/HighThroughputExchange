@@ -7,17 +7,17 @@ import HighThroughPutExchange.MatchingEngine.Side;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class OrderbookUpdateLogTest {
+class OrderbookSeqLogTest {
 
     @Test
     void append_null_throws() {
-        OrderbookUpdateLog log = new OrderbookUpdateLog();
+        OrderbookSeqLog log = new OrderbookSeqLog();
         assertThrows(IllegalArgumentException.class, () -> log.append(null));
     }
 
     @Test
     void get_filtersByFromExclusive_andSortsBySeq() {
-        OrderbookUpdateLog log = new OrderbookUpdateLog();
+        OrderbookSeqLog log = new OrderbookSeqLog();
 
         // Insert out-of-order to ensure get() sorting is tested.
         log.append(new OrderbookUpdate(5, List.of(new PriceChange("A", 105, 1, Side.BID))));
@@ -40,7 +40,7 @@ class OrderbookUpdateLogTest {
 
     @Test
     void append_sameId_overwritesExisting() {
-        OrderbookUpdateLog log = new OrderbookUpdateLog();
+        OrderbookSeqLog log = new OrderbookSeqLog();
 
         log.append(new OrderbookUpdate(7, List.of(new PriceChange("A", 100, 1, Side.BID))));
         log.append(new OrderbookUpdate(7, List.of(new PriceChange("A", 101, 2, Side.BID))));

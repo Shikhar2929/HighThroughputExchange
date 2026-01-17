@@ -7,9 +7,9 @@ import HighThroughPutExchange.Common.ChartTrackerSingleton;
 import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.OHLCData;
 import HighThroughPutExchange.Common.OrderbookUpdate;
-import HighThroughPutExchange.Common.OrderbookUpdateLog;
+import HighThroughPutExchange.Common.OrderbookSeqLog;
 import HighThroughPutExchange.Common.TaskQueue;
-import HighThroughPutExchange.Common.UpdateIdGenerator;
+import HighThroughPutExchange.Common.SeqGenerator;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import HighThroughPutExchange.MatchingEngine.PriceChange;
 import HighThroughPutExchange.MatchingEngine.RecentTrades;
@@ -34,9 +34,9 @@ public class SocketController {
     @Autowired
     private AdminPageAuthenticator adminPageAuthenticator;
     @Autowired
-    private UpdateIdGenerator updateIdGenerator;
+    private SeqGenerator seqGenerator;
     @Autowired
-    private OrderbookUpdateLog orderbookUpdateLog;
+    private OrderbookSeqLog orderbookSeqLog;
 
     private MatchingEngine matchingEngine = MatchingEngineSingleton.getMatchingEngine();
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
@@ -62,16 +62,16 @@ public class SocketController {
         List<PriceChange> recentTrades = RecentTrades.getRecentTrades();
 
         // atomically get sequence number from generator
-        Long seq = updateIdGenerator.getAndIncrement();
+        Long seq = seqGenerator.getAndIncrement();
         String recentTradesJson = RecentTrades.recentTradesToJson(recentTrades);
 
         // add the current update to the orderbook update log
-        orderbookUpdateLog.append(new OrderbookUpdate(seq, recentTrades));
+        orderbookSeqLog.append(new OrderbookUpdate(seq, recentTrades));
 
         if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
             sendMessage(new SocketResponse(recentTradesJson, seq));
         } else {
-            sendMessage(new SocketResponse("No recent trades", updateIdGenerator.getErrorId()));
+            sendMessage(new SocketResponse("No recent trades", seqGenerator.getErrorSeq()));
         }
     }
 

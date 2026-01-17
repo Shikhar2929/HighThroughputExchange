@@ -5,27 +5,27 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UpdateIdGenerator {
-    private final AtomicLong currentUpdateId = new AtomicLong(0);
+public class SeqGenerator {
+    private final AtomicLong currentSeq = new AtomicLong(0);
 
     @PostConstruct
     public void init() {
-        currentUpdateId.set(0);
+        currentSeq.set(0);
     }
 
     public long getAndIncrement() {
-        return currentUpdateId.getAndIncrement();
+        return currentSeq.getAndIncrement();
     }
 
     public long get() {
-        return currentUpdateId.get();
+        return currentSeq.get();
     }
 
-    public long getErrorId() {
+    public long getErrorSeq() {
         return -1;
     }
 
     public void reset() {
-        currentUpdateId.set(0);
+        currentSeq.set(0);
     }
 }

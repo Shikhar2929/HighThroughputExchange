@@ -8,10 +8,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderbookUpdateLog {
+public class OrderbookSeqLog {
     private final ConcurrentHashMap<Long, OrderbookUpdate> log;
 
-    public OrderbookUpdateLog() {
+    public OrderbookSeqLog() {
         this.log = new ConcurrentHashMap<>();
     }
 

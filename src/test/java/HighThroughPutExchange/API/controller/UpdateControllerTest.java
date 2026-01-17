@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import HighThroughPutExchange.API.ServerApplication;
 import HighThroughPutExchange.Common.OrderbookUpdate;
-import HighThroughPutExchange.Common.OrderbookUpdateLog;
-import HighThroughPutExchange.Common.UpdateIdGenerator;
+import HighThroughPutExchange.Common.OrderbookSeqLog;
+import HighThroughPutExchange.Common.SeqGenerator;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import HighThroughPutExchange.MatchingEngine.PriceChange;
 import HighThroughPutExchange.MatchingEngine.Side;
@@ -29,13 +29,13 @@ class UpdateControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private UpdateIdGenerator updateIdGenerator;
+    private SeqGenerator seqGenerator;
 
     @MockBean
     private MatchingEngine matchingEngine;
 
     @MockBean
-    private OrderbookUpdateLog orderbookUpdateLog;
+    private OrderbookSeqLog orderbookSeqLog;
 
     // Present in other controller tests; included to satisfy any wiring
     // expectations.
@@ -44,7 +44,7 @@ class UpdateControllerTest {
 
   @Test
   void getVersion_success() throws Exception {
-    when(updateIdGenerator.get()).thenReturn(123L);
+    when(seqGenerator.get()).thenReturn(123L);
 
     mockMvc
         .perform(get("/version"))
@@ -60,11 +60,11 @@ class UpdateControllerTest {
     @Test
     void getUpdates_success_returnsMetadataAndUpdates() throws Exception {
         long from = 10L;
-        when(updateIdGenerator.get()).thenReturn(999L);
+      when(seqGenerator.get()).thenReturn(999L);
 
         OrderbookUpdate u11 = new OrderbookUpdate(11L, List.<PriceChange>of());
         OrderbookUpdate u12 = new OrderbookUpdate(12L, List.of(new PriceChange("ABC", 100, 7, Side.BID)));
-        when(orderbookUpdateLog.get(from)).thenReturn(List.of(u11, u12));
+        when(orderbookSeqLog.get(from)).thenReturn(List.of(u11, u12));
 
         mockMvc.perform(get("/updates").param("from", String.valueOf(from))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.fromExclusive").value(10)).andExpect(jsonPath("$.latestSeq").value(999))
@@ -78,7 +78,7 @@ class UpdateControllerTest {
 
   @Test
   void snapshot_success_returnsRawSnapshotJsonAndVersion() throws Exception {
-    when(updateIdGenerator.get()).thenReturn(777L);
+    when(seqGenerator.get()).thenReturn(777L);
     when(matchingEngine.serializeOrderBooks())
         .thenReturn("{\"ticker\":\"ABC\",\"bids\":[],\"asks\":[]}");
 
