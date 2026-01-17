@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 public class SnapshotResponse {
     @JsonRawValue
     private String snapshot;
-    private long version;
+    private long latestSeq;
 
-    public SnapshotResponse(String snapshot, long version) {
+    public SnapshotResponse(String snapshot, long latestSeq) {
         this.snapshot = snapshot;
-        this.version = version;
+        this.latestSeq = latestSeq;
     }
 
     public String getSnapshot() {
@@ -20,11 +20,11 @@ public class SnapshotResponse {
         this.snapshot = snapshot;
     }
 
-    public long getVersion() {
-        return version;
+    public long getLatestSeq() {
+        return latestSeq;
     }
 
-    public void setVersion(long version) {
-        this.version = version;
+    public void setLatestSeq(long latestSeq) {
+        this.latestSeq = latestSeq;
     }
 }

@@ -1,7 +1,7 @@
 package HighThroughPutExchange.API.controller;
 
+import HighThroughPutExchange.API.api_objects.responses.GetLatestSeqResponse;
 import HighThroughPutExchange.API.api_objects.responses.GetUpdatesResponse;
-import HighThroughPutExchange.API.api_objects.responses.GetVersionResponse;
 import HighThroughPutExchange.API.api_objects.responses.SnapshotResponse;
 import HighThroughPutExchange.Common.OrderbookSeqLog;
 import HighThroughPutExchange.Common.OrderbookUpdate;
@@ -30,9 +30,9 @@ public class SeqController {
     }
 
     @CrossOrigin(origins = "*")
-    @GetMapping("/version")
-    public ResponseEntity<GetVersionResponse> getVersion() {
-        return new ResponseEntity<>(new GetVersionResponse(seqGenerator.get()), HttpStatus.OK);
+    @GetMapping("/latestSeq")
+    public ResponseEntity<GetLatestSeqResponse> getLatestSeq() {
+        return new ResponseEntity<>(new GetLatestSeqResponse(seqGenerator.get()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -54,13 +54,13 @@ public class SeqController {
     @CrossOrigin(origins = "*")
     @PostMapping("/snapshot")
     public ResponseEntity<?> snapshot() {
-        long version = seqGenerator.get();
+        long latestSeq = seqGenerator.get();
         String snapshot = matchingEngine.serializeOrderBooks();
 
         if (snapshot == null) {
             return new ResponseEntity<>(Map.of("error", "snapshot-serialization-failed"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        return new ResponseEntity<>(new SnapshotResponse(snapshot, version), HttpStatus.OK);
+        return new ResponseEntity<>(new SnapshotResponse(snapshot, latestSeq), HttpStatus.OK);
     }
 }

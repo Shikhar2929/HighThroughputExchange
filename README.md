@@ -147,11 +147,11 @@ mvn checkstyle:check
     </tr>
     <tr>
         <td>Seq Version</td>
-        <td>/version</td>
+        <td>/latestSeq</td>
         <td>public</td>
-        <td>Current monotonic sequence/version.</td>
+        <td>Current monotonic sequence counter (next seq to be allocated).</td>
         <td>N/A - simple HTTP GET</td>
-        <td>{"version": long}</td>
+        <td>{"latestSeq": long}</td>
     </tr>
     <tr>
         <td>Seq Updates Replay</td>
@@ -167,7 +167,7 @@ mvn checkstyle:check
         <td>public</td>
         <td>Full orderbook snapshot for recovery.</td>
         <td>N/A - HTTP POST</td>
-        <td>{"snapshot": object, "version": long}</td>
+        <td>{"snapshot": object, "latestSeq": long}</td>
     </tr>
 </table>
 

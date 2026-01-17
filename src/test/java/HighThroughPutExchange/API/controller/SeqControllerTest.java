@@ -42,13 +42,13 @@ class SeqControllerTest {
     private ServerApplication app;
 
   @Test
-  void getVersion_success() throws Exception {
+  void getLatestSeq_success() throws Exception {
     when(seqGenerator.get()).thenReturn(123L);
 
     mockMvc
-        .perform(get("/version"))
+        .perform(get("/latestSeq"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.version").value(123));
+        .andExpect(jsonPath("$.latestSeq").value(123));
   }
 
     @Test
@@ -90,7 +90,7 @@ class SeqControllerTest {
   }
 
   @Test
-  void snapshot_success_returnsRawSnapshotJsonAndVersion() throws Exception {
+  void snapshot_success_returnsRawSnapshotJsonAndLatestSeq() throws Exception {
     when(seqGenerator.get()).thenReturn(777L);
     when(matchingEngine.serializeOrderBooks())
         .thenReturn("{\"ticker\":\"ABC\",\"bids\":[],\"asks\":[]}");
@@ -98,7 +98,7 @@ class SeqControllerTest {
     mockMvc
         .perform(post("/snapshot"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.version").value(777))
+        .andExpect(jsonPath("$.latestSeq").value(777))
         .andExpect(jsonPath("$.snapshot.ticker").value("ABC"))
         .andExpect(jsonPath("$.snapshot.bids").isArray())
         .andExpect(jsonPath("$.snapshot.asks").isArray());
