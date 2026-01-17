@@ -26,7 +26,15 @@ def main() -> None:
     port = int(os.getenv("WS_TESTER_PORT", str(DEFAULT_PORT)))
     host = os.getenv("WS_TESTER_HOST", DEFAULT_HOST)
 
-    handler = http.server.SimpleHTTPRequestHandler
+    class NoCacheRequestHandler(http.server.SimpleHTTPRequestHandler):
+        def end_headers(self) -> None:
+            # Avoid confusing dev-time caching where the browser keeps serving an old app.js.
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+            super().end_headers()
+
+    handler = NoCacheRequestHandler
 
     with socketserver.TCPServer((host, port), handler) as httpd:
         url = f"http://{host}:{port}/"
