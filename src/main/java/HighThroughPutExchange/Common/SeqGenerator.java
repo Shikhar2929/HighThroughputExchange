@@ -21,10 +21,6 @@ public class SeqGenerator {
         return currentSeq.get();
     }
 
-    public long getErrorSeq() {
-        return -1;
-    }
-
     public void reset() {
         currentSeq.set(0);
     }
