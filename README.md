@@ -147,3 +147,11 @@ mvn checkstyle:check
         <td>{"snapshot": object, "version": long}</td>
     </tr>
 </table>
+
+### WebSocket (STOMP)
+
+- Topic: `/topic/orderbook`
+- Payload: `SocketResponse` JSON: `{"content": string, "seq": long}`
+- Semantics:
+    - When there are trades/orderbook changes, `seq` increases monotonically and `content` contains the JSON-encoded update payload.
+    - When there are no recent trades, the server sends a heartbeat message where `seq` is the latest known value (may repeat) and `content` is a human-readable string (currently `"No recent trades"`).
