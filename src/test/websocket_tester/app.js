@@ -235,7 +235,7 @@ function sendStartSignal() {
 
 // Display a message in the UI
 function showMessage(message) {
-    $("#messages").append("<tr><td>" + escapeHtml(message) + "</td></tr>");
+    $("#messages").prepend("<tr><td>" + escapeHtml(message) + "</td></tr>");
 }
 
 // Event listeners for buttons
