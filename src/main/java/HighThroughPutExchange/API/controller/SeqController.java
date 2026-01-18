@@ -23,7 +23,10 @@ public class SeqController {
     private final MatchingEngine matchingEngine;
     private final OrderbookSeqLog orderbookSeqLog;
 
-    public SeqController(SeqGenerator seqGenerator, MatchingEngine matchingEngine, OrderbookSeqLog orderbookSeqLog) {
+    public SeqController(
+            SeqGenerator seqGenerator,
+            MatchingEngine matchingEngine,
+            OrderbookSeqLog orderbookSeqLog) {
         this.seqGenerator = seqGenerator;
         this.matchingEngine = matchingEngine;
         this.orderbookSeqLog = orderbookSeqLog;
@@ -40,18 +43,37 @@ public class SeqController {
     public ResponseEntity<?> getUpdates(@RequestParam long fromExclusive) {
         Long minSeq = orderbookSeqLog.getMinSeq();
         if (minSeq == null) {
-            return new ResponseEntity<>(Map.of("error", "min-seq-unavailable", "fromExclusive", fromExclusive, "latestSeq", seqGenerator.get()),
+            return new ResponseEntity<>(
+                    Map.of(
+                            "error",
+                            "min-seq-unavailable",
+                            "fromExclusive",
+                            fromExclusive,
+                            "latestSeq",
+                            seqGenerator.get()),
                     HttpStatus.GONE);
         }
 
         long minFromExclusive = minSeq - 1;
         if (fromExclusive < minFromExclusive) {
-            return new ResponseEntity<>(Map.of("error", "from-too-old", "fromExclusive", fromExclusive, "minAvailableSeq", minSeq, "minFromExclusive",
-                    minFromExclusive, "latestSeq", seqGenerator.get()), HttpStatus.GONE);
+            return new ResponseEntity<>(
+                    Map.of(
+                            "error",
+                            "from-too-old",
+                            "fromExclusive",
+                            fromExclusive,
+                            "minAvailableSeq",
+                            minSeq,
+                            "minFromExclusive",
+                            minFromExclusive,
+                            "latestSeq",
+                            seqGenerator.get()),
+                    HttpStatus.GONE);
         }
 
         List<OrderbookUpdate> updates = orderbookSeqLog.get(fromExclusive);
-        return new ResponseEntity<>(new GetUpdatesResponse(fromExclusive, seqGenerator.get(), updates), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new GetUpdatesResponse(fromExclusive, seqGenerator.get(), updates), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
@@ -61,7 +83,9 @@ public class SeqController {
         String snapshot = matchingEngine.serializeOrderBooks();
 
         if (snapshot == null) {
-            return new ResponseEntity<>(Map.of("error", "snapshot-serialization-failed"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(
+                    Map.of("error", "snapshot-serialization-failed"),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         return new ResponseEntity<>(new SnapshotResponse(snapshot, latestSeq), HttpStatus.OK);

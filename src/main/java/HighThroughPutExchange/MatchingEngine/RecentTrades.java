@@ -13,8 +13,7 @@ public class RecentTrades {
 
     private static final Map<TradeKey, Integer> tradeMap = new ConcurrentHashMap<>();
 
-    public RecentTrades() {
-    }
+    public RecentTrades() {}
 
     @VisibleForTesting
     protected static void clearRecentTrades() {
@@ -29,10 +28,12 @@ public class RecentTrades {
 
     public static ArrayList<PriceChange> getRecentTrades() {
         ArrayList<PriceChange> recentTrades = new ArrayList<>();
-        tradeMap.forEach((key, volume) -> {
-            PriceChange priceChange = new PriceChange(key.getTicker(), key.getPrice(), volume, key.getSide());
-            recentTrades.add(priceChange);
-        });
+        tradeMap.forEach(
+                (key, volume) -> {
+                    PriceChange priceChange =
+                            new PriceChange(key.getTicker(), key.getPrice(), volume, key.getSide());
+                    recentTrades.add(priceChange);
+                });
         Collections.sort(recentTrades);
         tradeMap.clear();
         return recentTrades;

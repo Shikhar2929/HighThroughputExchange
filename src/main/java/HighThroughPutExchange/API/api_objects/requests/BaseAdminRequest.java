@@ -3,10 +3,8 @@ package HighThroughPutExchange.API.api_objects.requests;
 import jakarta.validation.constraints.NotNull;
 
 public class BaseAdminRequest {
-    @NotNull
-    protected String adminUsername;
-    @NotNull
-    protected String adminPassword;
+    @NotNull protected String adminUsername;
+    @NotNull protected String adminPassword;
 
     public String getAdminUsername() {
         return adminUsername;

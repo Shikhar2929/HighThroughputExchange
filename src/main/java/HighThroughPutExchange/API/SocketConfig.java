@@ -25,7 +25,9 @@ public class SocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/exchange-socket").setAllowedOriginPatterns("*").addInterceptors(socketInterceptor)
+        registry.addEndpoint("/exchange-socket")
+                .setAllowedOriginPatterns("*")
+                .addInterceptors(socketInterceptor)
                 .setHandshakeHandler(new HandshakeHandler());
     }
 }

@@ -3,10 +3,8 @@ package HighThroughPutExchange.API.api_objects.requests;
 import jakarta.validation.constraints.NotNull;
 
 public class BuildupRequest {
-    @NotNull
-    private String username;
-    @NotNull
-    private String apiKey;
+    @NotNull private String username;
+    @NotNull private String apiKey;
 
     public BuildupRequest(String username, String apiKey) {
         this.username = username;

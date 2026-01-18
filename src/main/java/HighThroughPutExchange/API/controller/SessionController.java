@@ -18,7 +18,8 @@ public class SessionController {
     private final SessionService sessionService;
     private final PrivatePageAuthenticator privatePageAuthenticator;
 
-    public SessionController(SessionService sessionService, PrivatePageAuthenticator privatePageAuthenticator) {
+    public SessionController(
+            SessionService sessionService, PrivatePageAuthenticator privatePageAuthenticator) {
         this.sessionService = sessionService;
         this.privatePageAuthenticator = privatePageAuthenticator;
     }
@@ -47,7 +48,9 @@ public class SessionController {
     @PostMapping("/teardown")
     public ResponseEntity<TeardownResponse> teardown(@Valid @RequestBody TeardownRequest form) {
         if (!privatePageAuthenticator.authenticate(form)) {
-            return new ResponseEntity<>(new TeardownResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new TeardownResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         TeardownResponse resp = sessionService.teardown(form.getUsername());
         return new ResponseEntity<>(resp, HttpStatus.OK);

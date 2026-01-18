@@ -20,11 +20,12 @@ public class AuctionService {
     public GetLeadingAuctionBidResponse getLeadingAuctionBid() {
         TaskFuture<GetLeadingAuctionBidResponse> future = new TaskFuture<>();
         future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
-        TaskQueue.addTask(() -> {
-            future.getData().setUser(this.getBestUser());
-            future.getData().setBid(this.getBestBid());
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    future.getData().setUser(this.getBestUser());
+                    future.getData().setBid(this.getBestBid());
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         return future.getData();
     }
@@ -33,27 +34,35 @@ public class AuctionService {
         TaskFuture<GetLeadingAuctionBidResponse> future = new TaskFuture<>();
         future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
 
-        TaskQueue.addTask(() -> {
-            future.getData().setUser(this.getBestUser());
-            future.getData().setBid(this.getBestBid());
-            this.executeAuction();
-            this.resetAuction();
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    future.getData().setUser(this.getBestUser());
+                    future.getData().setBid(this.getBestBid());
+                    this.executeAuction();
+                    this.resetAuction();
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         return future.getData();
     }
 
     public BidAuctionResponse bidAuctionInvalid() {
-        return new BidAuctionResponse(String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.BAD_INPUT.getErrorCode(),
-                String.format("Bad Input! Bid amount cannot exceed %d.", this.getMaxBid())));
+        return new BidAuctionResponse(
+                String.format(
+                        "{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
+                        Message.BAD_INPUT.getErrorCode(),
+                        String.format(
+                                "Bad Input! Bid amount cannot exceed %d.", this.getMaxBid())));
     }
 
     public BidAuctionResponse bidAuction(BidAuctionRequest form) {
         TaskQueue.addTask(() -> this.placeBid(form.getUsername(), form.getBid()));
 
-        return new BidAuctionResponse(String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", Message.SUCCESS.getErrorCode(),
-                String.format("Success! Placed auction bid for %d.", form.getBid())));
+        return new BidAuctionResponse(
+                String.format(
+                        "{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
+                        Message.SUCCESS.getErrorCode(),
+                        String.format("Success! Placed auction bid for %d.", form.getBid())));
     }
 
     public boolean isValid(String user, int bid) {

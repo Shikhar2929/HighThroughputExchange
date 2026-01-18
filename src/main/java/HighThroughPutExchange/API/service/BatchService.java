@@ -39,49 +39,81 @@ public class BatchService {
             futures.add(future);
             responses.add(new OperationResponse(operation.getType(), null));
             switch (operation.getType()) {
-                case "limit_order" : {
-                    LimitOrderOperation limitOrderOperation = (LimitOrderOperation) operation;
-                    temporaryTaskQueue.add(() -> {
-                        Order order = new Order(username, limitOrderOperation.getTicker(), limitOrderOperation.getPrice(),
-                                limitOrderOperation.getVolume(), limitOrderOperation.getBid() ? Side.BID : Side.ASK, Status.ACTIVE);
-                        if (limitOrderOperation.getBid())
-                            matchingEngine.bidLimitOrder(username, order, future);
-                        else
-                            matchingEngine.askLimitOrder(username, order, future);
-                        future.markAsComplete();
-                    });
-                    break;
-                }
-                case "market_order" : {
-                    MarketOrderOperation marketOrderOperation = (MarketOrderOperation) operation;
-                    temporaryTaskQueue.add(() -> {
-                        if (marketOrderOperation.getBid()) {
-                            matchingEngine.bidMarketOrder(username, marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
-                        } else
-                            matchingEngine.askMarketOrder(username, marketOrderOperation.getTicker(), marketOrderOperation.getVolume(), future);
-                        future.markAsComplete();
-                    });
-                    break;
-                }
-                case "remove" : {
-                    HighThroughPutExchange.API.api_objects.Operations.RemoveOperation removeOperation = (HighThroughPutExchange.API.api_objects.Operations.RemoveOperation) operation;
-                    temporaryTaskQueue.add(() -> {
-                        matchingEngine.removeOrder(username, removeOperation.getOrderId(), future);
-                        future.markAsComplete();
-                    });
-                    break;
-                }
-                case "remove_all" : {
-                    temporaryTaskQueue.add(() -> {
-                        matchingEngine.removeAll(username, future);
-                        future.markAsComplete();
-                    });
-                    break;
-                }
-                default : {
-                    success = false;
-                    break;
-                }
+                case "limit_order":
+                    {
+                        LimitOrderOperation limitOrderOperation = (LimitOrderOperation) operation;
+                        temporaryTaskQueue.add(
+                                () -> {
+                                    Order order =
+                                            new Order(
+                                                    username,
+                                                    limitOrderOperation.getTicker(),
+                                                    limitOrderOperation.getPrice(),
+                                                    limitOrderOperation.getVolume(),
+                                                    limitOrderOperation.getBid()
+                                                            ? Side.BID
+                                                            : Side.ASK,
+                                                    Status.ACTIVE);
+                                    if (limitOrderOperation.getBid())
+                                        matchingEngine.bidLimitOrder(username, order, future);
+                                    else matchingEngine.askLimitOrder(username, order, future);
+                                    future.markAsComplete();
+                                });
+                        break;
+                    }
+                case "market_order":
+                    {
+                        MarketOrderOperation marketOrderOperation =
+                                (MarketOrderOperation) operation;
+                        temporaryTaskQueue.add(
+                                () -> {
+                                    if (marketOrderOperation.getBid()) {
+                                        matchingEngine.bidMarketOrder(
+                                                username,
+                                                marketOrderOperation.getTicker(),
+                                                marketOrderOperation.getVolume(),
+                                                future);
+                                    } else
+                                        matchingEngine.askMarketOrder(
+                                                username,
+                                                marketOrderOperation.getTicker(),
+                                                marketOrderOperation.getVolume(),
+                                                future);
+                                    future.markAsComplete();
+                                });
+                        break;
+                    }
+                case "remove":
+                    {
+                        HighThroughPutExchange.API.api_objects.Operations.RemoveOperation
+                                removeOperation =
+                                        (HighThroughPutExchange.API
+                                                        .api_objects
+                                                        .Operations
+                                                        .RemoveOperation)
+                                                operation;
+                        temporaryTaskQueue.add(
+                                () -> {
+                                    matchingEngine.removeOrder(
+                                            username, removeOperation.getOrderId(), future);
+                                    future.markAsComplete();
+                                });
+                        break;
+                    }
+                case "remove_all":
+                    {
+                        temporaryTaskQueue.add(
+                                () -> {
+                                    matchingEngine.removeAll(username, future);
+                                    future.markAsComplete();
+                                });
+                        break;
+                    }
+                default:
+                    {
+                        success = false;
+                        break;
+                    }
             }
         }
 

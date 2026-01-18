@@ -3,8 +3,7 @@ package HighThroughPutExchange.API.api_objects.responses;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
 public class SnapshotResponse {
-    @JsonRawValue
-    private String snapshot;
+    @JsonRawValue private String snapshot;
     private long latestSeq;
 
     public SnapshotResponse(String snapshot, long latestSeq) {

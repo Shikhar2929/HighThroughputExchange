@@ -20,8 +20,11 @@ public class SessionService {
     private final LocalDBTable<Session> botSessions;
     private final MatchingEngine matchingEngine;
 
-    public SessionService(@Qualifier("usersTable") LocalDBTable<User> users, @Qualifier("botsTable") LocalDBTable<User> bots,
-            @Qualifier("sessionsTable") LocalDBTable<Session> sessions, @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions,
+    public SessionService(
+            @Qualifier("usersTable") LocalDBTable<User> users,
+            @Qualifier("botsTable") LocalDBTable<User> bots,
+            @Qualifier("sessionsTable") LocalDBTable<Session> sessions,
+            @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions,
             MatchingEngine matchingEngine) {
         this.users = users;
         this.bots = bots;
@@ -69,7 +72,8 @@ public class SessionService {
                 throw new RuntimeException(e);
             }
         }
-        return new BuildupResponse(Message.SUCCESS.toString(), sessionToken, matchingEngine.serializeOrderBooks());
+        return new BuildupResponse(
+                Message.SUCCESS.toString(), sessionToken, matchingEngine.serializeOrderBooks());
     }
 
     public BuildupResponse botBuildup(String username, String apiKey) {
@@ -99,7 +103,10 @@ public class SessionService {
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        return new BuildupResponse(Message.SUCCESS.toString(), s.getSessionToken(), matchingEngine.serializeOrderBooks());
+        return new BuildupResponse(
+                Message.SUCCESS.toString(),
+                s.getSessionToken(),
+                matchingEngine.serializeOrderBooks());
     }
 
     public TeardownResponse teardown(String username) {

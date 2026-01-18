@@ -28,6 +28,7 @@ public enum Message {
 
     @Override
     public String toString() {
-        return String.format("{\"errorCode\": %d, \"errorMessage\": \"%s\"}", errorCode, errorMessage);
+        return String.format(
+                "{\"errorCode\": %d, \"errorMessage\": \"%s\"}", errorCode, errorMessage);
     }
 }

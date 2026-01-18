@@ -5,16 +5,19 @@ import java.util.function.IntUnaryOperator;
 
 /** Shared state and helpers for authenticated order placement requests. */
 public abstract class AbstractOrderRequest extends BasePrivateRequest {
-    @NotNull
-    private String ticker;
-    @NotNull
-    private int volume;
-    @NotNull
-    private boolean isBid;
+    @NotNull private String ticker;
+    @NotNull private int volume;
+    @NotNull private boolean isBid;
 
     private final IntUnaryOperator volumeProcessor;
 
-    protected AbstractOrderRequest(String username, String sessionToken, String ticker, int volume, boolean isBid, IntUnaryOperator volumeProcessor) {
+    protected AbstractOrderRequest(
+            String username,
+            String sessionToken,
+            String ticker,
+            int volume,
+            boolean isBid,
+            IntUnaryOperator volumeProcessor) {
         super(username, sessionToken);
         this.ticker = ticker;
         this.isBid = isBid;

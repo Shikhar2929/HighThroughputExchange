@@ -23,7 +23,11 @@ public class SystemController {
     private final RateLimiter rateLimiter;
     private final ServerApplication app;
 
-    public SystemController(ServerApplication app, AuthService authService, SystemService systemService, RateLimiter rateLimiter) {
+    public SystemController(
+            ServerApplication app,
+            AuthService authService,
+            SystemService systemService,
+            RateLimiter rateLimiter) {
         this.app = app;
         this.authService = authService;
         this.systemService = systemService;
@@ -33,21 +37,28 @@ public class SystemController {
     @CrossOrigin(origins = "*")
     @GetMapping("/get_state")
     public ResponseEntity<String> state() {
-        return new ResponseEntity<>(String.format("{\"state\": %d}", app.getState().ordinal()), HttpStatus.OK);
+        return new ResponseEntity<>(
+                String.format("{\"state\": %d}", app.getState().ordinal()), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/get_details")
-    public ResponseEntity<GetDetailsResponse> getDetails(@Valid @RequestBody PrivatePageRequest form) {
+    public ResponseEntity<GetDetailsResponse> getDetails(
+            @Valid @RequestBody PrivatePageRequest form) {
         if (!authService.authenticatePrivate(form)) {
-            return new ResponseEntity<>(new GetDetailsResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new GetDetailsResponse(Message.AUTHENTICATION_FAILED.toString(), ""),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new GetDetailsResponse(Message.RATE_LIMITED.toString(), ""), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new GetDetailsResponse(Message.RATE_LIMITED.toString(), ""),
+                    HttpStatus.TOO_MANY_REQUESTS);
         }
 
         String details = systemService.getUserDetails(form.getUsername());
-        return new ResponseEntity<>(new GetDetailsResponse(Message.SUCCESS.toString(), details), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new GetDetailsResponse(Message.SUCCESS.toString(), details), HttpStatus.OK);
     }
 }

@@ -26,8 +26,12 @@ public class AdminService {
     private final LocalDBTable<User> bots;
     private final ServerApplication app;
 
-    public AdminService(LocalDBClient dbClient, @Qualifier("usersTable") LocalDBTable<User> users, @Qualifier("botsTable") LocalDBTable<User> bots,
-            MatchingEngine matchingEngine, ServerApplication app) {
+    public AdminService(
+            LocalDBClient dbClient,
+            @Qualifier("usersTable") LocalDBTable<User> users,
+            @Qualifier("botsTable") LocalDBTable<User> bots,
+            MatchingEngine matchingEngine,
+            ServerApplication app) {
         this.dbClient = dbClient;
         this.users = users;
         this.bots = bots;
@@ -81,10 +85,11 @@ public class AdminService {
 
     public String setPrice(Map<String, Integer> prices) {
         TaskFuture<String> future = new TaskFuture<>();
-        TaskQueue.addTask(() -> {
-            matchingEngine.setPriceClearOrderBook(prices, future);
-            future.markAsComplete();
-        });
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.setPriceClearOrderBook(prices, future);
+                    future.markAsComplete();
+                });
         future.waitForCompletion();
         return future.getData();
     }

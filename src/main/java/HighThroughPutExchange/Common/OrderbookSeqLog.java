@@ -44,7 +44,8 @@ public class OrderbookSeqLog {
     // Allocates the next sequence number and appends the update to this log in a
     // single synchronized
     // block.
-    public synchronized long nextSeqAndAppend(SeqGenerator seqGenerator, List<PriceChange> priceChanges) {
+    public synchronized long nextSeqAndAppend(
+            SeqGenerator seqGenerator, List<PriceChange> priceChanges) {
         if (seqGenerator == null) {
             throw new IllegalArgumentException("seqGenerator cannot be null");
         }

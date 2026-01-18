@@ -75,7 +75,8 @@ class OrderbookSeqLogTest {
         seqGenerator.reset();
 
         OrderbookSeqLog log = new OrderbookSeqLog(10);
-        long seq = log.nextSeqAndAppend(seqGenerator, List.of(new PriceChange("A", 101, 1, Side.BID)));
+        long seq =
+                log.nextSeqAndAppend(seqGenerator, List.of(new PriceChange("A", 101, 1, Side.BID)));
 
         assertEquals(0L, seq);
         List<OrderbookUpdate> got = log.get(-1);

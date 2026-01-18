@@ -15,7 +15,9 @@ public class InitializationRunner implements ApplicationRunner {
     private final LocalDBTable<User> users;
     private final LocalDBTable<User> bots;
 
-    public InitializationRunner(MatchingEngine matchingEngine, @Qualifier("usersTable") LocalDBTable<User> users,
+    public InitializationRunner(
+            MatchingEngine matchingEngine,
+            @Qualifier("usersTable") LocalDBTable<User> users,
             @Qualifier("botsTable") LocalDBTable<User> bots) {
         this.matchingEngine = matchingEngine;
         this.users = users;
