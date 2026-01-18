@@ -27,6 +27,14 @@ def _assert_success_message(resp_json: dict[str, Any]) -> None:
         raise ApiError(f"API error: {msg}")
 
 
+def _assert_success_message_or_none(resp_json: dict[str, Any]) -> None:
+    msg = resp_json.get("message")
+    if msg is None:
+        # Some endpoints return message=null for successful no-op operations.
+        return
+    _assert_success_message(resp_json)
+
+
 @dataclass(frozen=True)
 class Session:
     username: str
@@ -95,6 +103,41 @@ class ExchangeClient:
         if r.status_code >= 400:
             raise ApiError(f"HTTP {r.status_code}: {data}")
         return data
+
+    def post_allow_http_error(
+        self,
+        path: str,
+        payload: dict[str, Any],
+        *,
+        timeout_s: float = 5.0,
+    ) -> tuple[int, dict[str, Any]]:
+        backoff_s = 0.05
+        last_status = None
+        last_text = None
+
+        for _ in range(6):
+            r = requests.post(
+                f"{self.base_url}{path}",
+                json=payload,
+                timeout=timeout_s,
+            )
+            last_status = r.status_code
+            last_text = r.text
+
+            if r.status_code == 429:
+                import time
+
+                time.sleep(backoff_s)
+                backoff_s = min(backoff_s * 2, 0.5)
+                continue
+            break
+
+        try:
+            data = r.json()
+        except Exception as e:
+            raise ApiError(f"Non-JSON response ({last_status}): {last_text}") from e
+
+        return int(r.status_code), data
 
     def get_state(self) -> int:
         r = requests.get(f"{self.base_url}/get_state", timeout=2)
@@ -258,7 +301,7 @@ class ExchangeClient:
             "/remove_all",
             {"username": session.username, "sessionToken": session.session_token},
         )
-        _assert_success_message(data)
+        _assert_success_message_or_none(data)
 
     def remove(self, session: Session, order_id: int) -> None:
         data = self._post(
@@ -330,7 +373,7 @@ class ExchangeClient:
             "/bot_remove_all",
             {"username": session.username, "sessionToken": session.session_token},
         )
-        _assert_success_message(data)
+        _assert_success_message_or_none(data)
 
     def bot_remove(self, session: BotSession, order_id: int) -> None:
         data = self._post(

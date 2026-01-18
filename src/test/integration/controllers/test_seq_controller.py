@@ -1,22 +1,11 @@
 from __future__ import annotations
 
 import time
-import uuid
 from typing import Any
 
-import pytest
 import requests
 
 from exchange_client import ExchangeClient
-
-
-@pytest.fixture(scope="session")
-def client(base_url: str) -> ExchangeClient:
-    return ExchangeClient(base_url)
-
-
-def _unique_username(prefix: str) -> str:
-    return f"{prefix}_{uuid.uuid4().hex[:12]}"
 
 
 def test_latest_seq_returns_number(client: ExchangeClient) -> None:
@@ -42,13 +31,13 @@ def test_updates_requires_from_exclusive_param(base_url: str) -> None:
     assert r.status_code == 400
 
 
-def test_updates_returns_updates_after_trade(client: ExchangeClient) -> None:
+def test_updates_returns_updates_after_trade(client: ExchangeClient, unique_username) -> None:
     # Create a trade to populate RecentTrades, then wait for SocketController's
     # scheduled task to append it into OrderbookSeqLog.
     client.admin_set_state(1)
 
-    seller = _unique_username("seller")
-    buyer = _unique_username("buyer")
+    seller = unique_username("seller")
+    buyer = unique_username("buyer")
 
     seller_key = client.admin_add_user(username=seller, name="CI Seller", email=f"{seller}@example.com")
     buyer_key = client.admin_add_user(username=buyer, name="CI Buyer", email=f"{buyer}@example.com")
