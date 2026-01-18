@@ -43,6 +43,26 @@ class ExchangeClient:
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip("/")
 
+    def _get_json(
+        self,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        timeout_s: float = 5.0,
+        allow_http_error: bool = False,
+    ) -> tuple[int, dict[str, Any]]:
+        r = requests.get(f"{self.base_url}{path}", params=params, timeout=timeout_s)
+        status = int(r.status_code)
+
+        try:
+            data = r.json()
+        except Exception as e:
+            raise ApiError(f"Non-JSON response ({status}): {r.text}") from e
+
+        if not allow_http_error and status >= 400:
+            raise ApiError(f"HTTP {status}: {data}")
+        return status, data
+
     def _post(self, path: str, payload: dict[str, Any], timeout_s: float = 5.0) -> dict[str, Any]:
         backoff_s = 0.05
         last_status = None
@@ -81,6 +101,36 @@ class ExchangeClient:
         r.raise_for_status()
         data = r.json()
         return int(data["state"])
+
+    # --- SeqController endpoints ---
+
+    def latest_seq(self) -> int:
+        status, data = self._get_json("/latestSeq", timeout_s=2.0)
+        if status != 200:
+            raise ApiError(f"Unexpected status for /latestSeq: {status} {data}")
+        latest = data.get("latestSeq")
+        if latest is None:
+            raise ApiError(f"Missing latestSeq: {data}")
+        return int(latest)
+
+    def snapshot(self) -> dict[str, Any]:
+        r = requests.post(f"{self.base_url}/snapshot", timeout=5.0)
+        status = int(r.status_code)
+        try:
+            data = r.json()
+        except Exception as e:
+            raise ApiError(f"Non-JSON response ({status}): {r.text}") from e
+        if status >= 400:
+            raise ApiError(f"HTTP {status}: {data}")
+        return data
+
+    def updates_allow_gone(self, from_exclusive: int) -> tuple[int, dict[str, Any]]:
+        return self._get_json(
+            "/updates",
+            params={"fromExclusive": int(from_exclusive)},
+            timeout_s=5.0,
+            allow_http_error=True,
+        )
 
     def admin_page(self) -> None:
         payload = {
