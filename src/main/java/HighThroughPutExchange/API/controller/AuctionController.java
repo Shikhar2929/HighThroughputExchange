@@ -26,7 +26,11 @@ public class AuctionController {
     private final ServerApplication app;
     private final RateLimiter rateLimiter;
 
-    public AuctionController(AuctionService auctionService, AuthService authService, ServerApplication app, RateLimiter rateLimiter) {
+    public AuctionController(
+            AuctionService auctionService,
+            AuthService authService,
+            ServerApplication app,
+            RateLimiter rateLimiter) {
         this.auctionService = auctionService;
         this.authService = authService;
         this.app = app;
@@ -35,9 +39,12 @@ public class AuctionController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/get_leading_auction_bid")
-    public ResponseEntity<GetLeadingAuctionBidResponse> getLeadingAuctionBid(@Valid @RequestBody BaseAdminRequest form) {
+    public ResponseEntity<GetLeadingAuctionBidResponse> getLeadingAuctionBid(
+            @Valid @RequestBody BaseAdminRequest form) {
         if (!authService.authenticateAdmin(form)) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         GetLeadingAuctionBidResponse message = auctionService.getLeadingAuctionBid();
@@ -51,13 +58,18 @@ public class AuctionController {
      */
     @CrossOrigin(origins = "*")
     @PostMapping("/terminate_auction")
-    public ResponseEntity<GetLeadingAuctionBidResponse> terminateAuction(@Valid @RequestBody BaseAdminRequest form) {
+    public ResponseEntity<GetLeadingAuctionBidResponse> terminateAuction(
+            @Valid @RequestBody BaseAdminRequest form) {
         if (!authService.authenticateAdmin(form)) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         if (app.getState() != State.TRADE_WITH_AUCTION) {
-            return new ResponseEntity<>(new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.LOCKED);
         }
 
         app.setStateInternal(State.STOP);
@@ -67,15 +79,21 @@ public class AuctionController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/bid_auction")
-    public ResponseEntity<BidAuctionResponse> bidAuction(@Valid @RequestBody BidAuctionRequest form) {
+    public ResponseEntity<BidAuctionResponse> bidAuction(
+            @Valid @RequestBody BidAuctionRequest form) {
         if (!authService.authenticatePrivate(form)) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new BidAuctionResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new BidAuctionResponse(Message.RATE_LIMITED.toString()),
+                    HttpStatus.TOO_MANY_REQUESTS);
         }
         if (app.getState() != State.TRADE_WITH_AUCTION) {
-            return new ResponseEntity<>(new BidAuctionResponse(Message.AUCTION_LOCKED.toString()), HttpStatus.LOCKED);
+            return new ResponseEntity<>(
+                    new BidAuctionResponse(Message.AUCTION_LOCKED.toString()), HttpStatus.LOCKED);
         }
 
         if (!auctionService.isValid(form.getUsername(), form.getBid())) {

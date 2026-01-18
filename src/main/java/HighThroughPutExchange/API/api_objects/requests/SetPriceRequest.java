@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 public class SetPriceRequest extends BaseAdminRequest {
-    @NotNull
-    private Map<String, Integer> prices;
+    @NotNull private Map<String, Integer> prices;
 
-    public SetPriceRequest(String adminUsername, String adminPassword, Map<String, Integer> prices) {
+    public SetPriceRequest(
+            String adminUsername, String adminPassword, Map<String, Integer> prices) {
         super(adminUsername, adminPassword);
         this.prices = prices;
     }

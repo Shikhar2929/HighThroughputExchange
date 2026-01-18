@@ -25,8 +25,7 @@ public class UserList {
     }
 
     public int getUserVolume(String username, String ticker) {
-        if (!quantities.containsKey(username))
-            return 0;
+        if (!quantities.containsKey(username)) return 0;
         return quantities.get(username).getOrDefault(ticker, 0);
     }
 
@@ -36,8 +35,7 @@ public class UserList {
     public boolean initializeUser(String username) {
         // Initialize User for infinite balance case
         System.out.println("Initializing...");
-        if (userBalances.containsKey(username) || !infinite)
-            return false;
+        if (userBalances.containsKey(username) || !infinite) return false;
         userBalances.put(username, (long) 0);
         return true;
     }
@@ -46,10 +44,8 @@ public class UserList {
      * initialize User method, intended for finite initialization
      */
     public boolean initializeUser(String username, int balance) {
-        if (infinite)
-            return initializeUser(username);
-        if (userBalances.containsKey(username))
-            return false;
+        if (infinite) return initializeUser(username);
+        if (userBalances.containsKey(username)) return false;
         userBalances.put(username, (long) balance);
         return true;
     }
@@ -58,12 +54,9 @@ public class UserList {
         if (!quantities.containsKey(username)) {
             quantities.put(username, new HashMap<>());
         }
-        if (!askSize.containsKey(username))
-            askSize.put(username, new HashMap<>());
-        if (!bidSize.containsKey(username))
-            bidSize.put(username, new HashMap<>());
-        if (!sumPrices.containsKey(username))
-            sumPrices.put(username, new HashMap<>());
+        if (!askSize.containsKey(username)) askSize.put(username, new HashMap<>());
+        if (!bidSize.containsKey(username)) bidSize.put(username, new HashMap<>());
+        if (!sumPrices.containsKey(username)) sumPrices.put(username, new HashMap<>());
         quantities.get(username).put(ticker, quantity);
         sumPrices.get(username).put(ticker, 0.0);
         askSize.get(username).put(ticker, 0);
@@ -76,8 +69,7 @@ public class UserList {
     }
 
     public boolean validAskQuantity(String username, String ticker, int volumeTraded) {
-        if (!quantities.containsKey(username))
-            return false;
+        if (!quantities.containsKey(username)) return false;
         return volumeTraded <= getValidAskVolume(username, ticker);
     }
 
@@ -86,14 +78,15 @@ public class UserList {
      */
     public int getValidBidVolume(String username, String ticker, int price) {
         if (infinite) {
-            int returnVal = positionLimit - getUserVolume(username, ticker) - bidSize.get(username).getOrDefault(ticker, 0);
+            int returnVal =
+                    positionLimit
+                            - getUserVolume(username, ticker)
+                            - bidSize.get(username).getOrDefault(ticker, 0);
             return returnVal;
         }
         int currentBalance = (int) getUserBalance(username);
-        if (price != 0.0)
-            return currentBalance / price;
-        else
-            return 0;
+        if (price != 0.0) return currentBalance / price;
+        else return 0;
     }
 
     public boolean validBidParameters(String username, Order order) {
@@ -102,7 +95,9 @@ public class UserList {
 
     public int getValidAskVolume(String username, String ticker) {
         if (infinite) {
-            return positionLimit + getUserVolume(username, ticker) - askSize.get(username).getOrDefault(ticker, 0);
+            return positionLimit
+                    + getUserVolume(username, ticker)
+                    - askSize.get(username).getOrDefault(ticker, 0);
         }
         return getUserVolume(username, ticker);
     }
@@ -124,8 +119,7 @@ public class UserList {
         // System.out.printf("%s: %d %d\n", username, delta, price);
         double currSum = sumPrices.get(username).get(ticker);
         // System.out.println(currSum);
-        if (!quantities.containsKey(username))
-            return false;
+        if (!quantities.containsKey(username)) return false;
         if (delta < 0 && currentBalance > 0 && Math.abs(currentBalance) > Math.abs(delta)) {
             double oldPrice = currSum / currentBalance;
             // System.out.println(oldPrice);
@@ -135,11 +129,15 @@ public class UserList {
             double oldPrice = currSum / currentBalance;
             currSum += oldPrice * delta;
             sumPrices.get(username).put(ticker, currSum);
-        } else if (delta < 0 && currentBalance >= 0 && Math.abs(currentBalance) <= Math.abs(delta)) {
+        } else if (delta < 0
+                && currentBalance >= 0
+                && Math.abs(currentBalance) <= Math.abs(delta)) {
             currSum = (currentBalance + delta) * price;
             // System.out.printf("New Sum: %.2f\n", currSum);
             sumPrices.get(username).put(ticker, currSum);
-        } else if (delta > 0 && currentBalance <= 0 && Math.abs(currentBalance) <= Math.abs(delta)) {
+        } else if (delta > 0
+                && currentBalance <= 0
+                && Math.abs(currentBalance) <= Math.abs(delta)) {
             currSum = (currentBalance + delta) * price;
             // System.out.printf("New Sum: %.2f\n", currSum);
             sumPrices.get(username).put(ticker, currSum);
@@ -155,8 +153,7 @@ public class UserList {
         if (!askSize.containsKey(username)) {
             return false;
         }
-        if (!askSize.get(username).containsKey(ticker))
-            return false;
+        if (!askSize.get(username).containsKey(ticker)) return false;
         askSize.get(username).compute(ticker, (k, currentBalance) -> currentBalance + delta);
         return true;
     }
@@ -196,7 +193,8 @@ public class UserList {
         JSONObject positionsJson = new JSONObject();
         for (String ticker : quantities.getOrDefault(username, new HashMap<>()).keySet()) {
             int quantity = quantities.get(username).getOrDefault(ticker, 0);
-            double sumPrice = sumPrices.getOrDefault(username, new HashMap<>()).getOrDefault(ticker, 0.0);
+            double sumPrice =
+                    sumPrices.getOrDefault(username, new HashMap<>()).getOrDefault(ticker, 0.0);
             double avgPrice = quantity != 0.0 ? (double) sumPrice / (double) quantity : 0.0;
 
             JSONObject tickerDetails = new JSONObject();
@@ -221,8 +219,7 @@ public class UserList {
                     System.out.println("username not found");
                 } else if (!quantities.get(username).containsKey(entry.getKey())) {
                     System.out.println("Weird Ticker Not Found");
-                } else
-                    System.out.println("Weird Exception");
+                } else System.out.println("Weird Exception");
             }
         }
         return pnl;

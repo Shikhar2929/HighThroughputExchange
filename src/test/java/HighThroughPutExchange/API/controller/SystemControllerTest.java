@@ -21,37 +21,31 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = SystemController.class)
 @AutoConfigureMockMvc
 class SystemControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private AuthService authService;
+    @MockBean private AuthService authService;
 
-    @MockBean
-    private SystemService systemService;
+    @MockBean private SystemService systemService;
 
-    @MockBean
-    private RateLimiter rateLimiter;
+    @MockBean private RateLimiter rateLimiter;
 
-    @MockBean
-    private ServerApplication app;
+    @MockBean private ServerApplication app;
 
-  @Test
-  void getDetails_success() throws Exception {
-    when(authService.authenticatePrivate(any())).thenReturn(true);
-    when(rateLimiter.processRequest(any())).thenReturn(true);
-    when(systemService.getUserDetails("trader")).thenReturn("DETAILS");
+    @Test
+    void getDetails_success() throws Exception {
+        when(authService.authenticatePrivate(any())).thenReturn(true);
+        when(rateLimiter.processRequest(any())).thenReturn(true);
+        when(systemService.getUserDetails("trader")).thenReturn("DETAILS");
 
-    String body =
-        """
+        String body =
+                """
         {
           "username": "trader",
           "sessionToken": "tok"
         }
         """;
-    mockMvc
-        .perform(post("/get_details").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.userDetails").value("DETAILS"));
-  }
+        mockMvc.perform(post("/get_details").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userDetails").value("DETAILS"));
+    }
 }

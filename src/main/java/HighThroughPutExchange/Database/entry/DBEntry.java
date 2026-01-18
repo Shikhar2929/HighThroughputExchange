@@ -1,4 +1,3 @@
 package HighThroughPutExchange.Database.entry;
 
-public abstract class DBEntry implements JSONSerializable, Hashable {
-}
+public abstract class DBEntry implements JSONSerializable, Hashable {}

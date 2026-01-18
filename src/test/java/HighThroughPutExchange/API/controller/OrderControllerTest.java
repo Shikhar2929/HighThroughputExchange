@@ -23,39 +23,33 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = OrderController.class)
 @AutoConfigureMockMvc
 class OrderControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private OrderService orderService;
+    @MockBean private OrderService orderService;
 
-    @MockBean
-    private RateLimiter rateLimiter;
+    @MockBean private RateLimiter rateLimiter;
 
-    @MockBean
-    private ServerApplication app;
+    @MockBean private ServerApplication app;
 
-    @MockBean
-    private PrivatePageAuthenticator privatePageAuthenticator;
+    @MockBean private PrivatePageAuthenticator privatePageAuthenticator;
 
-    @MockBean
-    private BotAuthenticator botAuthenticator;
+    @MockBean private BotAuthenticator botAuthenticator;
 
-  @Test
-  void limitOrder_success() throws Exception {
-    when(app.getState()).thenReturn(State.TRADE);
-    when(privatePageAuthenticator.authenticate(any())).thenReturn(true);
-    when(rateLimiter.processRequest(any())).thenReturn(true);
-    when(orderService.placeLimitOrder(
-            Mockito.eq("trader"),
-            Mockito.eq("AAPL"),
-            Mockito.eq(100),
-            Mockito.eq(1),
-            Mockito.eq(true)))
-        .thenReturn("OK");
+    @Test
+    void limitOrder_success() throws Exception {
+        when(app.getState()).thenReturn(State.TRADE);
+        when(privatePageAuthenticator.authenticate(any())).thenReturn(true);
+        when(rateLimiter.processRequest(any())).thenReturn(true);
+        when(orderService.placeLimitOrder(
+                        Mockito.eq("trader"),
+                        Mockito.eq("AAPL"),
+                        Mockito.eq(100),
+                        Mockito.eq(1),
+                        Mockito.eq(true)))
+                .thenReturn("OK");
 
-    String body =
-        """
+        String body =
+                """
         {
             "username": "trader",
             "sessionToken": "tok",
@@ -65,8 +59,7 @@ class OrderControllerTest {
             "bid": true
         }
         """;
-    mockMvc
-        .perform(post("/limit_order").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isOk());
-  }
+        mockMvc.perform(post("/limit_order").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk());
+    }
 }

@@ -31,6 +31,8 @@ public class Order {
 
     @Override
     public String toString() {
-        return String.format("Order{name='%s', ticker='%s', price=%d, volume=%d, side=%s, status=%s}", name, ticker, price, volume, side, status);
+        return String.format(
+                "Order{name='%s', ticker='%s', price=%d, volume=%d, side=%s, status=%s}",
+                name, ticker, price, volume, side, status);
     }
 }

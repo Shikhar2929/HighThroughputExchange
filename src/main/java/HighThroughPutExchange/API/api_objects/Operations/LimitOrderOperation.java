@@ -4,14 +4,10 @@ import HighThroughPutExchange.API.api_objects.requests.Preprocessing;
 import jakarta.validation.constraints.NotNull;
 
 public class LimitOrderOperation extends Operation {
-    @NotNull
-    private String ticker;
-    @NotNull
-    private int price;
-    @NotNull
-    private int volume;
-    @NotNull
-    private boolean isBid;
+    @NotNull private String ticker;
+    @NotNull private int price;
+    @NotNull private int volume;
+    @NotNull private boolean isBid;
 
     public LimitOrderOperation(String ticker, int price, int volume, boolean isBid) {
         super("limit_order");

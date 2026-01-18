@@ -8,8 +8,7 @@ public class Session extends DBEntry {
     private String sessionToken2;
     private String username;
 
-    public Session() {
-    }
+    public Session() {}
 
     public Session(String sessionToken, String username) {
         this(sessionToken, sessionToken, username);

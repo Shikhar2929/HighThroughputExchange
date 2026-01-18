@@ -10,8 +10,7 @@ public class User extends DBEntry {
     private String apiKey2;
     private String email;
 
-    public User() {
-    }
+    public User() {}
 
     public User(String username, String name, String apiKey, String email) {
         this(username, name, apiKey, apiKey, email);

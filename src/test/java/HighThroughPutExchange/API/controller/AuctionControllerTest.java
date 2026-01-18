@@ -22,54 +22,52 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = AuctionController.class)
 @AutoConfigureMockMvc
 class AuctionControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private AuctionService auctionService;
+    @MockBean private AuctionService auctionService;
 
-    @MockBean
-    private AuthService authService;
+    @MockBean private AuthService authService;
 
-    @MockBean
-    private ServerApplication app;
+    @MockBean private ServerApplication app;
 
-    @MockBean
-    private RateLimiter rateLimiter;
+    @MockBean private RateLimiter rateLimiter;
 
-  @Test
-  void getLeadingAuctionBid_success() throws Exception {
-    when(authService.authenticateAdmin(any())).thenReturn(true);
-    when(auctionService.getLeadingAuctionBid())
-        .thenReturn(new GetLeadingAuctionBidResponse("SUCCESS"));
+    @Test
+    void getLeadingAuctionBid_success() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(true);
+        when(auctionService.getLeadingAuctionBid())
+                .thenReturn(new GetLeadingAuctionBidResponse("SUCCESS"));
 
-    String body =
-        """
+        String body =
+                """
         {
             "adminUsername": "root",
             "adminPassword": "pw"
         }
         """;
-    mockMvc
-        .perform(
-            post("/get_leading_auction_bid").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isOk());
-  }
+        mockMvc.perform(
+                        post("/get_leading_auction_bid")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isOk());
+    }
 
-  @Test
-  void terminateAuction_locked() throws Exception {
-    when(authService.authenticateAdmin(any())).thenReturn(true);
-    when(app.getState()).thenReturn(State.STOP);
+    @Test
+    void terminateAuction_locked() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(true);
+        when(app.getState()).thenReturn(State.STOP);
 
-    String body =
-        """
+        String body =
+                """
         {
             "adminUsername": "root",
             "adminPassword": "pw"
         }
         """;
-    mockMvc
-        .perform(post("/terminate_auction").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isLocked());
-  }
+        mockMvc.perform(
+                        post("/terminate_auction")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isLocked());
+    }
 }

@@ -22,11 +22,15 @@ public class SocketInterceptor implements HandshakeInterceptor {
     }
 
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
+    public boolean beforeHandshake(
+            ServerHttpRequest request,
+            ServerHttpResponse response,
+            WebSocketHandler wsHandler,
             Map<String, Object> attributes) {
         // Use the sessions bean to validate the session ID
         URI uri = request.getURI();
-        Map<String, String> queryParams = UriComponentsBuilder.fromUri(uri).build().getQueryParams().toSingleValueMap();
+        Map<String, String> queryParams =
+                UriComponentsBuilder.fromUri(uri).build().getQueryParams().toSingleValueMap();
         String sessionId = queryParams.get("Session-ID");
         String username = queryParams.get("Username");
         if (!privatePageAuthenticator.authenticate(new BasePrivateRequest(username, sessionId))) {
@@ -38,8 +42,11 @@ public class SocketInterceptor implements HandshakeInterceptor {
     }
 
     @Override
-    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
-    }
+    public void afterHandshake(
+            ServerHttpRequest request,
+            ServerHttpResponse response,
+            WebSocketHandler wsHandler,
+            Exception exception) {}
 
     private static class UserPrincipal implements Principal {
         private final String username;

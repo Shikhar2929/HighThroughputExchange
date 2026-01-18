@@ -23,36 +23,31 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = BatchController.class)
 @AutoConfigureMockMvc
 class BatchControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private BatchService batchService;
+    @MockBean private BatchService batchService;
 
-    @MockBean
-    private AuthService authService;
+    @MockBean private AuthService authService;
 
-    @MockBean
-    private ServerApplication app;
+    @MockBean private ServerApplication app;
 
-  @Test
-  void batch_success_empty() throws Exception {
-    when(authService.authenticateBot(any())).thenReturn(true);
-    when(app.getState()).thenReturn(State.TRADE);
-    when(batchService.getMaxOperations()).thenReturn(20);
-    when(batchService.processBatch(Mockito.eq("bot1"), Mockito.anyList()))
-        .thenReturn(new ArrayList<OperationResponse>());
+    @Test
+    void batch_success_empty() throws Exception {
+        when(authService.authenticateBot(any())).thenReturn(true);
+        when(app.getState()).thenReturn(State.TRADE);
+        when(batchService.getMaxOperations()).thenReturn(20);
+        when(batchService.processBatch(Mockito.eq("bot1"), Mockito.anyList()))
+                .thenReturn(new ArrayList<OperationResponse>());
 
-    String body =
-        """
+        String body =
+                """
         {
             "username": "bot1",
             "sessionToken": "t",
             "operations": []
         }
         """;
-    mockMvc
-        .perform(post("/batch").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isOk());
-  }
+        mockMvc.perform(post("/batch").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk());
+    }
 }

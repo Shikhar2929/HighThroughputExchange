@@ -26,16 +26,11 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class SocketController {
-    @Autowired
-    private SimpMessagingTemplate template;
-    @Autowired
-    private SimpUserRegistry simpUserRegistry;
-    @Autowired
-    private AdminPageAuthenticator adminPageAuthenticator;
-    @Autowired
-    private SeqGenerator seqGenerator;
-    @Autowired
-    private OrderbookSeqLog orderbookSeqLog;
+    @Autowired private SimpMessagingTemplate template;
+    @Autowired private SimpUserRegistry simpUserRegistry;
+    @Autowired private AdminPageAuthenticator adminPageAuthenticator;
+    @Autowired private SeqGenerator seqGenerator;
+    @Autowired private OrderbookSeqLog orderbookSeqLog;
 
     private MatchingEngine matchingEngine = MatchingEngineSingleton.getMatchingEngine();
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
@@ -61,7 +56,10 @@ public class SocketController {
         List<PriceChange> recentTrades = RecentTrades.getRecentTrades();
         String recentTradesJson = RecentTrades.recentTradesToJson(recentTrades);
 
-        if (recentTrades != null && !recentTrades.isEmpty() && !recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) {
+        if (recentTrades != null
+                && !recentTrades.isEmpty()
+                && !recentTradesJson.isEmpty()
+                && !recentTradesJson.equals("[ ]")) {
             // Allocate seq and append to replay log in one step (only for real updates)
             Long seq = orderbookSeqLog.nextSeqAndAppend(seqGenerator, recentTrades);
             sendMessage(new SocketResponse(recentTradesJson, seq));
@@ -74,12 +72,13 @@ public class SocketController {
 
     @Scheduled(fixedRate = 200)
     public void sendUserBalances() {
-        TaskQueue.addTask(() -> {
-            for (SimpUser user : simpUserRegistry.getUsers()) {
-                String userDetailsJson = matchingEngine.getUserDetails(user.getName());
-                sendUserInfo(user.getName(), userDetailsJson);
-            }
-        });
+        TaskQueue.addTask(
+                () -> {
+                    for (SimpUser user : simpUserRegistry.getUsers()) {
+                        String userDetailsJson = matchingEngine.getUserDetails(user.getName());
+                        sendUserInfo(user.getName(), userDetailsJson);
+                    }
+                });
     }
 
     public void sendUserInfo(String username, String resp) {

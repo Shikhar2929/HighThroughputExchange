@@ -31,7 +31,9 @@ public class LocalDBClient extends AbstractDBClient {
                 for (String key : temp.get(tableName).get("backing").keySet()) {
                     try {
                         table.putItem(
-                                objectMapper.convertValue(temp.get(tableName).get("backing").get(key), tableMapping.getOrDefault(tableName, null)));
+                                objectMapper.convertValue(
+                                        temp.get(tableName).get("backing").get(key),
+                                        tableMapping.getOrDefault(tableName, null)));
                     } catch (AlreadyExistsException e) {
                         throw new RuntimeException(e);
                     }

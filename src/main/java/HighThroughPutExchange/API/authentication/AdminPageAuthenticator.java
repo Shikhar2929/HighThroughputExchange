@@ -9,6 +9,7 @@ public class AdminPageAuthenticator {
     private final String adminPassword = "ZY3yoQL5v8MahcmcWBnG";
 
     public boolean authenticate(BaseAdminRequest req) {
-        return req.getAdminUsername().equals(adminUsername) && req.getAdminPassword().equals(adminPassword);
+        return req.getAdminUsername().equals(adminUsername)
+                && req.getAdminPassword().equals(adminPassword);
     }
 }

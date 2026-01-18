@@ -2,13 +2,9 @@ package HighThroughPutExchange.API.api_objects.responses;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
-/**
- * Minimal holder for message-centric responses so that serialization flags stay
- * consistent.
- */
+/** Minimal holder for message-centric responses so that serialization flags stay consistent. */
 public abstract class AbstractMessageResponse {
-    @JsonRawValue
-    private String message;
+    @JsonRawValue private String message;
 
     protected AbstractMessageResponse() {
         // for deserialization

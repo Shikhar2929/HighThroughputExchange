@@ -3,14 +3,16 @@ package HighThroughPutExchange.API.api_objects.requests;
 import jakarta.validation.constraints.NotNull;
 
 public class AddUserRequest extends BaseAdminRequest {
-    @NotNull
-    private String username;
-    @NotNull
-    private String name;
-    @NotNull
-    private String email;
+    @NotNull private String username;
+    @NotNull private String name;
+    @NotNull private String email;
 
-    public AddUserRequest(String adminUsername, String adminPassword, String username, String name, String email) {
+    public AddUserRequest(
+            String adminUsername,
+            String adminPassword,
+            String username,
+            String name,
+            String email) {
         super(adminUsername, adminPassword);
         this.username = username;
         this.name = name;

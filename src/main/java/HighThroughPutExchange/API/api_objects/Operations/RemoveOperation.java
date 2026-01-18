@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 
 public class RemoveOperation extends Operation {
-    @NotNull
-    private long orderId;
+    @NotNull private long orderId;
 
     public RemoveOperation(@JsonProperty("orderId") long orderId) {
         super("remove");

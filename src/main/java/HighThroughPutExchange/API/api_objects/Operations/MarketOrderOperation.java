@@ -4,12 +4,9 @@ import HighThroughPutExchange.API.api_objects.requests.Preprocessing;
 import jakarta.validation.constraints.NotNull;
 
 public class MarketOrderOperation extends Operation {
-    @NotNull
-    private String ticker;
-    @NotNull
-    private int volume;
-    @NotNull
-    private boolean isBid;
+    @NotNull private String ticker;
+    @NotNull private int volume;
+    @NotNull private boolean isBid;
 
     public MarketOrderOperation(String type, String ticker, int volume, boolean isBid) {
         super("market_order");

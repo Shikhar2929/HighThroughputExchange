@@ -25,24 +25,34 @@ public class AuthController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/admin_page")
-    public ResponseEntity<AdminDashboardResponse> adminPage(@Valid @RequestBody AdminDashboardRequest form) {
+    public ResponseEntity<AdminDashboardResponse> adminPage(
+            @Valid @RequestBody AdminDashboardRequest form) {
         if (!authService.authenticateAdmin(form)) {
-            return new ResponseEntity<>(new AdminDashboardResponse(Message.AUTHENTICATION_FAILED.toString(), ""), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new AdminDashboardResponse(Message.AUTHENTICATION_FAILED.toString(), ""),
+                    HttpStatus.UNAUTHORIZED);
         }
 
-        return new ResponseEntity<>(new AdminDashboardResponse(Message.SUCCESS.toString(), ""), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new AdminDashboardResponse(Message.SUCCESS.toString(), ""), HttpStatus.OK);
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/privatePage")
-    public ResponseEntity<PrivatePageResponse> privatePage(@Valid @RequestBody PrivatePageRequest form) {
+    public ResponseEntity<PrivatePageResponse> privatePage(
+            @Valid @RequestBody PrivatePageRequest form) {
         if (!authService.authenticatePrivate(form)) {
-            return new ResponseEntity<>(new PrivatePageResponse(Message.AUTHENTICATION_FAILED.toString()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(
+                    new PrivatePageResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
         }
         if (!rateLimiter.processRequest(form)) {
-            return new ResponseEntity<>(new PrivatePageResponse(Message.RATE_LIMITED.toString()), HttpStatus.TOO_MANY_REQUESTS);
+            return new ResponseEntity<>(
+                    new PrivatePageResponse(Message.RATE_LIMITED.toString()),
+                    HttpStatus.TOO_MANY_REQUESTS);
         }
 
-        return new ResponseEntity<>(new PrivatePageResponse(Message.SUCCESS.toString()), HttpStatus.OK);
+        return new ResponseEntity<>(
+                new PrivatePageResponse(Message.SUCCESS.toString()), HttpStatus.OK);
     }
 }

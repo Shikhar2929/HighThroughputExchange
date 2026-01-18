@@ -3,10 +3,8 @@ package HighThroughPutExchange.API.api_objects.requests;
 import jakarta.validation.constraints.NotNull;
 
 public class BasePrivateRequest {
-    @NotNull
-    protected String username;
-    @NotNull
-    protected String sessionToken;
+    @NotNull protected String username;
+    @NotNull protected String sessionToken;
 
     public String getUsername() {
         return username;

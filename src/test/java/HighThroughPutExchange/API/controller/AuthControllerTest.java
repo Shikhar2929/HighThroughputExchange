@@ -18,45 +18,40 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = AuthController.class)
 @AutoConfigureMockMvc
 class AuthControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private AuthService authService;
+    @MockBean private AuthService authService;
 
-    @MockBean
-    private RateLimiter rateLimiter;
+    @MockBean private RateLimiter rateLimiter;
 
-  @Test
-  void adminPage_success() throws Exception {
-    when(authService.authenticateAdmin(any())).thenReturn(true);
+    @Test
+    void adminPage_success() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(true);
 
-    String body =
-        """
+        String body =
+                """
         {
             "adminUsername": "root",
             "adminPassword": "pw"
         }
         """;
-    mockMvc
-        .perform(post("/admin_page").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isOk());
-  }
+        mockMvc.perform(post("/admin_page").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk());
+    }
 
-  @Test
-  void privatePage_rateLimited() throws Exception {
-    when(authService.authenticatePrivate(any())).thenReturn(true);
-    when(rateLimiter.processRequest(any())).thenReturn(false);
+    @Test
+    void privatePage_rateLimited() throws Exception {
+        when(authService.authenticatePrivate(any())).thenReturn(true);
+        when(rateLimiter.processRequest(any())).thenReturn(false);
 
-    String body =
-        """
+        String body =
+                """
         {
             "username": "trader",
             "sessionToken": "tok"
         }
         """;
-    mockMvc
-        .perform(post("/privatePage").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isTooManyRequests());
-  }
+        mockMvc.perform(post("/privatePage").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isTooManyRequests());
+    }
 }

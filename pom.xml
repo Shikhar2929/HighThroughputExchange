@@ -81,14 +81,27 @@
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>2.43.0</version>
                 <configuration>
+                    <formats>
+                        <format>
+                            <includes>
+                                <include>*.md</include>
+                                <include>.gitignore</include>
+                            </includes>
+                            <trimTrailingWhitespace/>
+                            <endWithNewline/>
+                            <indent>
+                                <spaces>true</spaces>
+                                <spacesPerTab>4</spacesPerTab>
+                            </indent>
+                        </format>
+                    </formats>
                     <java>
-                        <googleJavaFormat/>
-                        <eclipse>
-                            <version>4.26</version>
-                            <file>config/eclipse-java-formatter.properties</file>
-                        </eclipse>
+                        <googleJavaFormat>
+                            <style>AOSP</style>
+                            <reflowLongStrings>true</reflowLongStrings>
+                        </googleJavaFormat>
                         <removeUnusedImports/>
-                        <importOrder/>
+                        <formatAnnotations/>
                     </java>
                 </configuration>
             </plugin>

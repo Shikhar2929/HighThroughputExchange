@@ -14,7 +14,9 @@ public class AuthService {
     private final BotAuthenticator botAuthenticator;
     private final AdminPageAuthenticator adminPageAuthenticator;
 
-    public AuthService(PrivatePageAuthenticator privatePageAuthenticator, BotAuthenticator botAuthenticator,
+    public AuthService(
+            PrivatePageAuthenticator privatePageAuthenticator,
+            BotAuthenticator botAuthenticator,
             AdminPageAuthenticator adminPageAuthenticator) {
         this.privatePageAuthenticator = privatePageAuthenticator;
         this.botAuthenticator = botAuthenticator;

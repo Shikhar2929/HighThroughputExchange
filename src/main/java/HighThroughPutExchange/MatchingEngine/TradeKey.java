@@ -37,12 +37,12 @@ public class TradeKey implements Comparable<TradeKey> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TradeKey tradeKey = (TradeKey) o;
-        return Integer.compare(tradeKey.price, price) == 0 && ticker.equals(tradeKey.ticker) && side == tradeKey.side;
+        return Integer.compare(tradeKey.price, price) == 0
+                && ticker.equals(tradeKey.ticker)
+                && side == tradeKey.side;
     }
 
     @Override

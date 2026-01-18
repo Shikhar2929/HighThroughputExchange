@@ -1,4 +1,3 @@
 package HighThroughPutExchange.Database.exceptions;
 
-public class NotFoundException extends AlreadyExistsException {
-}
+public class NotFoundException extends AlreadyExistsException {}

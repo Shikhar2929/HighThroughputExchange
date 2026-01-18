@@ -6,9 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class BatchRequest extends BasePrivateRequest {
-    @NotNull
-    @Valid
-    private List<Operation> operations;
+    @NotNull @Valid private List<Operation> operations;
 
     BatchRequest(String username, String sessionToken, List<Operation> operations) {
         super(username, sessionToken);
