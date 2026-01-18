@@ -2,14 +2,37 @@
 
 ---
 
-### Run tests
+## Usage
+
+### Run the server (Spring Boot)
+Runs the API locally (defaults to port 8080 unless overridden).
+```sh
+mvn spring-boot:run
+```
+
+### Run Java tests (JUnit/Surefire)
 ```sh
 mvn test
 ```
 
-### Run format and checkstyle
+### Run Python integration tests (pytest)
+Uses `pytest.ini` (default suite is under `src/test/integration`). If you run `pytest` from the repo root, start the server first (`mvn spring-boot:run`) since these are integration tests.
+```sh
+pytest
+```
+
+### Format Java code (Spotless)
 ```sh
 mvn spotless:apply
+```
+
+### Verify formatting (Spotless)
+```sh
+mvn spotless:check
+```
+
+### Lint Java code (Checkstyle)
+```sh
 mvn checkstyle:check
 ```
 
@@ -122,72 +145,36 @@ mvn checkstyle:check
         <td>{"username": string, "sessionToken": string, "price": float}</td>
         <td>Success/Fail</td>
     </tr>
+    <tr>
+        <td>Seq Version</td>
+        <td>/latestSeq</td>
+        <td>public</td>
+        <td>Current monotonic sequence counter (next seq to be allocated).</td>
+        <td>N/A - simple HTTP GET</td>
+        <td>{"latestSeq": long}</td>
+    </tr>
+    <tr>
+        <td>Seq Updates Replay</td>
+        <td>/updates?fromExclusive=&lt;seq&gt;</td>
+        <td>public</td>
+        <td>Replay updates with seq &gt; fromExclusive (cursor is exclusive).</td>
+        <td>Query: fromExclusive=long</td>
+        <td>200: {"fromExclusive": long, "latestSeq": long, "updates": [{"seq": long, "priceChanges": [...]}, ...]}<br/>410: {"error": "from-too-old", "fromExclusive": long, "minAvailableSeq": long, "minFromExclusive": long, "latestSeq": long}</td>
+    </tr>
+    <tr>
+        <td>Snapshot</td>
+        <td>/snapshot</td>
+        <td>public</td>
+        <td>Full orderbook snapshot for recovery.</td>
+        <td>N/A - HTTP POST</td>
+        <td>{"snapshot": object, "latestSeq": long}</td>
+    </tr>
 </table>
 
+### WebSocket (STOMP)
 
-
-[//]: # (<tr>)
-
-[//]: # (        <td>Trends</td>)
-
-[//]: # (        <td>/trends</td>)
-
-[//]: # (        <td>public</td>)
-
-[//]: # (        <td>Gets key timestamps to visualize historical trends of the performance of a stock.</td>)
-
-[//]: # (        <td>N/A - just a simple HTTP GET</td>)
-
-[//]: # (        <td>JSON representing historical stock data</td>)
-
-[//]: # (    </tr>)
-
-[//]: # (<tr>)
-
-[//]: # (        <td>Leaderboard</td>)
-
-[//]: # (        <td>/leaderboard</td>)
-
-[//]: # (        <td>public</td>)
-
-[//]: # (        <td>Information on how each team is doing.</td>)
-
-[//]: # (        <td>N/A - just a simple HTTP GET</td>)
-
-[//]: # (        <td>JSON of team performance in sorted order.</td>)
-
-[//]: # (    </tr>)
-
-[//]: # (    <tr>)
-
-[//]: # (        <td>Admin Dashboard</td>)
-
-[//]: # (        <td>/admin</td>)
-
-[//]: # (        <td>admin</td>)
-
-[//]: # (        <td>Allows admin to view all current teams + all dummy bots registered on the platform, as well as all active sessions trading.</td>)
-
-[//]: # (        <td>{"adminUsername": string, "adminPassword": string}</td>)
-
-[//]: # (        <td>{"auth": boolean}</td>)
-
-[//]: # (    </tr>)
-
-
-
-Notes (pls ignore)
-
-
-python -> python3
-dont automatically loop over
-make layout more friendly
-make notebook markdown
-make example strategy more all-encompassing
-make readme better
-
-{
-"game_name": "X Cards",
-"rounds": 10,
-""
-}
+- Topic: `/topic/orderbook`
+- Payload: `SocketResponse` JSON: `{"content": string, "seq": long}`
+- Semantics:
+    - When there are trades/orderbook changes, `seq` increases monotonically and `content` contains the JSON-encoded update payload.
+    - When there are no recent trades, the server sends a heartbeat message where `seq` is the latest known value (may repeat) and `content` is a human-readable string (currently `"No recent trades"`).

@@ -6,11 +6,15 @@ import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
 import HighThroughPutExchange.Common.ChartTrackerSingleton;
 import HighThroughPutExchange.Common.MatchingEngineSingleton;
 import HighThroughPutExchange.Common.OHLCData;
+import HighThroughPutExchange.Common.OrderbookSeqLog;
+import HighThroughPutExchange.Common.SeqGenerator;
 import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.MatchingEngine.PriceChange;
 import HighThroughPutExchange.MatchingEngine.RecentTrades;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -22,13 +26,17 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class SocketController {
-
     @Autowired
     private SimpMessagingTemplate template;
     @Autowired
     private SimpUserRegistry simpUserRegistry;
     @Autowired
     private AdminPageAuthenticator adminPageAuthenticator;
+    @Autowired
+    private SeqGenerator seqGenerator;
+    @Autowired
+    private OrderbookSeqLog orderbookSeqLog;
+
     private MatchingEngine matchingEngine = MatchingEngineSingleton.getMatchingEngine();
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
 
@@ -47,13 +55,20 @@ public class SocketController {
          */
     }
 
-    @Scheduled(fixedRate = 200) // sends an update every 500 milliseconds
+    @Scheduled(fixedRate = 200)
     public void sendRecentTrades() {
-        String recentTradesJson = RecentTrades.getRecentTradesAsJson();
-        if (!recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) { // Ensure JSON is not empty
-            sendMessage(new SocketResponse(recentTradesJson));
+        // get new trades that happened since last update
+        List<PriceChange> recentTrades = RecentTrades.getRecentTrades();
+        String recentTradesJson = RecentTrades.recentTradesToJson(recentTrades);
+
+        if (recentTrades != null && !recentTrades.isEmpty() && !recentTradesJson.isEmpty() && !recentTradesJson.equals("[ ]")) {
+            // Allocate seq and append to replay log in one step (only for real updates)
+            Long seq = orderbookSeqLog.nextSeqAndAppend(seqGenerator, recentTrades);
+            sendMessage(new SocketResponse(recentTradesJson, seq));
         } else {
-            sendMessage(new SocketResponse("No recent trades"));
+            // Heartbeat: do not allocate a seq. Use latest known seq (may repeat).
+            long lastKnownSeq = seqGenerator.get() - 1;
+            sendMessage(new SocketResponse("No recent trades", lastKnownSeq));
         }
     }
 

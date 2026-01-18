@@ -16,3 +16,5 @@ __pycache__/
 .ruff_cache/
 .env
 docs/
+.venv/
+.pytest_cache/

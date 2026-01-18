@@ -2,9 +2,11 @@ package HighThroughPutExchange.API.api_objects.responses;
 
 public class SocketResponse {
     private String content;
+    private Long seq;
 
-    public SocketResponse(String content) {
+    public SocketResponse(String content, Long seq) {
         this.content = content;
+        this.seq = seq;
     }
 
     public String getContent() {
@@ -13,5 +15,13 @@ public class SocketResponse {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Long getSeq() {
+        return seq;
+    }
+
+    public void setSeq(Long seq) {
+        this.seq = seq;
     }
 }
