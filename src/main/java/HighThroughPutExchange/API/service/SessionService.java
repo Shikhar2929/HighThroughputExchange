@@ -4,27 +4,29 @@ import HighThroughPutExchange.API.api_objects.responses.BuildupResponse;
 import HighThroughPutExchange.API.api_objects.responses.TeardownResponse;
 import HighThroughPutExchange.API.database_objects.Session;
 import HighThroughPutExchange.API.database_objects.User;
+import HighThroughPutExchange.API.repository.BotSessionsRepository;
+import HighThroughPutExchange.API.repository.BotsRepository;
+import HighThroughPutExchange.API.repository.SessionsRepository;
+import HighThroughPutExchange.API.repository.UsersRepository;
 import HighThroughPutExchange.Common.Message;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SessionService {
 
-    private final LocalDBTable<User> users;
-    private final LocalDBTable<User> bots;
-    private final LocalDBTable<Session> sessions;
-    private final LocalDBTable<Session> botSessions;
+    private final UsersRepository users;
+    private final BotsRepository bots;
+    private final SessionsRepository sessions;
+    private final BotSessionsRepository botSessions;
     private final MatchingEngine matchingEngine;
 
     public SessionService(
-            @Qualifier("usersTable") LocalDBTable<User> users,
-            @Qualifier("botsTable") LocalDBTable<User> bots,
-            @Qualifier("sessionsTable") LocalDBTable<Session> sessions,
-            @Qualifier("botSessionsTable") LocalDBTable<Session> botSessions,
+            UsersRepository users,
+            BotsRepository bots,
+            SessionsRepository sessions,
+            BotSessionsRepository botSessions,
             MatchingEngine matchingEngine) {
         this.users = users;
         this.bots = bots;
@@ -48,26 +50,26 @@ public class SessionService {
     }
 
     public BuildupResponse buildup(String username, String apiKey) {
-        if (!users.containsItem(username)) {
+        if (!users.exists(username)) {
             return new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", "");
         }
 
-        User u = users.getItem(username);
+        User u = users.get(username);
         if (!u.getApiKey().equals(apiKey) && !u.getApiKey2().equals(apiKey)) {
             return new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", "");
         }
 
         String sessionToken = generateKey();
-        if (sessions.containsItem(username)) {
+        if (sessions.exists(username)) {
             if (u.getApiKey().equals(apiKey)) {
-                sessions.getItem(username).setSessionToken(sessionToken);
+                sessions.get(username).setSessionToken(sessionToken);
             } else {
-                sessions.getItem(username).setSessionToken2(sessionToken);
+                sessions.get(username).setSessionToken2(sessionToken);
             }
         } else {
             Session s = new Session(sessionToken, u.getUsername());
             try {
-                sessions.putItem(s);
+                sessions.add(s);
             } catch (AlreadyExistsException e) {
                 throw new RuntimeException(e);
             }
@@ -77,29 +79,29 @@ public class SessionService {
     }
 
     public BuildupResponse botBuildup(String username, String apiKey) {
-        if (!bots.containsItem(username)) {
+        if (!bots.exists(username)) {
             return new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", "");
         }
 
-        User u = bots.getItem(username);
+        User u = bots.get(username);
         if (!u.getApiKey().equals(apiKey)) {
             return new BuildupResponse(Message.AUTHENTICATION_FAILED.toString(), "", "");
         }
 
         Session s = new Session(generateKey(), u.getUsername());
-        if (botSessions.containsItem(s.getUsername())) {
-            botSessions.deleteItem(s.getUsername());
+        if (botSessions.exists(s.getUsername())) {
+            botSessions.delete(s.getUsername());
         }
         try {
-            botSessions.putItem(s);
+            botSessions.add(s);
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
-        if (sessions.containsItem(s.getUsername())) {
-            sessions.deleteItem(s.getUsername());
+        if (sessions.exists(s.getUsername())) {
+            sessions.delete(s.getUsername());
         }
         try {
-            sessions.putItem(s);
+            sessions.add(s);
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
@@ -110,8 +112,8 @@ public class SessionService {
     }
 
     public TeardownResponse teardown(String username) {
-        if (sessions.containsItem(username)) {
-            sessions.deleteItem(username);
+        if (sessions.exists(username)) {
+            sessions.delete(username);
         }
         return new TeardownResponse(Message.SUCCESS.toString());
     }
