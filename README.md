@@ -151,15 +151,15 @@ mvn checkstyle:check
         <td>public</td>
         <td>Current monotonic sequence counter (next seq to be allocated).</td>
         <td>N/A - simple HTTP GET</td>
-        <td>{"latestSeq": long}</td>
+        <td>{"message": {"errorCode": int, "errorMessage": string}, "latestSeq": long}</td>
     </tr>
     <tr>
         <td>Seq Updates Replay</td>
-        <td>/updates?fromExclusive=&lt;seq&gt;</td>
+        <td>/updates?seq=&lt;seq&gt;</td>
         <td>public</td>
-        <td>Replay updates with seq &gt; fromExclusive (cursor is exclusive).</td>
-        <td>Query: fromExclusive=long</td>
-        <td>200: {"fromExclusive": long, "latestSeq": long, "updates": [{"seq": long, "priceChanges": [...]}, ...]}<br/>410: {"error": "from-too-old", "fromExclusive": long, "minAvailableSeq": long, "minFromExclusive": long, "latestSeq": long}</td>
+        <td>Fetch exactly one orderbook update by sequence number.</td>
+        <td>Query: seq=long</td>
+        <td>200: {"message": {"errorCode": int, "errorMessage": string}, "seq": long, "update": {"seq": long, "priceChanges": [...]}}<br/>400: {"message": {"errorCode": 8, "errorMessage": string}}</td>
     </tr>
     <tr>
         <td>Snapshot</td>
@@ -167,7 +167,7 @@ mvn checkstyle:check
         <td>public</td>
         <td>Full orderbook snapshot for recovery.</td>
         <td>N/A - HTTP POST</td>
-        <td>{"snapshot": object, "latestSeq": long}</td>
+        <td>{"message": {"errorCode": int, "errorMessage": string}, "snapshot": object, "latestSeq": long}</td>
     </tr>
 </table>
 
@@ -178,3 +178,7 @@ mvn checkstyle:check
 - Semantics:
     - When there are trades/orderbook changes, `seq` increases monotonically and `content` contains the JSON-encoded update payload.
     - When there are no recent trades, the server sends a heartbeat message where `seq` is the latest known value (may repeat) and `content` is a human-readable string (currently `"No recent trades"`).
+
+#### Recovery note
+
+`/updates` is intentionally **single-update**: clients should request the exact missing sequence number with `/updates?seq=<n>` and apply it once. This avoids corrupting the frontend orderbook when the same update is fetched multiple times.

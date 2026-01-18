@@ -1,9 +1,10 @@
 package HighThroughPutExchange.API.api_objects.responses;
 
-public class GetLatestSeqResponse {
+public class GetLatestSeqResponse extends AbstractMessageResponse {
     private long latestSeq;
 
-    public GetLatestSeqResponse(long latestSeq) {
+    public GetLatestSeqResponse(String message, long latestSeq) {
+        super(message);
         this.latestSeq = latestSeq;
     }
 

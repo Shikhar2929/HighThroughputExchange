@@ -2,11 +2,16 @@ package HighThroughPutExchange.API.api_objects.responses;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
-public class SnapshotResponse {
+public class SnapshotResponse extends AbstractMessageResponse {
     @JsonRawValue private String snapshot;
     private long latestSeq;
 
-    public SnapshotResponse(String snapshot, long latestSeq) {
+    public SnapshotResponse(String message) {
+        this(message, null, -1);
+    }
+
+    public SnapshotResponse(String message, String snapshot, long latestSeq) {
+        super(message);
         this.snapshot = snapshot;
         this.latestSeq = latestSeq;
     }

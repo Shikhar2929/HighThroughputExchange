@@ -30,15 +30,20 @@ def test_user_trade_then_snapshot_and_updates(client: ExchangeClient, unique_use
 
         # Updates should eventually include the trade.
         deadline = time.time() + 8.0
-        from_exclusive = -1
+        seq = 0
         while time.time() < deadline:
-            status, data = client.updates_allow_gone(from_exclusive)
-            if status == 200 and data.get("updates"):
+            status, data = client.update_allow_missing(seq)
+            if status == 200:
+                update = data.get("update")
+                assert isinstance(update, dict)
+                seq = int(update.get("seq")) + 1
                 return
-            if status == 410 and data.get("error") == "from-too-old":
-                mfe = data.get("minFromExclusive")
-                if mfe is not None:
-                    from_exclusive = int(mfe)
+            if status == 400:
+                msg = data.get("message")
+                assert isinstance(msg, dict)
+                assert int(msg.get("errorCode")) == 8
+                time.sleep(0.1)
+                continue
             time.sleep(0.2)
 
         raise AssertionError("Expected /updates to return non-empty updates")
