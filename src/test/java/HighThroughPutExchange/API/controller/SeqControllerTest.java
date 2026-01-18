@@ -60,7 +60,7 @@ class SeqControllerTest {
     void getUpdates_success_returnsMetadataAndUpdates() throws Exception {
         long from = 10L;
         when(seqGenerator.get()).thenReturn(999L);
-        when(orderbookSeqLog.getMinSeq()).thenReturn(null);
+        when(orderbookSeqLog.getMinSeq()).thenReturn(11L);
 
         OrderbookUpdate u11 = new OrderbookUpdate(11L, List.<PriceChange>of());
         OrderbookUpdate u12 = new OrderbookUpdate(12L, List.of(new PriceChange("ABC", 100, 7, Side.BID)));
@@ -75,6 +75,19 @@ class SeqControllerTest {
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].volume").value(7))
                 .andExpect(jsonPath("$.updates[1].priceChanges[0].side").value("BID"));
     }
+
+  @Test
+  void getUpdates_minSeqUnavailable_returnsGone() throws Exception {
+    when(orderbookSeqLog.getMinSeq()).thenReturn(null);
+    when(seqGenerator.get()).thenReturn(999L);
+
+    mockMvc
+        .perform(get("/updates").param("fromExclusive", "10"))
+        .andExpect(status().isGone())
+        .andExpect(jsonPath("$.error").value("min-seq-unavailable"))
+        .andExpect(jsonPath("$.fromExclusive").value(10))
+        .andExpect(jsonPath("$.latestSeq").value(999));
+  }
 
   @Test
   void getUpdates_fromTooOld_returnsGone() throws Exception {

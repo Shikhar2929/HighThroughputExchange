@@ -39,12 +39,15 @@ public class SeqController {
     @GetMapping("/updates")
     public ResponseEntity<?> getUpdates(@RequestParam long fromExclusive) {
         Long minSeq = orderbookSeqLog.getMinSeq();
-        if (minSeq != null) {
-            long minFromExclusive = minSeq - 1;
-            if (fromExclusive < minFromExclusive) {
-                return new ResponseEntity<>(Map.of("error", "from-too-old", "fromExclusive", fromExclusive, "minAvailableSeq", minSeq,
-                        "minFromExclusive", minFromExclusive, "latestSeq", seqGenerator.get()), HttpStatus.GONE);
-            }
+        if (minSeq == null) {
+            return new ResponseEntity<>(Map.of("error", "min-seq-unavailable", "fromExclusive", fromExclusive, "latestSeq", seqGenerator.get()),
+                    HttpStatus.GONE);
+        }
+
+        long minFromExclusive = minSeq - 1;
+        if (fromExclusive < minFromExclusive) {
+            return new ResponseEntity<>(Map.of("error", "from-too-old", "fromExclusive", fromExclusive, "minAvailableSeq", minSeq, "minFromExclusive",
+                    minFromExclusive, "latestSeq", seqGenerator.get()), HttpStatus.GONE);
         }
 
         List<OrderbookUpdate> updates = orderbookSeqLog.get(fromExclusive);
