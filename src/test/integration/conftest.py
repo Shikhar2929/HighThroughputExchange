@@ -4,6 +4,7 @@ import os
 import sys
 import time
 from pathlib import Path
+import uuid
 
 import pytest
 
@@ -18,6 +19,11 @@ _REPO = _repo_root()
 _SYS_TEST_DIR = _REPO / "src" / "test"
 if str(_SYS_TEST_DIR) not in sys.path:
     sys.path.insert(0, str(_SYS_TEST_DIR))
+
+# Make integration helpers importable from nested test folders
+_INTEGRATION_DIR = _SYS_TEST_DIR / "integration"
+if str(_INTEGRATION_DIR) not in sys.path:
+    sys.path.insert(0, str(_INTEGRATION_DIR))
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -35,6 +41,21 @@ def _load_env_once() -> None:
 @pytest.fixture(scope="session")
 def base_url() -> str:
     return os.getenv("HTTP_URL", "http://localhost:8080").rstrip("/")
+
+
+@pytest.fixture(scope="session")
+def client(base_url: str):
+    from exchange_client import ExchangeClient  # local import to avoid path ordering issues
+
+    return ExchangeClient(base_url)
+
+
+@pytest.fixture()
+def unique_username():
+    def _unique(prefix: str = "ci") -> str:
+        return f"{prefix}_{uuid.uuid4().hex[:12]}"
+
+    return _unique
 
 
 def _wait_for_http_up(url: str, timeout_s: float = 45.0) -> None:
