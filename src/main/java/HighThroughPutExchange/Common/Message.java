@@ -8,7 +8,8 @@ public enum Message {
     BAD_INPUT(4, "Bad input. Please check your parameters."),
     AUCTION_LOCKED(5, "Auctioning is currently locked."),
     POSITION_LIMIT_EXCEEDED(6, "Position limit has been exceeded."),
-    INSUFFICIENT_BALANCE(7, "Insufficient balance.");
+    INSUFFICIENT_BALANCE(7, "Insufficient balance."),
+    INVALID_SEQ_NUM(8, "Update sequence number is too old or doesn't exist.");
 
     public int getErrorCode() {
         return errorCode;
