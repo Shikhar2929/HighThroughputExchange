@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RecentTrades {
 
     private static final Map<TradeKey, Integer> tradeMap = new ConcurrentHashMap<>();
-    private static long tradeCounter = 0;
 
     public RecentTrades() {
     }
@@ -19,12 +19,10 @@ public class RecentTrades {
     @VisibleForTesting
     protected static void clearRecentTrades() {
         tradeMap.clear();
-        tradeCounter = 0;
     }
 
     // Method to add a new trade to the queue
     public static void addTrade(String ticker, int price, int volume, Side side) {
-        tradeCounter++;
         TradeKey tradeKey = new TradeKey(ticker, price, side);
         tradeMap.put(tradeKey, volume);
     }
@@ -40,8 +38,7 @@ public class RecentTrades {
         return recentTrades;
     }
 
-    public static String getRecentTradesAsJson() {
-        ArrayList<PriceChange> recentTrades = getRecentTrades();
+    public static String recentTradesToJson(List<PriceChange> recentTrades) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT); // To make JSON output pretty
         try {
@@ -49,5 +46,10 @@ public class RecentTrades {
         } catch (Exception e) {
             throw new RuntimeException("Error serializing trades to JSON", e);
         }
+    }
+
+    public static String getRecentTradesAsJson() {
+        ArrayList<PriceChange> recentTrades = getRecentTrades();
+        return recentTradesToJson(recentTrades);
     }
 }
