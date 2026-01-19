@@ -16,6 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class SocketController {
+    private static final Logger logger = LoggerFactory.getLogger(SocketController.class);
     @Autowired private SimpMessagingTemplate template;
     @Autowired private SimpUserRegistry simpUserRegistry;
     @Autowired private AdminPageAuthenticator adminPageAuthenticator;
@@ -117,7 +120,7 @@ public class SocketController {
                 chartTrackerSingleton.resetAll();
 
             } catch (Exception e) {
-                System.err.println("Error serializing chart data: " + e.getMessage());
+                logger.warn("Error serializing chart data", e);
             }
         }
     }

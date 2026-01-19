@@ -2,8 +2,11 @@ package HighThroughPutExchange.MatchingEngine;
 
 import java.util.*;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UserList {
+    private static final Logger logger = LoggerFactory.getLogger(UserList.class);
     private Map<String, Long> userBalances = new HashMap<>(); // UserName -> Balance
     private Map<String, Map<String, Integer>> quantities = new HashMap<>(); // Actual Amount Owned
     private Map<String, Map<String, Double>> sumPrices = new HashMap<>();
@@ -34,7 +37,7 @@ public class UserList {
      */
     public boolean initializeUser(String username) {
         // Initialize User for infinite balance case
-        System.out.println("Initializing...");
+        logger.debug("Initializing user (infinite mode): username={}", username);
         if (userBalances.containsKey(username) || !infinite) return false;
         userBalances.put(username, (long) 0);
         return true;
@@ -106,7 +109,12 @@ public class UserList {
         long currentBalance = getUserBalance(username);
         long newBalance = currentBalance + delta;
         if (newBalance < 0 && !infinite) {
-            System.out.println("NEGATIVE AND NOT INFINITE");
+            logger.warn(
+                    "Rejecting balance update: would go negative in finite mode (username={}"
+                            + " currentBalance={} delta={})",
+                    username,
+                    currentBalance,
+                    delta);
             return false;
         }
         userBalances.put(username, newBalance);
@@ -216,10 +224,19 @@ public class UserList {
                 pnl += quantities.get(username).get(entry.getKey()) * entry.getValue();
             } catch (Exception e) {
                 if (!quantities.containsKey(username)) {
-                    System.out.println("username not found");
+                    logger.debug("PnL calc: username not found: username={}", username);
                 } else if (!quantities.get(username).containsKey(entry.getKey())) {
-                    System.out.println("Weird Ticker Not Found");
-                } else System.out.println("Weird Exception");
+                    logger.debug(
+                            "PnL calc: ticker not found for user: username={} ticker={}",
+                            username,
+                            entry.getKey());
+                } else {
+                    logger.debug(
+                            "PnL calc: unexpected exception (username={} ticker={})",
+                            username,
+                            entry.getKey(),
+                            e);
+                }
             }
         }
         return pnl;

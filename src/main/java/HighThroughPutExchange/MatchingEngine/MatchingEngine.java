@@ -10,10 +10,13 @@ import java.util.*;
 import java.util.Iterator;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // todo: get rid of usage of JSON library
 
 public class MatchingEngine {
+    private static final Logger logger = LoggerFactory.getLogger(MatchingEngine.class);
     private Map<String, OrderBook> orderBooks = new HashMap<>();
     private Map<String, Map<Long, Order>> userOrders = new HashMap<>(); // UserName, OrderId, Order
     private Map<String, Integer> latestPrice = new HashMap<>(); // For PnL
@@ -43,7 +46,7 @@ public class MatchingEngine {
         try {
             return mapper.writeValueAsString(orderBooks);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to serialize order books", e);
             return null;
         }
     }
@@ -69,7 +72,7 @@ public class MatchingEngine {
                 userList.setPositionLimit(positionLimit);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to initialize game mode from config.json", e);
         }
     }
 
@@ -83,12 +86,16 @@ public class MatchingEngine {
     }
 
     public boolean initializeUserBalance(String username, int balance) {
-        System.out.println("Initializing: " + username);
+        logger.info("Initializing user balance: username={} balance={}", username, balance);
         return userList.initializeUser(username, balance);
     }
 
     public boolean initializeUserTickerVolume(String username, String ticker, int volume) {
-        System.out.println("Initializing: " + username + " with ticker: " + ticker);
+        logger.info(
+                "Initializing user ticker volume: username={} ticker={} volume={}",
+                username,
+                ticker,
+                volume);
         return userList.initializeUserQuantity(username, ticker, volume);
     }
 
@@ -128,10 +135,11 @@ public class MatchingEngine {
             reader.close();
 
             for (String ticker : configData.getDefaults().getTickers()) {
-                System.out.println("Ticker: " + ticker);
+                logger.info("Initializing ticker: {}", ticker);
                 initializeTicker(ticker);
             }
         } catch (Exception e) {
+            logger.error("Failed to initialize tickers from config.json", e);
             return false;
         }
         return true;
@@ -140,7 +148,7 @@ public class MatchingEngine {
     public boolean initializeAllTickers() {
         try {
             // Read the JSON file
-            System.out.println("Current Working Directory: " + Paths.get("").toAbsolutePath());
+            logger.debug("Current Working Directory: {}", Paths.get("").toAbsolutePath());
             FileReader reader = new FileReader("config.json");
             StringBuilder content = new StringBuilder();
             int i;
@@ -152,11 +160,11 @@ public class MatchingEngine {
             JSONArray tickersArray = configData.getJSONObject("defaults").getJSONArray("tickers");
             for (int j = 0; j < tickersArray.length(); j++) {
                 String ticker = (String) tickersArray.getString(j);
-                System.out.println("Ticker: " + ticker);
+                logger.info("Initializing ticker: {}", ticker);
                 initializeTicker(ticker);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to initialize tickers from config.json", e);
             return false;
         }
         return true;
@@ -170,18 +178,20 @@ public class MatchingEngine {
             OrderbookConfig configData = mapper.readerFor(OrderbookConfig.class).readValue(reader);
             reader.close();
 
-            System.out.println("Default Balance: " + configData.getDefaults().getDefaultBalance());
+            logger.info(
+                    "Default balance from config.json: {}",
+                    configData.getDefaults().getDefaultBalance());
             for (String key : configData.getDefaults().getBalances().keySet()) {
-                System.out.println(
-                        "Ticker: "
-                                + key
-                                + ", Balance: "
-                                + configData.getDefaults().getBalances().get(key));
+                logger.info(
+                        "Initializing user ticker: user={} ticker={} balance={}",
+                        user,
+                        key,
+                        configData.getDefaults().getBalances().get(key));
                 initializeUserTickerVolume(
                         user, key, configData.getDefaults().getBalances().get(key));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to initialize user from config.json: user={}", user, e);
             return false;
         }
         return true;
@@ -206,30 +216,38 @@ public class MatchingEngine {
                 JSONObject defaults = configData.getJSONObject("defaults");
                 int defaultBalance = defaults.getInt("defaultBalance");
                 JSONObject balances = defaults.getJSONObject("balances");
-                System.out.println("Default Balance: " + defaultBalance);
+                logger.info("Default balance: {}", defaultBalance);
                 initializeUserBalance(user, defaultBalance);
                 Iterator<String> keys = balances.keys();
                 while (keys.hasNext()) {
                     String ticker = keys.next();
                     int balance = balances.getInt(ticker);
-                    System.out.println("Ticker: " + ticker + ", Balance: " + balance);
+                    logger.info(
+                            "Initializing user ticker: user={} ticker={} balance={}",
+                            user,
+                            ticker,
+                            balance);
                     initializeUserTickerVolume(user, ticker, balance);
                 }
             } else {
                 JSONObject defaults = configData.getJSONObject("defaults");
                 JSONObject balances = defaults.getJSONObject("balances");
                 Iterator<String> keys = balances.keys();
-                System.out.println("Infinite Mode");
+                logger.info("Initializing user in infinite mode: user={}", user);
                 userList.initializeUser(user);
                 while (keys.hasNext()) {
                     String ticker = keys.next();
                     int balance = balances.getInt(ticker);
-                    System.out.println("Ticker: " + ticker + ", Balance: " + balance);
+                    logger.info(
+                            "Initializing user ticker: user={} ticker={} balance={}",
+                            user,
+                            ticker,
+                            balance);
                     initializeUserTickerVolume(user, ticker, balance);
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to initialize user from config.json: user={}", user, e);
             return false;
         }
         return true;
@@ -247,7 +265,7 @@ public class MatchingEngine {
     public void setPriceClearOrderBook(
             Map<String, Integer> updatedPrices, TaskFuture<String> future) {
         for (String ticker : updatedPrices.keySet()) {
-            System.out.println(ticker);
+            logger.debug("Updating price and clearing order book for ticker={}", ticker);
             if (!orderBooks.containsKey(ticker)) {
                 future.setData("BAD TICKER");
                 return;
@@ -305,19 +323,20 @@ public class MatchingEngine {
             return true;
         }
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
-            System.out.println("Bad Bid Parameters");
+            logger.debug("Bad bid parameters: user={} order={}", user, order);
             return false;
         }
         if (!orderBooks.containsKey(order.ticker)) {
-            System.out.println("Bad Ticker");
+            logger.debug("Bid order rejected: unknown ticker={} user={}", order.ticker, user);
             return false;
         }
         if (!userList.validUser(user)) {
-            System.out.println("Bad User");
+            logger.debug("Bid order rejected: invalid user={}", user);
             return false;
         }
         if (!userList.validBidParameters(user, order)) {
-            System.out.println("Invalid Volume Parameters");
+            logger.debug(
+                    "Bid order rejected: invalid volume parameters user={} order={}", user, order);
             return false;
         }
         return true;
@@ -328,19 +347,23 @@ public class MatchingEngine {
             return true;
         }
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
-            System.out.println("Bad Ask Parameters");
+            logger.debug("Bad ask parameters: user={} order={}", user, order);
             return false;
         }
         if (!orderBooks.containsKey(order.ticker)) {
-            System.out.println("Bad Ticker");
+            logger.debug("Ask order rejected: unknown ticker={} user={}", order.ticker, user);
             return false;
         }
         if (!userList.validUser(user)) {
-            System.out.println("Bad User");
+            logger.debug("Ask order rejected: invalid user={}", user);
             return false;
         }
         if (!userList.validAskQuantity(user, order.ticker, order.volume)) {
-            System.out.println("Insufficient Sell Funds");
+            logger.debug(
+                    "Ask order rejected: insufficient sell funds user={} ticker={} volume={}",
+                    user,
+                    order.ticker,
+                    order.volume);
             return false;
         }
         return true;
@@ -467,7 +490,10 @@ public class MatchingEngine {
 
     public Map<String, Object> bidLimitOrderHandler(String name, Order order) {
         if (!validateBidOrder(name, order)) {
-            System.out.println("BAD PARAMETERS");
+            logger.debug(
+                    "Bid limit order rejected due to invalid parameters: user={} order={}",
+                    name,
+                    order);
             return createLimitOrderResponse(
                     0.0, 0, Message.BAD_INPUT, Message.BAD_INPUT.getErrorMessage(), -1);
         }
@@ -528,7 +554,11 @@ public class MatchingEngine {
                     objectMapper.writeValueAsString(bidLimitOrderHandler(name, order));
             future.setData(jsonResponse);
         } catch (Exception e) {
-            System.out.println("Bad JSON, Error in Bid Limit Order Handler");
+            logger.error(
+                    "Failed to serialize bid limit order response: user={} order={}",
+                    name,
+                    order,
+                    e);
         }
     }
 
@@ -593,7 +623,11 @@ public class MatchingEngine {
                     objectMapper.writeValueAsString(askLimitOrderHandler(name, order));
             future.setData(jsonResponse);
         } catch (Exception e) {
-            System.out.println("Bad JSON, Error in Ask Limit Order");
+            logger.error(
+                    "Failed to serialize ask limit order response: user={} order={}",
+                    name,
+                    order,
+                    e);
         }
     }
 
@@ -885,7 +919,12 @@ public class MatchingEngine {
                     objectMapper.writeValueAsString(bidMarketOrderHandler(name, ticker, volume));
             future.setData(jsonResponse);
         } catch (Exception e) {
-            System.out.println("Bad JSON, Error in Bid Market Order Handler");
+            logger.error(
+                    "Failed to serialize bid market order response: user={} ticker={} volume={}",
+                    name,
+                    ticker,
+                    volume,
+                    e);
         }
     }
 
@@ -939,7 +978,12 @@ public class MatchingEngine {
                     objectMapper.writeValueAsString(askMarketOrderHandler(name, ticker, volume));
             future.setData(jsonResponse);
         } catch (Exception e) {
-            System.out.println("Bad JSON, Error in Bid Market Order Handler");
+            logger.error(
+                    "Failed to serialize ask market order response: user={} ticker={} volume={}",
+                    name,
+                    ticker,
+                    volume,
+                    e);
         }
     }
 
