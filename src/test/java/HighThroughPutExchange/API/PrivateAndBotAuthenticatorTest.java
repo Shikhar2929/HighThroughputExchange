@@ -6,6 +6,10 @@ import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
 import HighThroughPutExchange.API.authentication.BotAuthenticator;
 import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
 import HighThroughPutExchange.API.database_objects.Session;
+import HighThroughPutExchange.API.repository.BotSessionsRepository;
+import HighThroughPutExchange.API.repository.LocalBotSessionsRepository;
+import HighThroughPutExchange.API.repository.LocalSessionsRepository;
+import HighThroughPutExchange.API.repository.SessionsRepository;
 import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,14 +19,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class PrivateAndBotAuthenticatorTest {
 
     private LocalDBTable<Session> sessions;
+    private SessionsRepository sessionsRepository;
+    private BotSessionsRepository botSessionsRepository;
     private PrivatePageAuthenticator privatePageAuthenticator;
     private BotAuthenticator botAuthenticator;
 
     @BeforeEach
     void setup() {
         sessions = new LocalDBTable<>("sessions");
-        privatePageAuthenticator = new PrivatePageAuthenticator(sessions);
-        botAuthenticator = new BotAuthenticator(sessions);
+        sessionsRepository = new LocalSessionsRepository(sessions);
+        botSessionsRepository = new LocalBotSessionsRepository(sessions);
+        privatePageAuthenticator = new PrivatePageAuthenticator(sessionsRepository);
+        botAuthenticator = new BotAuthenticator(botSessionsRepository);
     }
 
     @Test

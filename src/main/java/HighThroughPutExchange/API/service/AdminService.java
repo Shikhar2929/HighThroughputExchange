@@ -3,16 +3,16 @@ package HighThroughPutExchange.API.service;
 import HighThroughPutExchange.API.ServerApplication;
 import HighThroughPutExchange.API.State;
 import HighThroughPutExchange.API.database_objects.User;
+import HighThroughPutExchange.API.repository.BotsRepository;
+import HighThroughPutExchange.API.repository.DbLifecycleRepository;
+import HighThroughPutExchange.API.repository.UsersRepository;
 import HighThroughPutExchange.Common.TaskFuture;
 import HighThroughPutExchange.Common.TaskQueue;
 import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.localdb.LocalDBClient;
-import HighThroughPutExchange.Database.localdb.LocalDBTable;
 import HighThroughPutExchange.MatchingEngine.LeaderboardEntry;
 import HighThroughPutExchange.MatchingEngine.MatchingEngine;
 import java.util.ArrayList;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,19 +20,19 @@ public class AdminService {
 
     private static final int KEY_LENGTH = 16;
 
-    private final LocalDBClient dbClient;
-    private final LocalDBTable<User> users;
+    private final DbLifecycleRepository dbLifecycle;
+    private final UsersRepository users;
     private final MatchingEngine matchingEngine;
-    private final LocalDBTable<User> bots;
+    private final BotsRepository bots;
     private final ServerApplication app;
 
     public AdminService(
-            LocalDBClient dbClient,
-            @Qualifier("usersTable") LocalDBTable<User> users,
-            @Qualifier("botsTable") LocalDBTable<User> bots,
+            DbLifecycleRepository dbLifecycle,
+            UsersRepository users,
+            BotsRepository bots,
             MatchingEngine matchingEngine,
             ServerApplication app) {
-        this.dbClient = dbClient;
+        this.dbLifecycle = dbLifecycle;
         this.users = users;
         this.bots = bots;
         this.matchingEngine = matchingEngine;
@@ -40,7 +40,7 @@ public class AdminService {
     }
 
     public boolean usernameExists(String username) {
-        return users.containsItem(username);
+        return users.exists(username);
     }
 
     public User addUser(String username, String name, String email) {
@@ -48,7 +48,7 @@ public class AdminService {
         String apiKey2 = generateKey();
         User user = new User(username, name, apiKey1, apiKey2, email);
         try {
-            users.putItem(user);
+            users.add(user);
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
@@ -59,8 +59,8 @@ public class AdminService {
     public String addBot(String username) {
         String key = generateKey();
         try {
-            users.putItem(new User(username, "", key, ""));
-            bots.putItem(new User(username, "", key, ""));
+            users.add(new User(username, "", key, ""));
+            bots.add(new User(username, "", key, ""));
         } catch (AlreadyExistsException e) {
             throw new RuntimeException(e);
         }
@@ -70,7 +70,7 @@ public class AdminService {
 
     public void shutdown() {
         try {
-            dbClient.closeClient();
+            dbLifecycle.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
