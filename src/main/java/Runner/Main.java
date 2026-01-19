@@ -1,10 +1,8 @@
-package Runner;
+package runner;
 
-import HighThroughPutExchange.api.ServerApplication;
-import HighThroughPutExchange.common.TaskQueue;
+import hte.api.ServerApplication;
+import hte.common.TaskQueue;
 import org.springframework.boot.SpringApplication;
-
-// import org.springframework.context.ApplicationContext;
 
 public class Main {
     public static void main(String[] args) {

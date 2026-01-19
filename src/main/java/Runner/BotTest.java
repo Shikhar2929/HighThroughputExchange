@@ -1,4 +1,4 @@
-package Runner;
+package runner;
 
 public class BotTest {
     /*

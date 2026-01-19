@@ -12,7 +12,7 @@
     </parent>
 
     <groupId>org.example</groupId>
-    <artifactId>HighThroughputExchange</artifactId>
+    <artifactId>hte</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
