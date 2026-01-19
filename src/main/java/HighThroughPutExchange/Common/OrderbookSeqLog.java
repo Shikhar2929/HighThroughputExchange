@@ -1,10 +1,8 @@
 package HighThroughPutExchange.Common;
 
 import HighThroughPutExchange.MatchingEngine.PriceChange;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.NavigableMap;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListMap;
 import org.springframework.stereotype.Component;
 
@@ -42,8 +40,7 @@ public class OrderbookSeqLog {
     }
 
     // Allocates the next sequence number and appends the update to this log in a
-    // single synchronized
-    // block.
+    // single synchronized block.
     public synchronized long nextSeqAndAppend(
             SeqGenerator seqGenerator, List<PriceChange> priceChanges) {
         if (seqGenerator == null) {
@@ -59,18 +56,9 @@ public class OrderbookSeqLog {
         return seq;
     }
 
-    public synchronized List<OrderbookUpdate> get(long from) {
-        ArrayList<OrderbookUpdate> out = new ArrayList<>();
-        NavigableMap<Long, OrderbookUpdate> tail = log.tailMap(from, false);
-
-        for (Entry<Long, OrderbookUpdate> entry : tail.entrySet()) {
-            OrderbookUpdate update = entry.getValue();
-            if (update != null) {
-                out.add(update);
-            }
-        }
-
-        return out;
+    // Returns the update with the given seq if it exists in the retention window.
+    public synchronized Optional<OrderbookUpdate> getBySeq(long seq) {
+        return Optional.ofNullable(log.get(seq));
     }
 
     public synchronized Long getMinSeq() {

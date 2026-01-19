@@ -167,10 +167,10 @@ class ExchangeClient:
             raise ApiError(f"HTTP {status}: {data}")
         return data
 
-    def updates_allow_gone(self, from_exclusive: int) -> tuple[int, dict[str, Any]]:
+    def update_allow_missing(self, seq: int) -> tuple[int, dict[str, Any]]:
         return self._get_json(
             "/updates",
-            params={"fromExclusive": int(from_exclusive)},
+            params={"seq": int(seq)},
             timeout_s=5.0,
             allow_http_error=True,
         )

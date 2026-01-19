@@ -1,8 +1,11 @@
 package HighThroughPutExchange.MatchingEngine;
 
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OrderBook {
+    private static final Logger logger = LoggerFactory.getLogger(OrderBook.class);
     protected TreeMap<Integer, Deque<Order>> bids = new TreeMap<>(); // Price -> Orders
     protected TreeMap<Integer, Deque<Order>> asks = new TreeMap<>(); // Price -> Orders
     protected Map<Integer, Integer> bidVolumes = new TreeMap<>(); // Price -> Total Volume
@@ -18,14 +21,14 @@ public class OrderBook {
     }
 
     public void printOrderBook() {
-        System.out.println("Bid Volumes:");
+        logger.debug("Bid Volumes:");
         for (Map.Entry<Integer, Integer> entry : bidVolumes.entrySet()) {
-            System.out.println("Price: " + entry.getKey() + ", Volume: " + entry.getValue());
+            logger.debug("Price: {} Volume: {}", entry.getKey(), entry.getValue());
         }
 
-        System.out.println("\nAsk Volumes:");
+        logger.debug("Ask Volumes:");
         for (Map.Entry<Integer, Integer> entry : askVolumes.entrySet()) {
-            System.out.println("Price: " + entry.getKey() + ", Volume: " + entry.getValue());
+            logger.debug("Price: {} Volume: {}", entry.getKey(), entry.getValue());
         }
     }
 
