@@ -1,8 +1,8 @@
-package HighThroughPutExchange.API.repository;
+package HighThroughPutExchange.api.repository;
 
-import HighThroughPutExchange.API.database_objects.Session;
-import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.localdb.LocalDBTable;
+import HighThroughPutExchange.api.entities.Session;
+import HighThroughPutExchange.database.exceptions.AlreadyExistsException;
+import HighThroughPutExchange.database.localdb.LocalDBTable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 

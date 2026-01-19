@@ -1,15 +1,15 @@
-package HighThroughPutExchange.API.service;
+package HighThroughPutExchange.api.service;
 
-import HighThroughPutExchange.API.api_objects.Operations.LimitOrderOperation;
-import HighThroughPutExchange.API.api_objects.Operations.MarketOrderOperation;
-import HighThroughPutExchange.API.api_objects.Operations.Operation;
-import HighThroughPutExchange.API.api_objects.responses.OperationResponse;
-import HighThroughPutExchange.Common.TaskFuture;
-import HighThroughPutExchange.Common.TaskQueue;
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
-import HighThroughPutExchange.MatchingEngine.Order;
-import HighThroughPutExchange.MatchingEngine.Side;
-import HighThroughPutExchange.MatchingEngine.Status;
+import HighThroughPutExchange.api.dtos.operations.LimitOrderOperation;
+import HighThroughPutExchange.api.dtos.operations.MarketOrderOperation;
+import HighThroughPutExchange.api.dtos.operations.Operation;
+import HighThroughPutExchange.api.dtos.responses.OperationResponse;
+import HighThroughPutExchange.common.TaskFuture;
+import HighThroughPutExchange.common.TaskQueue;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
+import HighThroughPutExchange.matchingengine.Order;
+import HighThroughPutExchange.matchingengine.Side;
+import HighThroughPutExchange.matchingengine.Status;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -85,13 +85,9 @@ public class BatchService {
                     }
                 case "remove":
                     {
-                        HighThroughPutExchange.API.api_objects.Operations.RemoveOperation
-                                removeOperation =
-                                        (HighThroughPutExchange.API
-                                                        .api_objects
-                                                        .Operations
-                                                        .RemoveOperation)
-                                                operation;
+                        HighThroughPutExchange.api.dtos.operations.RemoveOperation removeOperation =
+                                (HighThroughPutExchange.api.dtos.operations.RemoveOperation)
+                                        operation;
                         temporaryTaskQueue.add(
                                 () -> {
                                     matchingEngine.removeOrder(

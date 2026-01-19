@@ -1,6 +1,6 @@
-package HighThroughPutExchange.Common;
+package HighThroughPutExchange.common;
 
-import HighThroughPutExchange.MatchingEngine.PriceChange;
+import HighThroughPutExchange.matchingengine.PriceChange;
 import java.util.List;
 import java.util.Objects;
 

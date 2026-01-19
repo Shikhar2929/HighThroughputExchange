@@ -1,3 +1,3 @@
-package HighThroughPutExchange.Database.entry;
+package HighThroughPutExchange.database.entry;
 
 public interface JSONSerializable {}

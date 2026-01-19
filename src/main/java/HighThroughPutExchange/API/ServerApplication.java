@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API;
+package HighThroughPutExchange.api;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;

@@ -1,12 +1,12 @@
-package HighThroughPutExchange.API.service;
+package HighThroughPutExchange.api.service;
 
-import HighThroughPutExchange.API.api_objects.requests.BidAuctionRequest;
-import HighThroughPutExchange.API.api_objects.responses.BidAuctionResponse;
-import HighThroughPutExchange.API.api_objects.responses.GetLeadingAuctionBidResponse;
-import HighThroughPutExchange.Auction.Auction;
-import HighThroughPutExchange.Common.Message;
-import HighThroughPutExchange.Common.TaskFuture;
-import HighThroughPutExchange.Common.TaskQueue;
+import HighThroughPutExchange.api.dtos.requests.BidAuctionRequest;
+import HighThroughPutExchange.api.dtos.responses.BidAuctionResponse;
+import HighThroughPutExchange.api.dtos.responses.GetLeadingAuctionBidResponse;
+import HighThroughPutExchange.auction.Auction;
+import HighThroughPutExchange.common.Message;
+import HighThroughPutExchange.common.TaskFuture;
+import HighThroughPutExchange.common.TaskQueue;
 import org.springframework.stereotype.Service;
 
 @Service

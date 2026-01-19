@@ -1,14 +1,14 @@
-package HighThroughPutExchange.API.controller;
+package HighThroughPutExchange.api.controller;
 
-import HighThroughPutExchange.API.ServerApplication;
-import HighThroughPutExchange.API.State;
-import HighThroughPutExchange.API.api_objects.Operations.Operation;
-import HighThroughPutExchange.API.api_objects.requests.BatchRequest;
-import HighThroughPutExchange.API.api_objects.responses.BatchResponse;
-import HighThroughPutExchange.API.api_objects.responses.OperationResponse;
-import HighThroughPutExchange.API.service.AuthService;
-import HighThroughPutExchange.API.service.BatchService;
-import HighThroughPutExchange.Common.Message;
+import HighThroughPutExchange.api.ServerApplication;
+import HighThroughPutExchange.api.State;
+import HighThroughPutExchange.api.dtos.operations.Operation;
+import HighThroughPutExchange.api.dtos.requests.BatchRequest;
+import HighThroughPutExchange.api.dtos.responses.BatchResponse;
+import HighThroughPutExchange.api.dtos.responses.OperationResponse;
+import HighThroughPutExchange.api.service.AuthService;
+import HighThroughPutExchange.api.service.BatchService;
+import HighThroughPutExchange.common.Message;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;

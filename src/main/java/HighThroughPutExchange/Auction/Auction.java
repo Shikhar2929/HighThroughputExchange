@@ -1,6 +1,6 @@
-package HighThroughPutExchange.Auction;
+package HighThroughPutExchange.auction;
 
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
 
 public class Auction {
     private int bestBid;

@@ -1,4 +1,4 @@
-package HighThroughPutExchange.Common;
+package HighThroughPutExchange.common;
 
 public enum Message {
     SUCCESS(0, "Success!"),

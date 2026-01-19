@@ -1,11 +1,11 @@
-package HighThroughPutExchange.API.service;
+package HighThroughPutExchange.api.service;
 
-import HighThroughPutExchange.Common.TaskFuture;
-import HighThroughPutExchange.Common.TaskQueue;
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
-import HighThroughPutExchange.MatchingEngine.Order;
-import HighThroughPutExchange.MatchingEngine.Side;
-import HighThroughPutExchange.MatchingEngine.Status;
+import HighThroughPutExchange.common.TaskFuture;
+import HighThroughPutExchange.common.TaskQueue;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
+import HighThroughPutExchange.matchingengine.Order;
+import HighThroughPutExchange.matchingengine.Side;
+import HighThroughPutExchange.matchingengine.Status;
 import org.springframework.stereotype.Service;
 
 @Service

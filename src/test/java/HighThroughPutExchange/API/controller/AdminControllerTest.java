@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API.controller;
+package HighThroughPutExchange.api.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -6,9 +6,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import HighThroughPutExchange.API.database_objects.User;
-import HighThroughPutExchange.API.service.AdminService;
-import HighThroughPutExchange.API.service.AuthService;
+import HighThroughPutExchange.api.entities.User;
+import HighThroughPutExchange.api.service.AdminService;
+import HighThroughPutExchange.api.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;

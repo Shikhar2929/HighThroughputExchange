@@ -1,6 +1,6 @@
-package HighThroughPutExchange.API.repository;
+package HighThroughPutExchange.api.repository;
 
-import HighThroughPutExchange.Database.localdb.LocalDBClient;
+import HighThroughPutExchange.database.localdb.LocalDBClient;
 import org.springframework.stereotype.Repository;
 
 @Repository

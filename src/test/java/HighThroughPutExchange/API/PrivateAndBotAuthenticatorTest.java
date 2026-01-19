@@ -1,16 +1,16 @@
-package HighThroughPutExchange.API;
+package HighThroughPutExchange.api;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
-import HighThroughPutExchange.API.authentication.BotAuthenticator;
-import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
-import HighThroughPutExchange.API.database_objects.Session;
-import HighThroughPutExchange.API.repository.BotSessionsRepository;
-import HighThroughPutExchange.API.repository.LocalBotSessionsRepository;
-import HighThroughPutExchange.API.repository.LocalSessionsRepository;
-import HighThroughPutExchange.API.repository.SessionsRepository;
-import HighThroughPutExchange.Database.localdb.LocalDBTable;
+import HighThroughPutExchange.api.auth.BotAuthenticator;
+import HighThroughPutExchange.api.auth.PrivatePageAuthenticator;
+import HighThroughPutExchange.api.dtos.requests.BasePrivateRequest;
+import HighThroughPutExchange.api.entities.Session;
+import HighThroughPutExchange.api.repository.BotSessionsRepository;
+import HighThroughPutExchange.api.repository.LocalBotSessionsRepository;
+import HighThroughPutExchange.api.repository.LocalSessionsRepository;
+import HighThroughPutExchange.api.repository.SessionsRepository;
+import HighThroughPutExchange.database.localdb.LocalDBTable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,6 +1,6 @@
-package HighThroughPutExchange.API.service;
+package HighThroughPutExchange.api.service;
 
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
 import org.springframework.stereotype.Service;
 
 @Service

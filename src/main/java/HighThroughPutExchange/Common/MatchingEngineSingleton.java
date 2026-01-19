@@ -1,6 +1,6 @@
-package HighThroughPutExchange.Common;
+package HighThroughPutExchange.common;
 
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
 
 public class MatchingEngineSingleton {
     private static MatchingEngine matchingEngine;

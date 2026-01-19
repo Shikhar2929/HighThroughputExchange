@@ -1,9 +1,9 @@
-package HighThroughPutExchange.API;
+package HighThroughPutExchange.api;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
-import HighThroughPutExchange.API.authentication.RateLimiter;
+import HighThroughPutExchange.api.auth.RateLimiter;
+import HighThroughPutExchange.api.dtos.requests.BasePrivateRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

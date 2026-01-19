@@ -1,4 +1,4 @@
-package HighThroughPutExchange.MatchingEngine;
+package HighThroughPutExchange.matchingengine;
 
 public class OrderbookConfig {
     private OrderbookConfigDefaults defaults;

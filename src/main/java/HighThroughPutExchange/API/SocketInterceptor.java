@@ -1,7 +1,7 @@
-package HighThroughPutExchange.API;
+package HighThroughPutExchange.api;
 
-import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
-import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
+import HighThroughPutExchange.api.auth.PrivatePageAuthenticator;
+import HighThroughPutExchange.api.dtos.requests.BasePrivateRequest;
 import java.net.URI;
 import java.security.Principal;
 import java.util.Map;

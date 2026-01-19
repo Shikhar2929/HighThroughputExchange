@@ -1,6 +1,6 @@
-package HighThroughPutExchange.API.repository;
+package HighThroughPutExchange.api.repository;
 
-import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
+import HighThroughPutExchange.database.exceptions.AlreadyExistsException;
 
 public interface KeyValueRepository<K, V> {
     boolean exists(K key);

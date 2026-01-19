@@ -1,9 +1,9 @@
-package HighThroughPutExchange.Database.localdb;
+package HighThroughPutExchange.database.localdb;
 
-import HighThroughPutExchange.Database.abstractions.AbstractDBClient;
-import HighThroughPutExchange.Database.entry.DBEntry;
-import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.exceptions.NotFoundException;
+import HighThroughPutExchange.database.abstractions.AbstractDBClient;
+import HighThroughPutExchange.database.entry.DBEntry;
+import HighThroughPutExchange.database.exceptions.AlreadyExistsException;
+import HighThroughPutExchange.database.exceptions.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.File;

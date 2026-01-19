@@ -1,16 +1,16 @@
-package HighThroughPutExchange.API.service;
+package HighThroughPutExchange.api.service;
 
-import HighThroughPutExchange.API.api_objects.responses.BuildupResponse;
-import HighThroughPutExchange.API.api_objects.responses.TeardownResponse;
-import HighThroughPutExchange.API.database_objects.Session;
-import HighThroughPutExchange.API.database_objects.User;
-import HighThroughPutExchange.API.repository.BotSessionsRepository;
-import HighThroughPutExchange.API.repository.BotsRepository;
-import HighThroughPutExchange.API.repository.SessionsRepository;
-import HighThroughPutExchange.API.repository.UsersRepository;
-import HighThroughPutExchange.Common.Message;
-import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.api.dtos.responses.BuildupResponse;
+import HighThroughPutExchange.api.dtos.responses.TeardownResponse;
+import HighThroughPutExchange.api.entities.Session;
+import HighThroughPutExchange.api.entities.User;
+import HighThroughPutExchange.api.repository.BotSessionsRepository;
+import HighThroughPutExchange.api.repository.BotsRepository;
+import HighThroughPutExchange.api.repository.SessionsRepository;
+import HighThroughPutExchange.api.repository.UsersRepository;
+import HighThroughPutExchange.common.Message;
+import HighThroughPutExchange.database.exceptions.AlreadyExistsException;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
 import org.springframework.stereotype.Service;
 
 @Service

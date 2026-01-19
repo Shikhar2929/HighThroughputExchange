@@ -1,13 +1,13 @@
-package HighThroughPutExchange.API.controller;
+package HighThroughPutExchange.api.controller;
 
-import HighThroughPutExchange.API.api_objects.responses.GetLatestSeqResponse;
-import HighThroughPutExchange.API.api_objects.responses.GetUpdateResponse;
-import HighThroughPutExchange.API.api_objects.responses.SnapshotResponse;
-import HighThroughPutExchange.Common.Message;
-import HighThroughPutExchange.Common.OrderbookSeqLog;
-import HighThroughPutExchange.Common.OrderbookUpdate;
-import HighThroughPutExchange.Common.SeqGenerator;
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.api.dtos.responses.GetLatestSeqResponse;
+import HighThroughPutExchange.api.dtos.responses.GetUpdateResponse;
+import HighThroughPutExchange.api.dtos.responses.SnapshotResponse;
+import HighThroughPutExchange.common.Message;
+import HighThroughPutExchange.common.OrderbookSeqLog;
+import HighThroughPutExchange.common.OrderbookUpdate;
+import HighThroughPutExchange.common.SeqGenerator;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
