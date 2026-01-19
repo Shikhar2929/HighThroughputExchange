@@ -210,7 +210,6 @@ public class MatchingEngine {
 
             // Parse JSON content
             JSONObject configData = new JSONObject(content.toString());
-            String mode = configData.getString("mode");
             if (!userList.getMode()) {
                 // Extract and process balances
                 JSONObject defaults = configData.getJSONObject("defaults");
@@ -318,45 +317,114 @@ public class MatchingEngine {
         orderBook.clearOrderBook();
     }
 
-    private boolean validateBidOrder(String user, Order order) {
+    private static final class ValidationResult {
+        private final Message code;
+        private final String detail;
+
+        private ValidationResult(Message code, String detail) {
+            this.code = code;
+            this.detail = detail;
+        }
+    }
+
+    private ValidationResult validateBidOrder(String user, Order order) {
         if (bots.containsKey(user)) {
-            return true;
+            return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
         }
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
             logger.debug("Bad bid parameters: user={} order={}", user, order);
-            return false;
+            if (order.volume <= 0.0) {
+                return new ValidationResult(
+                        Message.INVALID_VOLUME,
+                        String.format("Invalid volume=%d (must be > 0)", order.volume));
+            }
+            if (order.price <= 0.0) {
+                return new ValidationResult(
+                        Message.INVALID_PRICE,
+                        String.format("Invalid price=%d (must be > 0)", order.price));
+            }
+            return new ValidationResult(
+                    Message.BAD_INPUT, "Invalid order status (must be ACTIVE for placement)");
         }
         if (!orderBooks.containsKey(order.ticker)) {
             logger.debug("Bid order rejected: unknown ticker={} user={}", order.ticker, user);
-            return false;
+            if (orderBooks.isEmpty()) {
+                return new ValidationResult(
+                        Message.SERVER_MISCONFIGURED,
+                        "Order books are not initialized (check server startup/config.json)");
+            }
+            return new ValidationResult(
+                    Message.UNKNOWN_TICKER,
+                    String.format(
+                            "Unknown ticker '%s'. Available: %s",
+                            order.ticker, String.join(", ", orderBooks.keySet())));
         }
         if (!userList.validUser(user)) {
             logger.debug("Bid order rejected: invalid user={}", user);
-            return false;
+            return new ValidationResult(
+                    Message.USER_NOT_INITIALIZED,
+                    "User not initialized in matching engine yet. Retry shortly.");
         }
         if (!userList.validBidParameters(user, order)) {
             logger.debug(
                     "Bid order rejected: invalid volume parameters user={} order={}", user, order);
-            return false;
+            if (userList.getMode()) {
+                return new ValidationResult(
+                        Message.POSITION_LIMIT_EXCEEDED,
+                        String.format(
+                                "Position limit exceeded for ticker '%s'. Reduce volume or cancel"
+                                        + " existing bids.",
+                                order.ticker));
+            }
+            long balance = userList.getUserBalance(user);
+            long required = (long) order.price * (long) order.volume;
+            return new ValidationResult(
+                    Message.INSUFFICIENT_BALANCE,
+                    String.format(
+                            "Insufficient balance for bid: required=%d (price=%d*volume=%d),"
+                                    + " available=%d",
+                            required, order.price, order.volume, balance));
         }
-        return true;
+        return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
     }
 
-    private boolean validateAskOrder(String user, Order order) {
+    private ValidationResult validateAskOrder(String user, Order order) {
         if (bots.containsKey(user)) {
-            return true;
+            return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
         }
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
             logger.debug("Bad ask parameters: user={} order={}", user, order);
-            return false;
+            if (order.volume <= 0.0) {
+                return new ValidationResult(
+                        Message.INVALID_VOLUME,
+                        String.format("Invalid volume=%d (must be > 0)", order.volume));
+            }
+            if (order.price <= 0.0) {
+                return new ValidationResult(
+                        Message.INVALID_PRICE,
+                        String.format("Invalid price=%d (must be > 0)", order.price));
+            }
+            return new ValidationResult(
+                    Message.BAD_INPUT, "Invalid order status (must be ACTIVE for placement)");
         }
         if (!orderBooks.containsKey(order.ticker)) {
             logger.debug("Ask order rejected: unknown ticker={} user={}", order.ticker, user);
-            return false;
+            if (orderBooks.isEmpty()) {
+                return new ValidationResult(
+                        Message.SERVER_MISCONFIGURED,
+                        "Order books are not initialized (check server startup/config.json)");
+            }
+            return new ValidationResult(
+                    Message.UNKNOWN_TICKER,
+                    String.format(
+                            "Unknown ticker '%s'. Available: %s",
+                            order.ticker, String.join(", ", orderBooks.keySet())));
         }
         if (!userList.validUser(user)) {
             logger.debug("Ask order rejected: invalid user={}", user);
-            return false;
+            return new ValidationResult(
+                    Message.USER_NOT_INITIALIZED,
+                    "User not initialized in matching engine yet. Retry shortly.");
         }
         if (!userList.validAskQuantity(user, order.ticker, order.volume)) {
             logger.debug(
@@ -364,9 +432,14 @@ public class MatchingEngine {
                     user,
                     order.ticker,
                     order.volume);
-            return false;
+            int available = userList.getValidAskVolume(user, order.ticker);
+            return new ValidationResult(
+                    Message.INSUFFICIENT_TICKER_BALANCE,
+                    String.format(
+                            "Insufficient '%s' to sell: requested=%d, available=%d",
+                            order.ticker, order.volume, available));
         }
-        return true;
+        return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
     }
 
     private Map<String, Object> createLimitOrderResponse(
@@ -489,13 +562,13 @@ public class MatchingEngine {
     }
 
     public Map<String, Object> bidLimitOrderHandler(String name, Order order) {
-        if (!validateBidOrder(name, order)) {
+        ValidationResult validation = validateBidOrder(name, order);
+        if (validation.code != Message.SUCCESS) {
             logger.debug(
                     "Bid limit order rejected due to invalid parameters: user={} order={}",
                     name,
                     order);
-            return createLimitOrderResponse(
-                    0.0, 0, Message.BAD_INPUT, Message.BAD_INPUT.getErrorMessage(), -1);
+            return createLimitOrderResponse(0.0, 0, validation.code, validation.detail, -1);
         }
         TreeMap<Integer, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
         Map<Integer, Integer> askVolumes = orderBooks.get(order.ticker).askVolumes;
@@ -563,9 +636,9 @@ public class MatchingEngine {
     }
 
     public Map<String, Object> askLimitOrderHandler(String name, Order order) {
-        if (!validateAskOrder(name, order)) {
-            return createLimitOrderResponse(
-                    0, 0, Message.BAD_INPUT, Message.BAD_INPUT.getErrorMessage(), -1);
+        ValidationResult validation = validateAskOrder(name, order);
+        if (validation.code != Message.SUCCESS) {
+            return createLimitOrderResponse(0, 0, validation.code, validation.detail, -1);
         }
         TreeMap<Integer, Deque<Order>> asks = orderBooks.get(order.ticker).asks;
         Map<Integer, Integer> askVolumes = orderBooks.get(order.ticker).askVolumes;
@@ -692,7 +765,11 @@ public class MatchingEngine {
     // todo: verify correctness of messaging
     public boolean removeOrder(String userId, long orderId, TaskFuture<String> future) {
         if (!userList.validUser(userId)) {
-            future.setData(Message.AUTHENTICATION_FAILED.toString());
+            future.setData(Message.USER_NOT_INITIALIZED.toString());
+            return false;
+        }
+        if (orderId <= 0) {
+            future.setData(Message.INVALID_ORDER_ID.toString());
             return false;
         }
         Map<Long, Order> orders = userOrders.get(userId);
@@ -721,7 +798,7 @@ public class MatchingEngine {
                 return true;
             }
         }
-        future.setData(Message.BAD_INPUT.toString());
+        future.setData(Message.ORDER_NOT_FOUND.toString());
         // future.setData("Invalid OrderID");
         return false;
     }
@@ -736,26 +813,27 @@ public class MatchingEngine {
             return; // No orders to remove
         }
 
-        boolean allRemoved = true;
-
         // Iterate through all orders and remove each
         for (Long orderId : new ArrayList<>(orders.keySet())) {
-            boolean removed = removeOrder(userId, orderId);
+            removeOrder(userId, orderId);
         }
     }
 
     public void removeAll(String userId, TaskFuture<String> future) {
         if (!userList.validUser(userId)) {
+            future.setData(Message.USER_NOT_INITIALIZED.toString());
             return;
         }
 
         // Retrieve user's orders
         Map<Long, Order> orders = userOrders.get(userId);
         if (orders == null || orders.isEmpty()) {
+            future.setData(
+                    String.format(
+                            "{\"errorCode\": %d, \"errorMessage\": \"%s\"}",
+                            Message.SUCCESS.getErrorCode(), "No active orders to remove"));
             return; // No orders to remove
         }
-
-        boolean allRemoved = true;
 
         int volumeRemoved = 0;
 
@@ -777,7 +855,6 @@ public class MatchingEngine {
 
     public OrderData processMarketOrder(
             Deque<Order> orders, Map<Integer, Integer> volumeMap, Order aggressor, Side side) {
-        int overallVolume = 0;
         OrderData orderData = new OrderData();
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
@@ -799,6 +876,11 @@ public class MatchingEngine {
                         Math.min(
                                 aggressorVolume,
                                 userList.getValidAskVolume(aggressor.name, order.ticker));
+            }
+            // If the aggressor cannot trade any volume (e.g., insufficient balance/inventory),
+            // stop processing and let the caller decide how to report it.
+            if (aggressorVolume <= 0) {
+                break;
             }
             if (order.volume > aggressorVolume) {
                 int volumeTraded = aggressorVolume;
@@ -832,7 +914,6 @@ public class MatchingEngine {
                 setPrice(order.ticker, tradePrice);
                 order.volume -= aggressorVolume;
                 orderData.linearCombination(tradePrice, volumeTraded);
-                overallVolume += aggressorVolume;
                 aggressor.volume = 0;
                 aggressor.status = Status.FILLED;
             } else {
@@ -861,7 +942,6 @@ public class MatchingEngine {
                 }
                 setPrice(order.ticker, tradePrice);
                 orderData.linearCombination(tradePrice, volumeTraded);
-                overallVolume += order.volume;
                 aggressor.volume -= order.volume;
                 order.volume = 0;
                 order.status = Status.FILLED;
@@ -876,6 +956,13 @@ public class MatchingEngine {
             // System.out.println("Invalid");
             return createMarketOrderResponse(0.0, 0, Message.AUTHENTICATION_FAILED);
         }
+        if (volume <= 0) {
+            return createMarketOrderResponse(0.0, 0, Message.INVALID_VOLUME);
+        }
+        if (!orderBooks.containsKey(ticker)) {
+            return createMarketOrderResponse(0.0, 0, Message.UNKNOWN_TICKER);
+        }
+        int requestedVolume = volume;
         OrderData orderData = new OrderData();
         Order marketOrder =
                 new Order(
@@ -888,11 +975,27 @@ public class MatchingEngine {
         // int volumeFilled = 0;
         TreeMap<Integer, Deque<Order>> asks = orderBooks.get(ticker).asks;
         Map<Integer, Integer> askVolumes = orderBooks.get(ticker).askVolumes;
+
+        if (asks.isEmpty()) {
+            return createMarketOrderResponse(0.0, 0, Message.NO_LIQUIDITY);
+        }
+        if (!bots.containsKey(name)
+                && userList.getValidBidVolume(name, ticker, asks.firstKey()) <= 0) {
+            return createMarketOrderResponse(0.0, 0, Message.INSUFFICIENT_BALANCE);
+        }
+
         while (marketOrder.volume > 0 && !asks.isEmpty()) {
             Deque<Order> orderList = asks.get(asks.firstKey());
             orderData.add(processMarketOrder(orderList, askVolumes, marketOrder, Side.BID));
             if (orderList.isEmpty()) {
                 asks.pollFirstEntry();
+            }
+            if (!bots.containsKey(name)
+                    && marketOrder.volume > 0
+                    && !asks.isEmpty()
+                    && userList.getValidBidVolume(name, ticker, asks.firstKey()) <= 0) {
+                // Cannot afford even 1 unit at the next best ask price.
+                break;
             }
         }
         if (orderData.volume > 0) {
@@ -905,6 +1008,23 @@ public class MatchingEngine {
         } else {
             marketOrder.status = Status.FILLED;
         }
+
+        if (orderData.volume <= 0) {
+            if (asks.isEmpty()) {
+                return createMarketOrderResponse(0.0, 0, Message.NO_LIQUIDITY);
+            }
+            if (!bots.containsKey(name)
+                    && userList.getValidBidVolume(name, ticker, asks.firstKey()) <= 0) {
+                return createMarketOrderResponse(0.0, 0, Message.INSUFFICIENT_BALANCE);
+            }
+            return createMarketOrderResponse(0.0, 0, Message.BAD_INPUT);
+        }
+
+        if ((int) orderData.volume < requestedVolume) {
+            return createMarketOrderResponse(
+                    orderData.price, (int) orderData.volume, Message.PARTIAL_FILL);
+        }
+
         return createMarketOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS);
     }
 
@@ -932,9 +1052,16 @@ public class MatchingEngine {
         if (!userList.validUser(name) && !bots.containsKey(name)) {
             return createMarketOrderResponse(0.0, 0, Message.AUTHENTICATION_FAILED);
         }
-        if (!userList.validAskQuantity(name, ticker, volume) && !bots.containsKey(name)) {
-            return createMarketOrderResponse(0.0, 0, Message.BAD_INPUT);
+        if (volume <= 0) {
+            return createMarketOrderResponse(0.0, 0, Message.INVALID_VOLUME);
         }
+        if (!orderBooks.containsKey(ticker)) {
+            return createMarketOrderResponse(0.0, 0, Message.UNKNOWN_TICKER);
+        }
+        if (!userList.validAskQuantity(name, ticker, volume) && !bots.containsKey(name)) {
+            return createMarketOrderResponse(0.0, 0, Message.INSUFFICIENT_TICKER_BALANCE);
+        }
+        int requestedVolume = volume;
         OrderData orderData = new OrderData();
         Order marketOrder =
                 new Order(
@@ -947,11 +1074,22 @@ public class MatchingEngine {
         // int volumeFilled = 0;
         TreeMap<Integer, Deque<Order>> bids = orderBooks.get(ticker).bids;
         Map<Integer, Integer> bidVolumes = orderBooks.get(ticker).bidVolumes;
+
+        if (bids.isEmpty()) {
+            return createMarketOrderResponse(0.0, 0, Message.NO_LIQUIDITY);
+        }
+
         while (marketOrder.volume > 0 && !bids.isEmpty()) {
             Deque<Order> orderList = bids.get(bids.lastKey());
             orderData.add(processMarketOrder(orderList, bidVolumes, marketOrder, Side.ASK));
             if (orderList.isEmpty()) {
                 bids.pollLastEntry();
+            }
+            if (!bots.containsKey(name)
+                    && marketOrder.volume > 0
+                    && userList.getValidAskVolume(name, ticker) <= 0) {
+                // Cannot sell any additional volume.
+                break;
             }
         }
         if (orderData.volume > 0) {
@@ -964,6 +1102,22 @@ public class MatchingEngine {
         } else {
             marketOrder.status = Status.FILLED;
         }
+
+        if (orderData.volume <= 0) {
+            if (bids.isEmpty()) {
+                return createMarketOrderResponse(0.0, 0, Message.NO_LIQUIDITY);
+            }
+            if (!bots.containsKey(name) && userList.getValidAskVolume(name, ticker) <= 0) {
+                return createMarketOrderResponse(0.0, 0, Message.INSUFFICIENT_TICKER_BALANCE);
+            }
+            return createMarketOrderResponse(0.0, 0, Message.BAD_INPUT);
+        }
+
+        if ((int) orderData.volume < requestedVolume) {
+            return createMarketOrderResponse(
+                    orderData.price, (int) orderData.volume, Message.PARTIAL_FILL);
+        }
+
         return createMarketOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS);
     }
 
@@ -988,7 +1142,6 @@ public class MatchingEngine {
     }
 
     public String getUserDetails(String username) {
-        ObjectMapper objectMapper = new ObjectMapper();
         JSONObject userListDetails = userList.getUserDetailsAsJson(username, latestPrice);
 
         // Organize active orders by ticker
