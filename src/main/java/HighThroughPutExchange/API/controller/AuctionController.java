@@ -1,15 +1,15 @@
-package HighThroughPutExchange.API.controller;
+package HighThroughPutExchange.api.controller;
 
-import HighThroughPutExchange.API.ServerApplication;
-import HighThroughPutExchange.API.State;
-import HighThroughPutExchange.API.api_objects.requests.BaseAdminRequest;
-import HighThroughPutExchange.API.api_objects.requests.BidAuctionRequest;
-import HighThroughPutExchange.API.api_objects.responses.BidAuctionResponse;
-import HighThroughPutExchange.API.api_objects.responses.GetLeadingAuctionBidResponse;
-import HighThroughPutExchange.API.authentication.RateLimiter;
-import HighThroughPutExchange.API.service.AuctionService;
-import HighThroughPutExchange.API.service.AuthService;
-import HighThroughPutExchange.Common.Message;
+import HighThroughPutExchange.api.ServerApplication;
+import HighThroughPutExchange.api.State;
+import HighThroughPutExchange.api.auth.RateLimiter;
+import HighThroughPutExchange.api.dtos.requests.BaseAdminRequest;
+import HighThroughPutExchange.api.dtos.requests.BidAuctionRequest;
+import HighThroughPutExchange.api.dtos.responses.BidAuctionResponse;
+import HighThroughPutExchange.api.dtos.responses.GetLeadingAuctionBidResponse;
+import HighThroughPutExchange.api.service.AuctionService;
+import HighThroughPutExchange.api.service.AuthService;
+import HighThroughPutExchange.common.Message;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,12 +1,12 @@
-package HighThroughPutExchange.API.config;
+package HighThroughPutExchange.api.config;
 
-import HighThroughPutExchange.API.database_objects.Session;
-import HighThroughPutExchange.API.database_objects.User;
-import HighThroughPutExchange.Database.entry.DBEntry;
-import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.exceptions.NotFoundException;
-import HighThroughPutExchange.Database.localdb.LocalDBClient;
-import HighThroughPutExchange.Database.localdb.LocalDBTable;
+import HighThroughPutExchange.api.entities.Session;
+import HighThroughPutExchange.api.entities.User;
+import HighThroughPutExchange.database.entry.DBEntry;
+import HighThroughPutExchange.database.exceptions.AlreadyExistsException;
+import HighThroughPutExchange.database.exceptions.NotFoundException;
+import HighThroughPutExchange.database.localdb.LocalDBClient;
+import HighThroughPutExchange.database.localdb.LocalDBTable;
 import java.util.HashMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

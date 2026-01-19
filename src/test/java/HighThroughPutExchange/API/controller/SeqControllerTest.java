@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API.controller;
+package HighThroughPutExchange.api.controller;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -6,13 +6,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import HighThroughPutExchange.API.ServerApplication;
-import HighThroughPutExchange.Common.OrderbookSeqLog;
-import HighThroughPutExchange.Common.OrderbookUpdate;
-import HighThroughPutExchange.Common.SeqGenerator;
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
-import HighThroughPutExchange.MatchingEngine.PriceChange;
-import HighThroughPutExchange.MatchingEngine.Side;
+import HighThroughPutExchange.api.ServerApplication;
+import HighThroughPutExchange.common.OrderbookSeqLog;
+import HighThroughPutExchange.common.OrderbookUpdate;
+import HighThroughPutExchange.common.SeqGenerator;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
+import HighThroughPutExchange.matchingengine.PriceChange;
+import HighThroughPutExchange.matchingengine.Side;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

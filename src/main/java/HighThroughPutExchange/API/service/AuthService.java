@@ -1,10 +1,10 @@
-package HighThroughPutExchange.API.service;
+package HighThroughPutExchange.api.service;
 
-import HighThroughPutExchange.API.api_objects.requests.BaseAdminRequest;
-import HighThroughPutExchange.API.api_objects.requests.BasePrivateRequest;
-import HighThroughPutExchange.API.authentication.AdminPageAuthenticator;
-import HighThroughPutExchange.API.authentication.BotAuthenticator;
-import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
+import HighThroughPutExchange.api.auth.AdminPageAuthenticator;
+import HighThroughPutExchange.api.auth.BotAuthenticator;
+import HighThroughPutExchange.api.auth.PrivatePageAuthenticator;
+import HighThroughPutExchange.api.dtos.requests.BaseAdminRequest;
+import HighThroughPutExchange.api.dtos.requests.BasePrivateRequest;
 import org.springframework.stereotype.Service;
 
 @Service

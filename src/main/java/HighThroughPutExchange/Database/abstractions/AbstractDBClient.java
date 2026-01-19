@@ -1,7 +1,7 @@
-package HighThroughPutExchange.Database.abstractions;
+package HighThroughPutExchange.database.abstractions;
 
-import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
-import HighThroughPutExchange.Database.exceptions.NotFoundException;
+import HighThroughPutExchange.database.exceptions.AlreadyExistsException;
+import HighThroughPutExchange.database.exceptions.NotFoundException;
 
 public abstract class AbstractDBClient {
     public abstract AbstractDBTable createTable(String tableName) throws AlreadyExistsException;

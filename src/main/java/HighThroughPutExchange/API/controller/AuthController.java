@@ -1,12 +1,12 @@
-package HighThroughPutExchange.API.controller;
+package HighThroughPutExchange.api.controller;
 
-import HighThroughPutExchange.API.api_objects.requests.AdminDashboardRequest;
-import HighThroughPutExchange.API.api_objects.requests.PrivatePageRequest;
-import HighThroughPutExchange.API.api_objects.responses.AdminDashboardResponse;
-import HighThroughPutExchange.API.api_objects.responses.PrivatePageResponse;
-import HighThroughPutExchange.API.authentication.RateLimiter;
-import HighThroughPutExchange.API.service.AuthService;
-import HighThroughPutExchange.Common.Message;
+import HighThroughPutExchange.api.auth.RateLimiter;
+import HighThroughPutExchange.api.dtos.requests.AdminDashboardRequest;
+import HighThroughPutExchange.api.dtos.requests.PrivatePageRequest;
+import HighThroughPutExchange.api.dtos.responses.AdminDashboardResponse;
+import HighThroughPutExchange.api.dtos.responses.PrivatePageResponse;
+import HighThroughPutExchange.api.service.AuthService;
+import HighThroughPutExchange.common.Message;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

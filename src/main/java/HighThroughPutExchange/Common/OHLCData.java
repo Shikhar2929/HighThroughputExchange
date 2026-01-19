@@ -1,4 +1,4 @@
-package HighThroughPutExchange.Common;
+package HighThroughPutExchange.common;
 
 public record OHLCData(int open, int high, int low, int close) {
     @Override

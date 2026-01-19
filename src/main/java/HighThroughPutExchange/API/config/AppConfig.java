@@ -1,8 +1,8 @@
-package HighThroughPutExchange.API.config;
+package HighThroughPutExchange.api.config;
 
-import HighThroughPutExchange.Auction.Auction;
-import HighThroughPutExchange.Common.MatchingEngineSingleton;
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.auction.Auction;
+import HighThroughPutExchange.common.MatchingEngineSingleton;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

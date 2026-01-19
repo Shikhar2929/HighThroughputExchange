@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API.repository;
+package HighThroughPutExchange.api.repository;
 
 public interface Deletable<K> {
     void delete(K key);

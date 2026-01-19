@@ -1,9 +1,9 @@
-package HighThroughPutExchange.Common;
+package HighThroughPutExchange.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import HighThroughPutExchange.MatchingEngine.PriceChange;
-import HighThroughPutExchange.MatchingEngine.Side;
+import HighThroughPutExchange.matchingengine.PriceChange;
+import HighThroughPutExchange.matchingengine.Side;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

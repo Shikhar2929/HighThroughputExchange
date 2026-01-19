@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API;
+package HighThroughPutExchange.api;
 
 import java.security.Principal;
 import java.util.Map;

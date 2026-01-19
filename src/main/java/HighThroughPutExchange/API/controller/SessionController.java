@@ -1,12 +1,12 @@
-package HighThroughPutExchange.API.controller;
+package HighThroughPutExchange.api.controller;
 
-import HighThroughPutExchange.API.api_objects.requests.BuildupRequest;
-import HighThroughPutExchange.API.api_objects.requests.TeardownRequest;
-import HighThroughPutExchange.API.api_objects.responses.BuildupResponse;
-import HighThroughPutExchange.API.api_objects.responses.TeardownResponse;
-import HighThroughPutExchange.API.authentication.PrivatePageAuthenticator;
-import HighThroughPutExchange.API.service.SessionService;
-import HighThroughPutExchange.Common.Message;
+import HighThroughPutExchange.api.auth.PrivatePageAuthenticator;
+import HighThroughPutExchange.api.dtos.requests.BuildupRequest;
+import HighThroughPutExchange.api.dtos.requests.TeardownRequest;
+import HighThroughPutExchange.api.dtos.responses.BuildupResponse;
+import HighThroughPutExchange.api.dtos.responses.TeardownResponse;
+import HighThroughPutExchange.api.service.SessionService;
+import HighThroughPutExchange.common.Message;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

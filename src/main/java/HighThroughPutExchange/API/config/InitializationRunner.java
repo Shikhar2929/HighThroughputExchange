@@ -1,8 +1,8 @@
-package HighThroughPutExchange.API.config;
+package HighThroughPutExchange.api.config;
 
-import HighThroughPutExchange.API.repository.BotsRepository;
-import HighThroughPutExchange.API.repository.UsersRepository;
-import HighThroughPutExchange.MatchingEngine.MatchingEngine;
+import HighThroughPutExchange.api.repository.BotsRepository;
+import HighThroughPutExchange.api.repository.UsersRepository;
+import HighThroughPutExchange.matchingengine.MatchingEngine;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;

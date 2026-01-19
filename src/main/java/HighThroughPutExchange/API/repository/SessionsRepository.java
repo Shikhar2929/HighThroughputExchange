@@ -1,6 +1,6 @@
-package HighThroughPutExchange.API.repository;
+package HighThroughPutExchange.api.repository;
 
-import HighThroughPutExchange.API.database_objects.Session;
+import HighThroughPutExchange.api.entities.Session;
 
 public interface SessionsRepository
         extends KeyValueRepository<String, Session>, Deletable<String> {}

@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API;
+package HighThroughPutExchange.api;
 
 public enum State {
     STOP,

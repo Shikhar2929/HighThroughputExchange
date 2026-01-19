@@ -1,8 +1,8 @@
-package HighThroughPutExchange.Database.localdb;
+package HighThroughPutExchange.database.localdb;
 
-import HighThroughPutExchange.Database.abstractions.AbstractDBTable;
-import HighThroughPutExchange.Database.entry.DBEntry;
-import HighThroughPutExchange.Database.exceptions.AlreadyExistsException;
+import HighThroughPutExchange.database.abstractions.AbstractDBTable;
+import HighThroughPutExchange.database.entry.DBEntry;
+import HighThroughPutExchange.database.exceptions.AlreadyExistsException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalDBTable<T extends DBEntry> extends AbstractDBTable<T> {

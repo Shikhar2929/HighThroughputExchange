@@ -1,4 +1,4 @@
-package HighThroughPutExchange.API;
+package HighThroughPutExchange.api;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

@@ -1,4 +1,4 @@
-package HighThroughPutExchange.Common;
+package HighThroughPutExchange.common;
 
 import jakarta.annotation.PostConstruct;
 import java.util.concurrent.atomic.AtomicLong;

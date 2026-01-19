@@ -1,4 +1,4 @@
-package HighThroughPutExchange.Common;
+package HighThroughPutExchange.common;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
