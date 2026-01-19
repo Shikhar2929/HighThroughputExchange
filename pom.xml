@@ -129,7 +129,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>Runner.Main</mainClass> <!-- Ensure this matches your main class -->
+                            <mainClass>runner.Main</mainClass> <!-- Ensure this matches your main class -->
                         </manifest>
                     </archive>
                 </configuration>
