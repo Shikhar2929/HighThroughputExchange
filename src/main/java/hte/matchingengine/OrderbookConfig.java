@@ -1,5 +1,10 @@
 package hte.matchingengine;
 
+/**
+ * Jackson-mappable config root for reading {@code config.json} into POJOs.
+ *
+ * <p>Used by "alternative*" initialization methods.
+ */
 public class OrderbookConfig {
     private OrderbookConfigDefaults defaults;
 

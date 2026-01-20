@@ -7,7 +7,9 @@ from exchange_client import ExchangeClient
 
 def test_buildup_and_teardown_success(client: ExchangeClient, unique_username) -> None:
     username = unique_username("sess")
-    api_key = client.admin_add_user(username=username, name="CI Session", email=f"{username}@example.com")
+    api_key = client.admin_add_user(
+        username=username, name="CI Session", email=f"{username}@example.com"
+    )
     session = client.buildup(username, api_key)
 
     # Small delay to reduce flakiness around immediate teardown/rate limiting.

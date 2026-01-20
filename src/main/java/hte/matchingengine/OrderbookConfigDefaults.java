@@ -2,6 +2,12 @@ package hte.matchingengine;
 
 import java.util.HashMap;
 
+/**
+ * Jackson-mappable defaults section from {@code config.json}.
+ *
+ * <p>Expected keys include: {@code tickers}: list of tradable instruments {@code balances}: initial
+ * per-ticker inventory {@code defaultBalance}: initial cash balance (finite mode)
+ */
 public class OrderbookConfigDefaults {
     private String[] tickers;
     private HashMap<String, Integer> balances;

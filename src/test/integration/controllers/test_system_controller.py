@@ -14,7 +14,9 @@ def test_get_details_returns_payload(client: ExchangeClient, unique_username) ->
     client.admin_set_state(1)
 
     username = unique_username("details")
-    api_key = client.admin_add_user(username=username, name="CI Details", email=f"{username}@example.com")
+    api_key = client.admin_add_user(
+        username=username, name="CI Details", email=f"{username}@example.com"
+    )
     session = client.buildup(username, api_key)
     try:
         details = client.get_details(session)

@@ -1,5 +1,6 @@
 package hte.matchingengine;
 
+/** Aggregated price level (price + total volume) used for order book depth views. */
 public class PriceLevel {
     double price;
     double volume;

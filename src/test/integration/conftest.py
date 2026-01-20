@@ -45,9 +45,20 @@ def base_url() -> str:
 
 @pytest.fixture(scope="session")
 def client(base_url: str):
-    from exchange_client import ExchangeClient  # local import to avoid path ordering issues
+    from exchange_client import (
+        ExchangeClient,
+    )  # local import to avoid path ordering issues
 
     return ExchangeClient(base_url)
+
+
+@pytest.fixture(autouse=True)
+def _reset_orderbook_per_test(client) -> None:
+    # Tests share a long-lived server; keep them isolated by clearing order books.
+    # Without this, earlier resting orders (especially bids) can unintentionally fill
+    # a later test's liquidity-seeding ask, causing market orders to see NO_LIQUIDITY.
+    client.admin_set_state(1)
+    client.admin_set_price({"A": 100})
 
 
 @pytest.fixture()

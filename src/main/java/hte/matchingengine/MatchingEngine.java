@@ -13,36 +13,48 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
 /**
  * Core order matching engine.
  *
- * Maintain order books per ticker (bids/asks) and last traded/marked prices.
- * Validate and place limit orders and execute market orders against the book.
- * Maintain per-user state via {@link UserList} (cash balance, per-ticker inventory, reserved bid/ask quantities).
- * Expose helper methods used by controllers/services to query state.
+ * <p>Maintain order books per ticker (bids/asks) and last traded/marked prices. Validate and place
+ * limit orders and execute market orders against the book. Maintain per-user state via {@link
+ * UserList} (cash balance, per-ticker inventory, reserved bid/ask quantities). Expose helper
+ * methods used by controllers/services to query state.
  *
- * API response conventions:
+ * <p>API response conventions:
  *
- * Limit orders return a map with {@code price}, {@code volumeFilled}, {@code orderId},
- *       {@code errorCode}, {@code errorMessage}.
- * Market orders return a map with {@code price}, {@code volumeFilled}, {@code errorCode},
- *       {@code errorMessage}.
- * For market orders, {@code price} is the volume-weighted average execution price.
- * {@code errorCode == 0} indicates success; partial fills are treated as success.
+ * <p>Limit orders return a map with {@code price}, {@code volumeFilled}, {@code orderId}, {@code
+ * errorCode}, {@code errorMessage}. Market orders return a map with {@code price}, {@code
+ * volumeFilled}, {@code errorCode}, {@code errorMessage}. For market orders, {@code price} is the
+ * volume-weighted average execution price. {@code errorCode == 0} indicates success; partial fills
+ * are treated as success.
  */
 public class MatchingEngine {
     private static final Logger logger = LoggerFactory.getLogger(MatchingEngine.class);
+
+    // Ticker -> per-ticker order book (bids/asks + aggregated volumes).
     private Map<String, OrderBook> orderBooks = new HashMap<>();
+
+    // Username -> (orderId -> Order). Tracks a user's active orders for cancellation/lookup.
     private Map<String, Map<Long, Order>> userOrders = new HashMap<>(); // UserName, OrderId, Order
+
+    // Ticker -> last known traded/mark price (used for PnL/leaderboard and UI).
     private Map<String, Integer> latestPrice = new HashMap<>(); // For PnL
+
+    // Bot username -> placeholder (presence indicates bot).
     private Map<String, Integer> bots = new HashMap<>();
+
+    // Singleton chart tracker used to publish price updates.
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
+
+    // In-memory user state (cash, positions, reservations).
     private UserList userList = new UserList();
+
+    // Monotonically increasing order id counter for new resting limit orders.
     private long orderID = 0;
 
     public MatchingEngine() {
+        // Default engine runs in finite mode unless configured otherwise.
         userList.setInfinite(false);
     }
 
@@ -54,7 +66,7 @@ public class MatchingEngine {
     /**
      * Creates an "infinite mode" matching engine with a position limit.
      *
-     * In infinite mode, users are initialized without a fixed cash balance; trading capacity is
+     * <p>In infinite mode, users are initialized without a fixed cash balance; trading capacity is
      * limited by {@code positionLimit}.
      */
     public MatchingEngine(int positionLimit) {
@@ -68,6 +80,7 @@ public class MatchingEngine {
      * @return JSON representation of {@code orderBooks}, or {@code null} if serialization fails.
      */
     public String serializeOrderBooks() {
+        // Note: prints internal book state to logs before serializing.
         ObjectMapper mapper = new ObjectMapper();
         for (String key : orderBooks.keySet()) {
             orderBooks.get(key).printOrderBook();
@@ -81,6 +94,7 @@ public class MatchingEngine {
     }
 
     private void initializeGameMode() {
+        // Reads config.json and sets finite vs infinite mode (+ limits in infinite mode).
         try {
             FileReader reader = new FileReader("config.json");
             StringBuilder content = new StringBuilder();
@@ -108,7 +122,7 @@ public class MatchingEngine {
     /**
      * Initializes a bot user with zero balance and zero inventory for all currently known tickers.
      *
-     * Bots are treated as always-valid users for most validations.
+     * <p>Bots are treated as always-valid users for most validations.
      */
     public boolean initializeBot(String username) {
         bots.put(username, 0);
@@ -143,7 +157,9 @@ public class MatchingEngine {
         return userList.initializeUserQuantity(username, ticker, volume);
     }
 
-    /** @return the user's cash balance (integer). */
+    /**
+     * @return the user's cash balance (integer).
+     */
     public int getUserBalance(String username) {
         return (int) userList.getUserBalance(username);
     }
@@ -164,7 +180,9 @@ public class MatchingEngine {
         return recentTrades;
     }
 
-    /** @return the user's inventory for {@code ticker}. */
+    /**
+     * @return the user's inventory for {@code ticker}.
+     */
     public int getTickerBalance(String username, String ticker) {
         return userList.getUserVolume(username, ticker);
     }
@@ -261,15 +279,15 @@ public class MatchingEngine {
     /**
      * Initializes a user from {@code config.json}.
      *
-     * Finite mode:
+     * <p>Finite mode:
      *
-     * Sets cash balance to {@code defaults.defaultBalance}
-     * Sets per-ticker inventory from {@code defaults.balances}
+     * <p>Sets cash balance to {@code defaults.defaultBalance} Sets per-ticker inventory from {@code
+     * defaults.balances}
      *
-     * Infinite mode:
+     * <p>Infinite mode:
      *
-     * Registers the user in {@link UserList} (no fixed cash balance)
-     * Sets per-ticker inventory from {@code defaults.balances}
+     * <p>Registers the user in {@link UserList} (no fixed cash balance) Sets per-ticker inventory
+     * from {@code defaults.balances}
      */
     public boolean initializeUser(String user) {
         try {
@@ -326,7 +344,9 @@ public class MatchingEngine {
         return true;
     }
 
-    /** @return last known price for {@code ticker} (0 if unknown). */
+    /**
+     * @return last known price for {@code ticker} (0 if unknown).
+     */
     public int getPrice(String ticker) {
         return latestPrice.getOrDefault(ticker, 0);
     }
@@ -334,7 +354,7 @@ public class MatchingEngine {
     /**
      * Sets last known price for {@code ticker} and updates chart tracking.
      *
-     * This does not alter order book contents.
+     * <p>This does not alter order book contents.
      */
     public void setPrice(String ticker, int price) {
         latestPrice.put(ticker, price);
@@ -344,7 +364,7 @@ public class MatchingEngine {
     /**
      * Sets prices for multiple tickers and clears all order books and users' active orders.
      *
-     * Used as an administrative reset.
+     * <p>Used as an administrative reset.
      */
     public void setPriceClearOrderBook(
             Map<String, Integer> updatedPrices, TaskFuture<String> future) {
@@ -391,6 +411,7 @@ public class MatchingEngine {
 
     protected void updateVolume(
             Map<Integer, Integer> volumeMap, int price, int delta, String ticker, Side side) {
+        // Maintain aggregated depth per price and publish updates via RecentTrades.
         volumeMap.put(price, volumeMap.getOrDefault(price, 0) + delta);
         if (volumeMap.get(price) <= 0) {
             volumeMap.remove(price);
@@ -401,6 +422,7 @@ public class MatchingEngine {
     }
 
     private void zeroVolume(OrderBook orderBook, String ticker) {
+        // Emit zero-size updates for all levels, then clear the in-memory book.
         for (int price : orderBook.bidVolumes.keySet())
             RecentTrades.addTrade(ticker, price, 0, Side.BID);
         for (int price : orderBook.askVolumes.keySet())
@@ -409,6 +431,7 @@ public class MatchingEngine {
     }
 
     private static final class ValidationResult {
+        // Lightweight container: a Message code + result detail string.
         private final Message code;
         private final String detail;
 
@@ -419,6 +442,7 @@ public class MatchingEngine {
     }
 
     private ValidationResult validateBidOrder(String user, Order order) {
+        // Validates request shape + that the user can afford/reserve the bid.
         if (bots.containsKey(user)) {
             return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
         }
@@ -480,6 +504,7 @@ public class MatchingEngine {
     }
 
     private ValidationResult validateAskOrder(String user, Order order) {
+        // Validates request shape + that the user can reserve enough inventory to sell.
         if (bots.containsKey(user)) {
             return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
         }
@@ -535,6 +560,7 @@ public class MatchingEngine {
 
     private Map<String, Object> createLimitOrderResponse(
             double price, int volumeFilled, Message error, String errorMessage, long orderId) {
+        // Common response shape for limit orders.
         Map<String, Object> response = new HashMap<>();
         response.put("price", price);
         response.put("volumeFilled", volumeFilled);
@@ -546,6 +572,7 @@ public class MatchingEngine {
 
     private Map<String, Object> createMarketOrderResponse(
             double price, int volumeFilled, Message error) {
+        // Common response shape for market orders.
         Map<String, Object> response = new HashMap<>();
         response.put("price", price);
         response.put("volumeFilled", volumeFilled);
@@ -556,12 +583,14 @@ public class MatchingEngine {
 
     private OrderData processBid(
             Deque<Order> orders, Map<Integer, Integer> askVolumes, Order aggressor) {
+        // Matches a BUY aggressor against resting ASKs at one price level.
         OrderData orderData = new OrderData();
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
             if (order.status == Status.CANCELLED) {
                 orders.poll();
             } else if (order.volume > aggressor.volume) {
+                // Resting order is larger: aggressor fully fills, resting remains ACTIVE.
                 int volumeTraded = aggressor.volume;
                 updateVolume(askVolumes, order.price, -volumeTraded, order.ticker, Side.ASK);
                 userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
@@ -580,6 +609,7 @@ public class MatchingEngine {
                 aggressor.status = Status.FILLED;
                 orderData.linearCombination(order.price, volumeTraded);
             } else {
+                // Resting order is smaller/equal: resting fully fills and is removed from queue.
                 int volumeTraded = order.volume;
                 updateVolume(askVolumes, order.price, -volumeTraded, order.ticker, Side.ASK);
                 userList.adjustUserAskBalance(order.name, order.ticker, -volumeTraded);
@@ -605,12 +635,14 @@ public class MatchingEngine {
 
     public OrderData processAsk(
             Deque<Order> orders, Map<Integer, Integer> bidVolumes, Order aggressor) {
+        // Matches a SELL aggressor against resting BIDs at one price level.
         OrderData orderData = new OrderData();
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
             if (order.status == Status.CANCELLED) {
                 orders.poll();
             } else if (order.volume > aggressor.volume) {
+                // Resting order is larger: aggressor fully fills, resting remains ACTIVE.
                 int volumeTraded = aggressor.volume;
                 updateVolume(bidVolumes, order.price, -volumeTraded, order.ticker, Side.BID);
                 userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
@@ -630,6 +662,7 @@ public class MatchingEngine {
                 aggressor.status = Status.FILLED;
                 orderData.linearCombination(order.price, volumeTraded);
             } else {
+                // Resting order is smaller/equal: resting fully fills and is removed from queue.
                 int volumeTraded = order.volume;
                 updateVolume(bidVolumes, order.price, -volumeTraded, order.ticker, Side.BID);
                 userList.adjustUserBidBalance(order.name, order.ticker, -volumeTraded);
@@ -655,8 +688,8 @@ public class MatchingEngine {
     /**
      * Places a bid (buy) limit order.
      *
-     * If the order crosses the spread, it immediately matches against the best asks until
-     * either the order is fully filled or it can no longer match.
+     * <p>If the order crosses the spread, it immediately matches against the best asks until either
+     * the order is fully filled or it can no longer match.
      *
      * @param name user/bot name
      * @param order limit order (must be {@link Status#ACTIVE})
@@ -678,6 +711,7 @@ public class MatchingEngine {
         OrderData orderData = new OrderData();
         // validate order ensures that there is sufficient balance
         while (order.volume > 0 && !asks.isEmpty() && asks.firstKey() <= order.price) {
+            // Match against current best ask price level.
             Deque<Order> orderList = asks.get(asks.firstKey());
             orderData.add(processBid(orderList, askVolumes, order));
             if (orderList.isEmpty()) {
@@ -693,9 +727,11 @@ public class MatchingEngine {
                                 + " %d\n",
                         order.volume);
         if (orderData.volume > 0) {
+            // Convert accumulated price*volume into VWAP.
             orderData.price /= orderData.volume;
         }
         if (order.volume > 0) {
+            // Remaining volume becomes a resting order on the bid side.
             order.status = Status.ACTIVE;
             bids.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             updateVolume(bidVolumes, order.price, order.volume, order.ticker, Side.BID);
@@ -718,6 +754,7 @@ public class MatchingEngine {
     }
 
     public long bidLimitOrder(String name, Order order) {
+        // Convenience overload: return only the created orderId.
         return (long) bidLimitOrderHandler(name, order).get("orderId");
     }
 
@@ -739,8 +776,8 @@ public class MatchingEngine {
     /**
      * Places an ask (sell) limit order.
      *
-     * If the order crosses the spread, it immediately matches against the best bids until
-     * either the order is fully filled or it can no longer match.
+     * <p>If the order crosses the spread, it immediately matches against the best bids until either
+     * the order is fully filled or it can no longer match.
      */
     public Map<String, Object> askLimitOrderHandler(String name, Order order) {
         ValidationResult validation = validateAskOrder(name, order);
@@ -753,6 +790,7 @@ public class MatchingEngine {
         Map<Integer, Integer> bidVolumes = orderBooks.get(order.ticker).bidVolumes;
         OrderData orderData = new OrderData();
         while (order.volume > 0 && !bids.isEmpty() && bids.lastKey() >= order.price) {
+            // Match against current best bid price level.
             Deque<Order> orderList = bids.get(bids.lastKey());
             orderData.add(processAsk(orderList, bidVolumes, order));
             if (orderList.isEmpty()) {
@@ -768,9 +806,11 @@ public class MatchingEngine {
                                 + " %d\n",
                         order.volume);
         if (orderData.volume > 0) {
+            // Convert accumulated price*volume into VWAP.
             orderData.price /= orderData.volume;
         }
         if (order.volume > 0) {
+            // Remaining volume becomes a resting order on the ask side.
             order.status = Status.ACTIVE;
             asks.computeIfAbsent(order.price, k -> new LinkedList<>()).add(order);
             orderID++;
@@ -793,6 +833,7 @@ public class MatchingEngine {
     }
 
     public long askLimitOrder(String name, Order order) {
+        // Convenience overload: return only the created orderId.
         return (long) askLimitOrderHandler(name, order).get("orderId");
     }
 
@@ -812,17 +853,19 @@ public class MatchingEngine {
     }
 
     protected Map<Integer, Deque<Order>> getBids(String ticker) {
+        // Internal helper for tests/controllers.
         return orderBooks.get(ticker).bids;
     }
 
     protected Map<Integer, Deque<Order>> getAsks(String ticker) {
+        // Internal helper for tests/controllers.
         return orderBooks.get(ticker).asks;
     }
 
     /**
      * Returns aggregated bid sizes per price level for {@code ticker}.
      *
-     * Used for building order book depth views.
+     * <p>Used for building order book depth views.
      */
     public List<PriceLevel> getBidPriceLevels(String ticker) {
         Map<Integer, Integer> bidVolumes = orderBooks.get(ticker).bidVolumes;
@@ -836,7 +879,7 @@ public class MatchingEngine {
     /**
      * Returns aggregated ask sizes per price level for {@code ticker}.
      *
-     * Used for building order book depth views.
+     * <p>Used for building order book depth views.
      */
     public List<PriceLevel> getAskPriceLevels(String ticker) {
         Map<Integer, Integer> askVolumes = orderBooks.get(ticker).askVolumes;
@@ -862,9 +905,10 @@ public class MatchingEngine {
     /**
      * Cancels an active order.
      *
-     * This updates reserved balances/volumes and removes the order from the user's active map.
+     * <p>This updates reserved balances/volumes and removes the order from the user's active map.
      */
     public boolean removeOrder(String userId, long orderId) {
+        // Cancels an ACTIVE order and releases any reserved capacity.
         if (!userList.validUser(userId)) return false;
         Map<Long, Order> orders = userOrders.get(userId);
         if (orders != null) {
@@ -891,6 +935,9 @@ public class MatchingEngine {
 
     // todo: verify correctness of messaging
     public boolean removeOrder(String userId, long orderId, TaskFuture<String> future) {
+        /*
+         * Async cancellation variant that returns a JSON-ish Message string.
+         */
         if (!userList.validUser(userId)) {
             future.setData(Message.USER_NOT_INITIALIZED.toString());
             return false;
@@ -933,9 +980,10 @@ public class MatchingEngine {
     /**
      * Cancels all of a user's active orders.
      *
-     * Silent no-op if the user is invalid or has no orders.
+     * <p>Silent no-op if the user is invalid or has no orders.
      */
     public void removeAll(String userId) {
+        // Cancel all ACTIVE orders for this user.
         if (!userList.validUser(userId)) {
             return;
         }
@@ -988,14 +1036,15 @@ public class MatchingEngine {
     /**
      * Matches a market order against the opposite side of the book.
      *
-     * Important: For non-bot users, the aggressor may be capped by available funds/inventory
-     * via {@link UserList#getValidBidVolume(String, String, int)} and
-     * {@link UserList#getValidAskVolume(String, String)}.
+     * <p>Important: For non-bot users, the aggressor may be capped by available funds/inventory via
+     * {@link UserList#getValidBidVolume(String, String, int)} and {@link
+     * UserList#getValidAskVolume(String, String)}.
      *
      * @return aggregated execution data (total volume + linear-combination price accumulator).
      */
     public OrderData processMarketOrder(
             Deque<Order> orders, Map<Integer, Integer> volumeMap, Order aggressor, Side side) {
+        // Matches a market aggressor against resting orders at one price level.
         OrderData orderData = new OrderData();
         while (aggressor.volume > 0 && !orders.isEmpty()) {
             Order order = orders.peek();
@@ -1095,13 +1144,12 @@ public class MatchingEngine {
     /**
      * Executes a buy market order.
      *
-     * Response semantics:
+     * <p>Response semantics:
      *
-     * If nothing fills: returns an error (e.g., {@link Message#NO_LIQUIDITY} or
-     *       {@link Message#INSUFFICIENT_BALANCE}).
-     * If some volume fills but not all: returns {@link Message#PARTIAL_FILL} (treated as
-     *       success via {@code errorCode==0}).
-     * If fully filled: returns {@link Message#SUCCESS}.
+     * <p>If nothing fills: returns an error (e.g., {@link Message#NO_LIQUIDITY} or {@link
+     * Message#INSUFFICIENT_BALANCE}). If some volume fills but not all: returns {@link
+     * Message#PARTIAL_FILL} (treated as success via {@code errorCode==0}). If fully filled: returns
+     * {@link Message#SUCCESS}.
      */
     public Map<String, Object> bidMarketOrderHandler(String name, String ticker, int volume) {
         if (!userList.validUser(name) && !bots.containsKey(name)) {
@@ -1137,6 +1185,7 @@ public class MatchingEngine {
         }
 
         while (marketOrder.volume > 0 && !asks.isEmpty()) {
+            // Match at current best ask price level.
             Deque<Order> orderList = asks.get(asks.firstKey());
             orderData.add(processMarketOrder(orderList, askVolumes, marketOrder, Side.BID));
             if (orderList.isEmpty()) {
@@ -1151,6 +1200,7 @@ public class MatchingEngine {
             }
         }
         if (orderData.volume > 0) {
+            // Convert accumulated price*volume into VWAP.
             orderData.price /= orderData.volume;
         }
         if (marketOrder.volume > 0) {
@@ -1181,6 +1231,7 @@ public class MatchingEngine {
     }
 
     public int bidMarketOrder(String name, String ticker, int volume) {
+        // Convenience overload: return only the filled volume.
         return (int) bidMarketOrderHandler(name, ticker, volume).get("volumeFilled");
     }
 
@@ -1203,7 +1254,7 @@ public class MatchingEngine {
     /**
      * Executes a sell market order.
      *
-     * See {@link #bidMarketOrderHandler(String, String, int)} for response semantics.
+     * <p>See {@link #bidMarketOrderHandler(String, String, int)} for response semantics.
      */
     public Map<String, Object> askMarketOrderHandler(String name, String ticker, int volume) {
         if (!userList.validUser(name) && !bots.containsKey(name)) {
@@ -1237,6 +1288,7 @@ public class MatchingEngine {
         }
 
         while (marketOrder.volume > 0 && !bids.isEmpty()) {
+            // Match at current best bid price level.
             Deque<Order> orderList = bids.get(bids.lastKey());
             orderData.add(processMarketOrder(orderList, bidVolumes, marketOrder, Side.ASK));
             if (orderList.isEmpty()) {
@@ -1250,6 +1302,7 @@ public class MatchingEngine {
             }
         }
         if (orderData.volume > 0) {
+            // Convert accumulated price*volume into VWAP.
             orderData.price /= orderData.volume;
         }
         if (marketOrder.volume > 0) {
@@ -1279,6 +1332,7 @@ public class MatchingEngine {
     }
 
     public int askMarketOrder(String name, String ticker, int volume) {
+        // Convenience overload: return only the filled volume.
         return (int) askMarketOrderHandler(name, ticker, volume).get("volumeFilled");
     }
 
@@ -1303,6 +1357,7 @@ public class MatchingEngine {
      * grouped by ticker.
      */
     public String getUserDetails(String username) {
+        // Combines UserList details with ACTIVE orders grouped by ticker.
         JSONObject userListDetails = userList.getUserDetailsAsJson(username, latestPrice);
 
         // Organize active orders by ticker
@@ -1345,6 +1400,7 @@ public class MatchingEngine {
 
     /** Applies an auction bid by subtracting {@code bid} from the user's cash balance. */
     public void executeAuction(String user, int bid) {
+        // Auction bids are represented as a direct cash balance adjustment.
         userList.adjustUserBalance(user, -bid);
     }
 }

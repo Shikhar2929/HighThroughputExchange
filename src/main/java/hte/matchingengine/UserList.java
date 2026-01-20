@@ -5,14 +5,32 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * In-memory user state store.
+ *
+ * <p>Tracks: Cash balances per user (finite mode; still present but treated differently in
+ * infinite). Per-ticker inventory quantities. Average cost tracking via running sums (sumPrices).
+ * Reserved quantities due to resting orders (bidSize/askSize).
+ *
+ * <p>Modes: Finite: cash balance limits buying power. Infinite: position limits bound exposure
+ * rather than cash.
+ */
 public class UserList {
     private static final Logger logger = LoggerFactory.getLogger(UserList.class);
-    private Map<String, Long> userBalances = new HashMap<>(); // UserName -> Balance
-    private Map<String, Map<String, Integer>> quantities = new HashMap<>(); // Actual Amount Owned
+    // UserName -> cash balance (finite mode) or placeholder (infinite mode).
+    private Map<String, Long> userBalances = new HashMap<>();
+    // UserName -> (Ticker -> current position).
+    private Map<String, Map<String, Integer>> quantities = new HashMap<>();
+    // UserName -> (Ticker -> sum(positionLots * lotPrice)) for average-cost computations.
     private Map<String, Map<String, Double>> sumPrices = new HashMap<>();
+    // UserName -> (Ticker -> reserved bid quantity due to active buy orders).
     private Map<String, Map<String, Integer>> bidSize = new HashMap<>();
+    // UserName -> (Ticker -> reserved ask quantity due to active sell orders).
     private Map<String, Map<String, Integer>> askSize = new HashMap<>();
+
+    // If true, enforce positionLimit instead of cash-balance constraints.
     private boolean infinite = false;
+    // Maximum absolute position exposure allowed in infinite mode.
     private int positionLimit = 0;
 
     public void setInfinite(boolean infinite) {

@@ -8,7 +8,9 @@ def test_auction_endpoints_flow(client: ExchangeClient, unique_username) -> None
     client.admin_set_state(2)
 
     username = unique_username("auc")
-    api_key = client.admin_add_user(username=username, name="CI Auction", email=f"{username}@example.com")
+    api_key = client.admin_add_user(
+        username=username, name="CI Auction", email=f"{username}@example.com"
+    )
     session = client.buildup(username, api_key)
 
     try:

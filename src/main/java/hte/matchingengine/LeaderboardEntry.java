@@ -1,5 +1,10 @@
 package hte.matchingengine;
 
+/**
+ * Leaderboard row representing a single user's score (currently: balance or marked PnL).
+ *
+ * <p>Implements {@link Comparable} to support sorting.
+ */
 public class LeaderboardEntry implements Comparable<LeaderboardEntry> {
 
     private String username;

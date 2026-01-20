@@ -2,6 +2,11 @@ package hte.matchingengine;
 
 import java.util.Objects;
 
+/**
+ * Compound key for tracking per-(ticker, price, side) updates.
+ *
+ * <p>Used by {@link RecentTrades} to store latest aggregated volume at a price level.
+ */
 public class TradeKey implements Comparable<TradeKey> {
     String ticker;
     private final int price;

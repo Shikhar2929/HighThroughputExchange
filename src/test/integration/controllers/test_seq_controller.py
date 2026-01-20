@@ -31,7 +31,9 @@ def test_updates_requires_from_exclusive_param(base_url: str) -> None:
     assert r.status_code == 400
 
 
-def test_updates_returns_updates_after_trade(client: ExchangeClient, unique_username) -> None:
+def test_updates_returns_updates_after_trade(
+    client: ExchangeClient, unique_username
+) -> None:
     # Create a trade to populate RecentTrades, then wait for SocketController's
     # scheduled task to append it into OrderbookSeqLog.
     client.admin_set_state(1)
@@ -39,14 +41,20 @@ def test_updates_returns_updates_after_trade(client: ExchangeClient, unique_user
     seller = unique_username("seller")
     buyer = unique_username("buyer")
 
-    seller_key = client.admin_add_user(username=seller, name="CI Seller", email=f"{seller}@example.com")
-    buyer_key = client.admin_add_user(username=buyer, name="CI Buyer", email=f"{buyer}@example.com")
+    seller_key = client.admin_add_user(
+        username=seller, name="CI Seller", email=f"{seller}@example.com"
+    )
+    buyer_key = client.admin_add_user(
+        username=buyer, name="CI Buyer", email=f"{buyer}@example.com"
+    )
 
     seller_session = client.buildup(seller, seller_key)
     buyer_session = client.buildup(buyer, buyer_key)
 
     try:
-        client.limit_order(seller_session, ticker="A", volume=1, price=120, is_bid=False)
+        client.limit_order(
+            seller_session, ticker="A", volume=1, price=120, is_bid=False
+        )
         time.sleep(0.05)
         client.market_order(buyer_session, ticker="A", volume=1, is_bid=True)
 
@@ -88,7 +96,9 @@ def test_updates_returns_updates_after_trade(client: ExchangeClient, unique_user
             # Any other status: brief pause and retry (can be transient).
             time.sleep(0.2)
 
-        raise AssertionError(f"/updates never returned 200 (last={last_status} {last_data})")
+        raise AssertionError(
+            f"/updates never returned 200 (last={last_status} {last_data})"
+        )
 
     finally:
         client.teardown(seller_session)

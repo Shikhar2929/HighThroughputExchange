@@ -4,12 +4,27 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * In-memory order book for a single ticker.
+ *
+ * <p>Stores:
+ *
+ * <p>Per-price FIFO queues of {@link Order} objects for bids and asks. Aggregated volume per price
+ * level (used for depth + recent-trades updates). An optional {@code currentPrice} mark (last
+ * trade/mark).
+ */
 public class OrderBook {
     private static final Logger logger = LoggerFactory.getLogger(OrderBook.class);
-    protected TreeMap<Integer, Deque<Order>> bids = new TreeMap<>(); // Price -> Orders
-    protected TreeMap<Integer, Deque<Order>> asks = new TreeMap<>(); // Price -> Orders
-    protected Map<Integer, Integer> bidVolumes = new TreeMap<>(); // Price -> Total Volume
-    protected Map<Integer, Integer> askVolumes = new TreeMap<>(); // Price -> Total Volume
+    // Price -> FIFO queue of resting bid orders.
+    protected TreeMap<Integer, Deque<Order>> bids = new TreeMap<>();
+    // Price -> FIFO queue of resting ask orders.
+    protected TreeMap<Integer, Deque<Order>> asks = new TreeMap<>();
+    // Price -> total resting bid volume at that price.
+    protected Map<Integer, Integer> bidVolumes = new TreeMap<>();
+    // Price -> total resting ask volume at that price.
+    protected Map<Integer, Integer> askVolumes = new TreeMap<>();
+
+    // Nullable last-known mark price.
     private Integer currentPrice = null;
 
     public Map<Integer, Integer> getBidVolumes() {

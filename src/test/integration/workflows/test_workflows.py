@@ -5,7 +5,9 @@ import time
 from exchange_client import ExchangeClient
 
 
-def test_user_trade_then_snapshot_and_updates(client: ExchangeClient, unique_username) -> None:
+def test_user_trade_then_snapshot_and_updates(
+    client: ExchangeClient, unique_username
+) -> None:
     # Cross-controller workflow:
     # AdminController -> SessionController -> OrderController -> SeqController
     client.admin_set_state(1)
@@ -13,14 +15,20 @@ def test_user_trade_then_snapshot_and_updates(client: ExchangeClient, unique_use
     seller = unique_username("wf_seller")
     buyer = unique_username("wf_buyer")
 
-    seller_key = client.admin_add_user(username=seller, name="WF Seller", email=f"{seller}@example.com")
-    buyer_key = client.admin_add_user(username=buyer, name="WF Buyer", email=f"{buyer}@example.com")
+    seller_key = client.admin_add_user(
+        username=seller, name="WF Seller", email=f"{seller}@example.com"
+    )
+    buyer_key = client.admin_add_user(
+        username=buyer, name="WF Buyer", email=f"{buyer}@example.com"
+    )
 
     seller_session = client.buildup(seller, seller_key)
     buyer_session = client.buildup(buyer, buyer_key)
 
     try:
-        client.limit_order(seller_session, ticker="A", volume=1, price=120, is_bid=False)
+        client.limit_order(
+            seller_session, ticker="A", volume=1, price=120, is_bid=False
+        )
         time.sleep(0.05)
         client.market_order(buyer_session, ticker="A", volume=1, is_bid=True)
 
