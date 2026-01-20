@@ -1,12 +1,11 @@
 {
-  "mode": "finite",
+  "mode": "infinite",
   "defaults": {
-    "defaultBalance": 1000,
     "tickers": ["A", "B", "C"],
     "balances": {
-      "A": 50,
-      "B": 50,
-      "C": 50
+      "A": 0,
+      "B": 0,
+      "C": 0
     },
     "positionLimit": 1000
   }
