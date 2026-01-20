@@ -1160,6 +1160,28 @@ public class MatchingEngineTest {
     }
 
     @Test
+    public void testBots_CanHaveNegativeCashBalance_InFiniteMode() {
+        String ticker = "A";
+        String seller = "seller";
+        String bot = "bot1";
+
+        // positionLimit=-1 => finite mode engine
+        MatchingEngine engine =
+                newEngine(-1, ticker, new String[] {seller}, new int[] {0}, new int[] {10});
+
+        engine.initializeBot(bot);
+
+        // Seed liquidity: seller posts an ask; bot buys via market order.
+        engine.askLimitOrderHandler(
+                seller, new Order(seller, ticker, 100, 5, Side.ASK, Status.ACTIVE));
+
+        Map<String, Object> message = engine.bidMarketOrderHandler(bot, ticker, 5);
+        assertEquals(0, (int) message.get("errorCode"));
+        assertEquals(5, (int) message.get("volumeFilled"));
+        assertEquals(-500, engine.getUserBalance(bot));
+    }
+
+    @Test
     public void testAveragePrice_Computed_AcrossMatchedTrades() {
         String ticker = "A";
         int positionLimit = 100;

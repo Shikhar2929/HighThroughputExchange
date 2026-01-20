@@ -126,6 +126,9 @@ public class MatchingEngine {
      */
     public boolean initializeBot(String username) {
         bots.put(username, 0);
+        // Bots are always allowed to have negative cash balances (infinite money to lose),
+        // even when the engine is running in finite mode.
+        userList.allowNegativeBalance(username);
         initializeUserBalance(username, 0);
         for (String ticker : orderBooks.keySet()) {
             initializeUserTickerVolume(username, ticker, 0);
@@ -1055,17 +1058,22 @@ public class MatchingEngine {
             // 2 Cases:
             // First Case: Finite Stack - only sell what you can own
             int aggressorVolume = aggressor.volume;
-            if (side == Side.BID)
-                aggressorVolume =
-                        Math.min(
-                                aggressorVolume,
-                                userList.getValidBidVolume(
-                                        aggressor.name, order.ticker, order.price));
-            else if (side == Side.ASK) {
-                aggressorVolume =
-                        Math.min(
-                                aggressorVolume,
-                                userList.getValidAskVolume(aggressor.name, order.ticker));
+            // IMPORTANT: bots bypass finite-mode balance/inventory caps.
+            // Otherwise, a bot with 0 balance would have aggressorVolume=0, causing
+            // the outer market-order loop to spin forever without making progress.
+            if (!bots.containsKey(aggressor.name)) {
+                if (side == Side.BID) {
+                    aggressorVolume =
+                            Math.min(
+                                    aggressorVolume,
+                                    userList.getValidBidVolume(
+                                            aggressor.name, order.ticker, order.price));
+                } else if (side == Side.ASK) {
+                    aggressorVolume =
+                            Math.min(
+                                    aggressorVolume,
+                                    userList.getValidAskVolume(aggressor.name, order.ticker));
+                }
             }
             // If the aggressor cannot trade any volume (e.g., insufficient balance/inventory),
             // stop processing and let the caller decide how to report it.

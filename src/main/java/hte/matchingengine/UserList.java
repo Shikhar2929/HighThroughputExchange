@@ -33,12 +33,20 @@ public class UserList {
     // Maximum absolute position exposure allowed in infinite mode.
     private int positionLimit = 0;
 
+    // Per-user override: allow negative cash balances even in finite mode.
+    // Used to model bots with unlimited money to lose.
+    private final Set<String> negativeBalanceAllowed = new HashSet<>();
+
     public void setInfinite(boolean infinite) {
         this.infinite = infinite;
     }
 
     public void setPositionLimit(int positionLimit) {
         this.positionLimit = positionLimit;
+    }
+
+    public void allowNegativeBalance(String username) {
+        negativeBalanceAllowed.add(username);
     }
 
     public long getUserBalance(String username) {
@@ -126,7 +134,7 @@ public class UserList {
     public boolean adjustUserBalance(String username, int delta) {
         long currentBalance = getUserBalance(username);
         long newBalance = currentBalance + delta;
-        if (newBalance < 0 && !infinite) {
+        if (newBalance < 0 && !infinite && !negativeBalanceAllowed.contains(username)) {
             logger.warn(
                     "Rejecting balance update: would go negative in finite mode (username={}"
                             + " currentBalance={} delta={})",
