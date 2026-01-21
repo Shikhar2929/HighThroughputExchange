@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from typing import Any
 
 import requests
+from requests import Response
+from requests.exceptions import RequestException
 
 
 class ApiError(RuntimeError):
@@ -50,6 +52,54 @@ class BotSession:
 class ExchangeClient:
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip("/")
+        self._session = requests.Session()
+
+    def close(self) -> None:
+        self._session.close()
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        payload: dict[str, Any] | None = None,
+        timeout_s: float = 5.0,
+        max_retries: int = 6,
+    ) -> Response:
+        backoff_s = 0.05
+        last_exc: Exception | None = None
+
+        for attempt in range(max_retries):
+            try:
+                r = self._session.request(
+                    method=method,
+                    url=f"{self.base_url}{path}",
+                    params=params,
+                    json=payload,
+                    timeout=timeout_s,
+                    headers={"User-Agent": "hte-integration-tests"},
+                )
+
+                # Rate limiter can trip in tight CI runs; retry a few times.
+                if r.status_code == 429 and attempt < max_retries - 1:
+                    import time
+
+                    time.sleep(backoff_s)
+                    backoff_s = min(backoff_s * 2, 0.5)
+                    continue
+
+                return r
+            except RequestException as e:
+                last_exc = e
+                if attempt >= max_retries - 1:
+                    break
+                import time
+
+                time.sleep(backoff_s)
+                backoff_s = min(backoff_s * 2, 0.5)
+
+        raise ApiError(f"Request failed: {method} {path}: {last_exc}")
 
     def _get_json(
         self,
@@ -59,7 +109,7 @@ class ExchangeClient:
         timeout_s: float = 5.0,
         allow_http_error: bool = False,
     ) -> tuple[int, dict[str, Any]]:
-        r = requests.get(f"{self.base_url}{path}", params=params, timeout=timeout_s)
+        r = self._request("GET", path, params=params, timeout_s=timeout_s)
         status = int(r.status_code)
 
         try:
@@ -74,33 +124,13 @@ class ExchangeClient:
     def _post(
         self, path: str, payload: dict[str, Any], timeout_s: float = 5.0
     ) -> dict[str, Any]:
-        backoff_s = 0.05
-        last_status = None
-        last_text = None
-
-        for _ in range(6):
-            r = requests.post(
-                f"{self.base_url}{path}",
-                json=payload,
-                timeout=timeout_s,
-            )
-            last_status = r.status_code
-            last_text = r.text
-
-            # Rate limiter can trip in tight CI runs; retry a few times.
-            if r.status_code == 429:
-                import time
-
-                time.sleep(backoff_s)
-                backoff_s = min(backoff_s * 2, 0.5)
-                continue
-            break
+        r = self._request("POST", path, payload=payload, timeout_s=timeout_s)
 
         # For failures, the server still returns JSON most of the time.
         try:
             data = r.json()
         except Exception as e:
-            raise ApiError(f"Non-JSON response ({last_status}): {last_text}") from e
+            raise ApiError(f"Non-JSON response ({r.status_code}): {r.text}") from e
 
         if r.status_code >= 400:
             raise ApiError(f"HTTP {r.status_code}: {data}")
@@ -113,38 +143,19 @@ class ExchangeClient:
         *,
         timeout_s: float = 5.0,
     ) -> tuple[int, dict[str, Any]]:
-        backoff_s = 0.05
-        last_status = None
-        last_text = None
-
-        for _ in range(6):
-            r = requests.post(
-                f"{self.base_url}{path}",
-                json=payload,
-                timeout=timeout_s,
-            )
-            last_status = r.status_code
-            last_text = r.text
-
-            if r.status_code == 429:
-                import time
-
-                time.sleep(backoff_s)
-                backoff_s = min(backoff_s * 2, 0.5)
-                continue
-            break
+        r = self._request("POST", path, payload=payload, timeout_s=timeout_s)
 
         try:
             data = r.json()
         except Exception as e:
-            raise ApiError(f"Non-JSON response ({last_status}): {last_text}") from e
+            raise ApiError(f"Non-JSON response ({r.status_code}): {r.text}") from e
 
         return int(r.status_code), data
 
     def get_state(self) -> int:
-        r = requests.get(f"{self.base_url}/get_state", timeout=2)
-        r.raise_for_status()
-        data = r.json()
+        status, data = self._get_json("/get_state", timeout_s=2.0)
+        if status != 200:
+            raise ApiError(f"Unexpected status for /get_state: {status} {data}")
         return int(data["state"])
 
     # --- SeqController endpoints ---
@@ -159,14 +170,13 @@ class ExchangeClient:
         return int(latest)
 
     def snapshot(self) -> dict[str, Any]:
-        r = requests.post(f"{self.base_url}/snapshot", timeout=5.0)
-        status = int(r.status_code)
+        r = self._request("POST", "/snapshot", timeout_s=5.0)
         try:
             data = r.json()
         except Exception as e:
-            raise ApiError(f"Non-JSON response ({status}): {r.text}") from e
-        if status >= 400:
-            raise ApiError(f"HTTP {status}: {data}")
+            raise ApiError(f"Non-JSON response ({r.status_code}): {r.text}") from e
+        if r.status_code >= 400:
+            raise ApiError(f"HTTP {r.status_code}: {data}")
         return data
 
     def update_allow_missing(self, seq: int) -> tuple[int, dict[str, Any]]:
@@ -228,7 +238,7 @@ class ExchangeClient:
         # and sometimes it returns a non-JSON string like:
         #   {"message":SUCCESS ALL CLEARED}
         # Keep tests resilient by accepting either form.
-        r = requests.post(f"{self.base_url}/set_price", json=payload, timeout=5.0)
+        r = self._request("POST", "/set_price", payload=payload, timeout_s=5.0)
         if r.status_code >= 400:
             raise ApiError(f"HTTP {r.status_code}: {r.text}")
 
@@ -242,6 +252,54 @@ class ExchangeClient:
             raise ApiError(f"Non-JSON response (200): {text}")
 
         _assert_success_message(data)
+
+    def wait_for_updates_with_ticker(
+        self,
+        *,
+        ticker: str,
+        timeout_s: float = 8.0,
+        start_seq: int = 0,
+    ) -> dict[str, Any]:
+        """Poll /updates until we observe a PriceChange for the given ticker."""
+        import time
+
+        deadline = time.time() + timeout_s
+        seq = int(start_seq)
+        last_status: int | None = None
+        last_data: dict[str, Any] | None = None
+
+        while time.time() < deadline:
+            status, data = self.update_allow_missing(seq)
+            last_status, last_data = status, data
+
+            if status == 200:
+                update = data.get("update")
+                if not isinstance(update, dict):
+                    raise ApiError(f"Unexpected update payload: {data}")
+
+                got_seq = int(update.get("seq"))
+                seq = got_seq + 1
+
+                for pc in update.get("priceChanges", []) or []:
+                    if pc.get("ticker") == ticker:
+                        return update
+
+                time.sleep(0.05)
+                continue
+
+            if status == 400:
+                msg = data.get("message")
+                if not isinstance(msg, dict):
+                    raise ApiError(f"Unexpected error payload: {data}")
+                time.sleep(0.1)
+                continue
+
+            time.sleep(0.2)
+
+        raise ApiError(
+            f"/updates never returned an update for ticker={ticker} (last={last_status}"
+            f" {last_data})"
+        )
 
     def admin_add_user(self, username: str, name: str, email: str) -> str:
         payload = {

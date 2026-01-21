@@ -49,7 +49,11 @@ def client(base_url: str):
         ExchangeClient,
     )  # local import to avoid path ordering issues
 
-    return ExchangeClient(base_url)
+    c = ExchangeClient(base_url)
+    try:
+        yield c
+    finally:
+        c.close()
 
 
 @pytest.fixture(autouse=True)
