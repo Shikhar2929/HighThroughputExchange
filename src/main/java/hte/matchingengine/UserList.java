@@ -128,7 +128,9 @@ public class UserList {
                     + getUserVolume(username, ticker)
                     - askSize.get(username).getOrDefault(ticker, 0);
         }
-        return getUserVolume(username, ticker);
+
+        return Math.max(
+                0, getUserVolume(username, ticker) - askSize.get(username).getOrDefault(ticker, 0));
     }
 
     public boolean adjustUserBalance(String username, int delta) {

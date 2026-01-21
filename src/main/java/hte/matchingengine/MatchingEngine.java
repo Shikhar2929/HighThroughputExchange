@@ -203,25 +203,6 @@ public class MatchingEngine {
         return true;
     }
 
-    // todo: test and replace
-    public boolean alternativeInitializeAllTickers() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            FileReader reader = new FileReader("config.json");
-            OrderbookConfig configData = mapper.readerFor(OrderbookConfig.class).readValue(reader);
-            reader.close();
-
-            for (String ticker : configData.getDefaults().getTickers()) {
-                logger.info("Initializing ticker: {}", ticker);
-                initializeTicker(ticker);
-            }
-        } catch (Exception e) {
-            logger.error("Failed to initialize tickers from config.json", e);
-            return false;
-        }
-        return true;
-    }
-
     /**
      * Initializes all tickers from {@code config.json} under {@code defaults.tickers}.
      *
@@ -247,33 +228,6 @@ public class MatchingEngine {
             }
         } catch (Exception e) {
             logger.error("Failed to initialize tickers from config.json", e);
-            return false;
-        }
-        return true;
-    }
-
-    // todo test and replace
-    public boolean alternativeInitializeUser(String user) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            FileReader reader = new FileReader("config.json");
-            OrderbookConfig configData = mapper.readerFor(OrderbookConfig.class).readValue(reader);
-            reader.close();
-
-            logger.info(
-                    "Default balance from config.json: {}",
-                    configData.getDefaults().getDefaultBalance());
-            for (String key : configData.getDefaults().getBalances().keySet()) {
-                logger.info(
-                        "Initializing user ticker: user={} ticker={} balance={}",
-                        user,
-                        key,
-                        configData.getDefaults().getBalances().get(key));
-                initializeUserTickerVolume(
-                        user, key, configData.getDefaults().getBalances().get(key));
-            }
-        } catch (Exception e) {
-            logger.error("Failed to initialize user from config.json: user={}", user, e);
             return false;
         }
         return true;
