@@ -58,47 +58,8 @@ def test_updates_returns_updates_after_trade(
         time.sleep(0.05)
         client.market_order(buyer_session, ticker="A", volume=1, is_bid=True)
 
-        deadline = time.time() + 8.0
-
-        # Query updates by exact seq. Missing seq returns HTTP 400 with
-        # message=INVALID_SEQ_NUM, so we just keep polling forward.
-        seq = 0
-
-        last_status: int | None = None
-        last_data: dict[str, Any] | None = None
-
-        while time.time() < deadline:
-            status, data = client.update_allow_missing(seq)
-            last_status, last_data = status, data
-
-            if status == 200:
-                update = data.get("update")
-                assert isinstance(update, dict)
-
-                # Advance to the next seq.
-                got_seq = int(update.get("seq"))
-                seq = got_seq + 1
-
-                for pc in update.get("priceChanges", []) or []:
-                    if pc.get("ticker") == "A":
-                        return
-
-                time.sleep(0.05)
-                continue
-
-            if status == 400:
-                msg = data.get("message")
-                assert isinstance(msg, dict)
-                assert int(msg.get("errorCode")) == 8
-                time.sleep(0.1)
-                continue
-
-            # Any other status: brief pause and retry (can be transient).
-            time.sleep(0.2)
-
-        raise AssertionError(
-            f"/updates never returned 200 (last={last_status} {last_data})"
-        )
+        update = client.wait_for_updates_with_ticker(ticker="A", timeout_s=8.0)
+        assert isinstance(update, dict)
 
     finally:
         client.teardown(seller_session)

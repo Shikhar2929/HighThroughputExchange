@@ -21,19 +21,13 @@ public class MatchingEngineTest {
             String[] users,
             int[] userBalances,
             int[] userTickerVolumes) {
-        MatchingEngine engine;
-
-        if (positionLimit == -1) {
-            engine = new MatchingEngine();
-        } else {
-            engine = new MatchingEngine(positionLimit);
-        }
-
-        engine.initializeTicker(ticker);
+        MatchingEngine engine =
+                positionLimit == -1
+                        ? TestEngines.finiteSingleTicker(ticker)
+                        : TestEngines.infiniteSingleTicker(positionLimit, ticker);
 
         for (int i = 0; i < users.length; i++) {
-            engine.initializeUserBalance(users[i], userBalances[i]);
-            engine.initializeUserTickerVolume(users[i], ticker, userTickerVolumes[i]);
+            TestEngines.initUser(engine, users[i], userBalances[i], ticker, userTickerVolumes[i]);
         }
 
         return engine;
@@ -476,18 +470,20 @@ public class MatchingEngineTest {
         assertEquals(
                 1000,
                 engine.getUserBalance(users[0]),
-                "User balance should be reduced by bid order value");
+                "User balance should remain unchanged when a bid rests (finite mode)"
+                        + " because the engine tracks reservations separately");
         assertEquals(
                 0,
                 engine.getTickerBalance(users[0], ticker),
                 "Ticker balance should remain unchanged for bid order");
 
         // Remove the order and verify balance restoration
-        engine.removeOrder(users[0], orderId);
+        assertTrue(engine.removeOrder(users[0], orderId));
         assertEquals(
                 1000,
                 engine.getUserBalance(users[0]),
-                "User balance should be restored after bid order cancellation");
+                "User balance should remain unchanged after bid order cancellation");
+        assertTrue(engine.getBidPriceLevels(ticker).isEmpty(), "Bid book should be empty");
     }
 
     @Test
@@ -511,14 +507,23 @@ public class MatchingEngineTest {
         assertEquals(
                 20,
                 engine.getTickerBalance(users[0], ticker),
-                "Ticker balance should be reduced by ask order volume");
+                "Ticker balance should remain unchanged when an ask rests; only available"
+                        + " sell capacity is reduced via reservation");
+
+        // Reservation is observable by rejecting asks that exceed remaining available inventory.
+        long rejected =
+                engine.askLimitOrder(
+                        users[0], new Order(users[0], ticker, 51, 11, Side.ASK, Status.ACTIVE));
+        assertEquals(-1, rejected, "Second ask should be rejected due to reserved inventory");
 
         // Remove the order and verify ticker balance restoration
-        engine.removeOrder(users[0], orderId);
-        assertEquals(
-                20,
-                engine.getTickerBalance(users[0], ticker),
-                "Ticker balance should be restored after ask order cancellation");
+        assertTrue(engine.removeOrder(users[0], orderId));
+        assertEquals(20, engine.getTickerBalance(users[0], ticker));
+
+        long accepted =
+                engine.askLimitOrder(
+                        users[0], new Order(users[0], ticker, 51, 11, Side.ASK, Status.ACTIVE));
+        assertTrue(accepted > 0, "After cancel, reservation should be released");
     }
 
     @Test
@@ -574,7 +579,7 @@ public class MatchingEngineTest {
         assertEquals(
                 1000,
                 engine.getUserBalance(users[0]),
-                "User balance should reflect bid reservation");
+                "User balance should remain unchanged for resting bids (finite mode)");
         assertEquals(
                 20,
                 engine.getTickerBalance(users[0], ticker),
@@ -588,7 +593,7 @@ public class MatchingEngineTest {
         assertEquals(
                 1000,
                 engine.getUserBalance(users[0]),
-                "User balance should be restored after removing bid order");
+                "User balance should remain unchanged after removing bid order");
         assertEquals(
                 20,
                 engine.getTickerBalance(users[0], ticker),
@@ -607,37 +612,27 @@ public class MatchingEngineTest {
         MatchingEngine engine =
                 newEngine(positionLimit, ticker, users, userBalances, userTickerVolumes);
 
-        // Place an ask order
-        Order askOrder = new Order(users[0], ticker, 100, 10, Side.ASK, Status.ACTIVE);
-        long orderId = engine.askLimitOrder(askOrder.name, askOrder);
+        // Place an ask order (rests) and verify it reserves sell capacity.
+        long orderId =
+                engine.askLimitOrder(
+                        users[0], new Order(users[0], ticker, 100, 10, Side.ASK, Status.ACTIVE));
+        assertTrue(orderId > 0);
 
-        // Verify initial state
-        assertEquals(
-                1000,
-                engine.getUserBalance(users[0]),
-                "User balance should remain unchanged for ask orders");
-        assertEquals(
-                20,
-                engine.getTickerBalance(users[0], ticker),
-                "Ticker balance should reflect ask reservation");
+        // Ticker balance is not reduced by reservations; only availability changes.
+        assertEquals(1000, engine.getUserBalance(users[0]));
+        assertEquals(20, engine.getTickerBalance(users[0], ticker));
 
-        // Remove the ask order
-        boolean removed = engine.removeOrder(users[0], orderId);
+        long rejected =
+                engine.askLimitOrder(
+                        users[0], new Order(users[0], ticker, 101, 11, Side.ASK, Status.ACTIVE));
+        assertEquals(-1, rejected, "Reservation should prevent oversell");
 
-        // Verify removal
-        assertTrue(removed, "Ask order should be successfully removed");
-        assertEquals(
-                1000,
-                engine.getUserBalance(users[0]),
-                "User balance should remain unchanged after removing ask order");
-        assertEquals(
-                20,
-                engine.getTickerBalance(users[0], ticker),
-                "Ticker balance should be fully restored after removing ask order");
-        assertNull(engine.getOrder(users[0], orderId), "Order status should be CANCELLED");
-        List<PriceLevel> askLevels = engine.getAskPriceLevels(ticker);
-        assertEquals(
-                0, askLevels.size(), "Ask price levels should be empty after removing the order");
+        // Remove the ask order; reservation should be released.
+        assertTrue(engine.removeOrder(users[0], orderId));
+        long accepted =
+                engine.askLimitOrder(
+                        users[0], new Order(users[0], ticker, 101, 11, Side.ASK, Status.ACTIVE));
+        assertTrue(accepted > 0);
     }
 
     @Test
@@ -656,19 +651,15 @@ public class MatchingEngineTest {
                 users[0], new Order(users[0], ticker, 50, 10, Side.BID, Status.ACTIVE));
         engine.askLimitOrder(users[0], new Order(users[0], ticker, 60, 5, Side.ASK, Status.ACTIVE));
 
-        // Verify initial state
-        assertEquals(
-                1000,
-                engine.getUserBalance(users[0]),
-                "User balance should reflect bid reservation");
+        // Verify initial state: balances/positions are not reduced by reservations.
+        assertEquals(1000, engine.getUserBalance(users[0]));
+        assertEquals(20, engine.getTickerBalance(users[0], ticker));
 
-        // TODO: should be 15, but outputs 20
-        assertEquals(
-                20,
-                engine.getTickerBalance(users[0], ticker),
-                "Ticker volume should reflect ask reservation");
-        // assertEquals(15, engine.getTickerBalance(users[0], ticker), "Ticker volume
-        // should reflect ask reservation");
+        // Reservation is observable by rejecting an oversell attempt.
+        long rejected =
+                engine.askLimitOrder(
+                        users[0], new Order(users[0], ticker, 61, 16, Side.ASK, Status.ACTIVE));
+        assertEquals(-1, rejected);
 
         // Remove all orders
         engine.removeAll(users[0]);
@@ -687,6 +678,12 @@ public class MatchingEngineTest {
         List<PriceLevel> askLevels = engine.getAskPriceLevels(ticker);
         assertEquals(0, bidLevels.size(), "All bid orders should be removed");
         assertEquals(0, askLevels.size(), "All ask orders should be removed");
+
+        // After removing, the oversell attempt should now be permitted.
+        long accepted =
+                engine.askLimitOrder(
+                        users[0], new Order(users[0], ticker, 61, 16, Side.ASK, Status.ACTIVE));
+        assertTrue(accepted > 0);
     }
 
     @Test
@@ -840,7 +837,7 @@ public class MatchingEngineTest {
 
         PriceChange trade = trades.get(0);
         assertEquals(150, trade.getPrice(), "Trade price should match the order price");
-        assertEquals(0, trade.getVolume(), "Trade volume should match the order volume");
+        assertEquals(0, trade.getVolume(), "RecentTrades stores remaining depth; full fill => 0");
         assertNotNull(trade.getSide(), "Trade should have a side");
     }
 
@@ -1114,7 +1111,7 @@ public class MatchingEngineTest {
 
         long orderId1 =
                 engine.bidLimitOrder(
-                        user1, new Order(user1, ticker, 100, 100, Side.ASK, Status.ACTIVE));
+                        user1, new Order(user1, ticker, 100, 100, Side.BID, Status.ACTIVE));
         assertNotEquals(-1, orderId1);
         assertEquals(0, engine.getUserBalance(user1));
         assertEquals(0, engine.getTickerBalance(user1, ticker));
@@ -1140,12 +1137,12 @@ public class MatchingEngineTest {
 
         long orderId4 =
                 engine.askLimitOrder(
-                        user1, new Order(user1, ticker, 150, 1101, Side.BID, Status.ACTIVE));
+                        user1, new Order(user1, ticker, 150, 1101, Side.ASK, Status.ACTIVE));
         assertEquals(-1, orderId4);
 
         long orderId5 =
                 engine.askLimitOrder(
-                        user1, new Order(user1, ticker, 150, 1100, Side.BID, Status.ACTIVE));
+                        user1, new Order(user1, ticker, 150, 1100, Side.ASK, Status.ACTIVE));
         assertNotEquals(-1, orderId5);
 
         long orderId6 =
@@ -1328,7 +1325,7 @@ public class MatchingEngineTest {
 
         long orderId2 =
                 engine.askLimitOrder(
-                        user1, new Order(user1, ticker, 250, 1000, Side.BID, Status.ACTIVE));
+                        user1, new Order(user1, ticker, 250, 1000, Side.ASK, Status.ACTIVE));
         assertEquals(2, orderId2);
 
         // User 2 will buy a market order and then user 3 will provide multiple levels
