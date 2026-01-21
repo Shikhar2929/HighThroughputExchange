@@ -1,5 +1,12 @@
 package hte.matchingengine;
 
+/**
+ * Basic order model used by the matching engine.
+ *
+ * <p>{@link #price} is meaningful for limit orders; market orders typically use price=0. {@link
+ * #volume} is the remaining unfilled quantity. {@link #status} indicates whether the order can
+ * still trade.
+ */
 public class Order {
     protected String name;
     protected String ticker;

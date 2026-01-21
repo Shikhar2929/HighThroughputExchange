@@ -8,9 +8,13 @@ import requests
 from exchange_client import ExchangeClient
 
 
-def test_admin_add_user_returns_api_key(client: ExchangeClient, unique_username) -> None:
+def test_admin_add_user_returns_api_key(
+    client: ExchangeClient, unique_username
+) -> None:
     username = unique_username("user")
-    api_key = client.admin_add_user(username=username, name="CI User", email=f"{username}@example.com")
+    api_key = client.admin_add_user(
+        username=username, name="CI User", email=f"{username}@example.com"
+    )
     assert isinstance(api_key, str)
     assert len(api_key) > 0
 
@@ -48,7 +52,10 @@ def test_shutdown_requires_auth(base_url: str) -> None:
     assert r.status_code in (401, 403)
 
 
-@pytest.mark.skipif(os.getenv("ENABLE_SHUTDOWN_TEST") != "true", reason="Set ENABLE_SHUTDOWN_TEST=true to run")
+@pytest.mark.skipif(
+    os.getenv("ENABLE_SHUTDOWN_TEST") != "true",
+    reason="Set ENABLE_SHUTDOWN_TEST=true to run",
+)
 def test_shutdown_success_when_enabled(base_url: str) -> None:
     # Intentionally opt-in because it will stop the server.
     r = requests.post(

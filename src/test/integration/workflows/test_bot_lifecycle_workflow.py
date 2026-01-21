@@ -5,7 +5,9 @@ import time
 from exchange_client import ExchangeClient
 
 
-def test_bot_lifecycle_place_remove_market_remove_all(client: ExchangeClient, unique_username) -> None:
+def test_bot_lifecycle_place_remove_market_remove_all(
+    client: ExchangeClient, unique_username
+) -> None:
     # AdminController -> SessionController -> OrderController
     client.admin_set_state(1)
 
@@ -14,16 +16,30 @@ def test_bot_lifecycle_place_remove_market_remove_all(client: ExchangeClient, un
     bot_session = client.bot_buildup(bot_name, api_key)
 
     # Place an order, remove by id, place market, remove all.
-    resp = client.bot_limit_order(bot_session, ticker="A", volume=1, price=130, is_bid=True)
+    resp = client.bot_limit_order(
+        bot_session, ticker="A", volume=1, price=130, is_bid=True
+    )
     assert resp["message"]["errorCode"] == 0
 
     order_id = int(resp["message"]["orderId"])
     time.sleep(0.05)
     client.bot_remove(bot_session, order_id)
 
-    time.sleep(0.05)
-    mkt = client.bot_market_order(bot_session, ticker="A", volume=1, is_bid=True)
-    assert mkt["message"]["errorCode"] == 0
+    # Seed ask-side liquidity for the subsequent buy market order.
+    seller = unique_username("wf_mkt_seller")
+    seller_key = client.admin_add_user(
+        username=seller, name="WF Seller", email=f"{seller}@example.com"
+    )
+    seller_session = client.buildup(seller, seller_key)
 
-    time.sleep(0.05)
-    client.bot_remove_all(bot_session)
+    try:
+        client.limit_order(
+            seller_session, ticker="A", volume=1, price=120, is_bid=False
+        )
+        time.sleep(0.05)
+        mkt = client.bot_market_order(bot_session, ticker="A", volume=1, is_bid=True)
+        assert mkt["message"]["errorCode"] == 0
+        time.sleep(0.05)
+        client.bot_remove_all(bot_session)
+    finally:
+        client.teardown(seller_session)

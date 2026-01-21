@@ -29,7 +29,9 @@ def main() -> None:
     class NoCacheRequestHandler(http.server.SimpleHTTPRequestHandler):
         def end_headers(self) -> None:
             # Avoid confusing dev-time caching where the browser keeps serving an old app.js.
-            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header(
+                "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0"
+            )
             self.send_header("Pragma", "no-cache")
             self.send_header("Expires", "0")
             super().end_headers()

@@ -15,13 +15,17 @@ def _message_error_code(resp: dict) -> int | None:
     return None
 
 
-def test_trading_endpoints_locked_when_state_stop(client: ExchangeClient, unique_username) -> None:
+def test_trading_endpoints_locked_when_state_stop(
+    client: ExchangeClient, unique_username
+) -> None:
     # AdminController -> SessionController -> AdminController -> OrderController
     # Ensure we can create a session first.
     client.admin_set_state(1)
 
     username = unique_username("wf_lock")
-    api_key = client.admin_add_user(username=username, name="WF Lock", email=f"{username}@example.com")
+    api_key = client.admin_add_user(
+        username=username, name="WF Lock", email=f"{username}@example.com"
+    )
     session = client.buildup(username, api_key)
 
     try:
@@ -36,7 +40,7 @@ def test_trading_endpoints_locked_when_state_stop(client: ExchangeClient, unique
                 "ticker": "A",
                 "volume": 1,
                 "price": 123,
-                "isBid": True,
+                "bid": True,
             },
         )
         assert status == 423
@@ -49,7 +53,7 @@ def test_trading_endpoints_locked_when_state_stop(client: ExchangeClient, unique
                 "sessionToken": session.session_token,
                 "ticker": "A",
                 "volume": 1,
-                "isBid": True,
+                "bid": True,
             },
         )
         assert status == 423
@@ -72,19 +76,27 @@ def test_trading_endpoints_locked_when_state_stop(client: ExchangeClient, unique
         client.teardown(session)
 
 
-def test_auction_locked_in_trade_state_then_allows_bids_in_auction_state(client: ExchangeClient, unique_username) -> None:
+def test_auction_locked_in_trade_state_then_allows_bids_in_auction_state(
+    client: ExchangeClient, unique_username
+) -> None:
     # AdminController -> SessionController -> AuctionController
     client.admin_set_state(1)
 
     username = unique_username("wf_auc_lock")
-    api_key = client.admin_add_user(username=username, name="WF Auction", email=f"{username}@example.com")
+    api_key = client.admin_add_user(
+        username=username, name="WF Auction", email=f"{username}@example.com"
+    )
     session = client.buildup(username, api_key)
 
     try:
         # In TRADE state, auction is locked.
         status, data = client.post_allow_http_error(
             "/bid_auction",
-            {"username": session.username, "sessionToken": session.session_token, "bid": 1},
+            {
+                "username": session.username,
+                "sessionToken": session.session_token,
+                "bid": 1,
+            },
         )
         assert status == 423
         assert _message_error_code(data) == 5  # AUCTION_LOCKED

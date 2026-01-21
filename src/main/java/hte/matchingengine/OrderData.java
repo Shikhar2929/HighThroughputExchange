@@ -1,5 +1,11 @@
 package hte.matchingengine;
 
+/**
+ * Accumulator for executed trade data.
+ *
+ * <p>{@link #price} is typically used as a linear-combination accumulator (sum(price * volume))
+ * until normalized by total {@link #volume} to yield a volume-weighted average price.
+ */
 public class OrderData {
     public double price;
     public double volume;

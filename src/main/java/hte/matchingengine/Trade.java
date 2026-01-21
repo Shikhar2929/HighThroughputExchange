@@ -2,6 +2,11 @@ package hte.matchingengine;
 
 import java.time.LocalDateTime;
 
+/**
+ * Executed trade record.
+ *
+ * <p>This is a point-in-time immutable record capturing who traded, what traded, and when.
+ */
 public class Trade {
     private final long tradeId;
     private final String buyer;

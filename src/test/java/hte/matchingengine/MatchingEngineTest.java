@@ -84,6 +84,31 @@ public class MatchingEngineTest {
     }
 
     @Test
+    void finiteMode_disallowsOversellViaMultipleRestingAsks() {
+        // Finite mode engine is created via newEngine(-1, ...).
+        String ticker = "AAPL";
+        String seller = "seller";
+        MatchingEngine engine =
+                newEngine(-1, ticker, new String[] {seller}, new int[] {0}, new int[] {10});
+
+        long firstAskId =
+                engine.askLimitOrder(
+                        seller, new Order(seller, ticker, 110, 10, Side.ASK, Status.ACTIVE));
+        assertTrue(firstAskId > 0, "First ask should rest and reserve inventory");
+
+        // This second ask would exceed inventory if accepted (10 already reserved).
+        long secondAskId =
+                engine.askLimitOrder(
+                        seller, new Order(seller, ticker, 111, 1, Side.ASK, Status.ACTIVE));
+        assertEquals(-1, secondAskId, "Second ask should be rejected in finite mode");
+
+        List<PriceLevel> asks = engine.getAskPriceLevels(ticker);
+        assertEquals(1, asks.size(), "Only the first ask should be present");
+        assertEquals(110.0, asks.get(0).price);
+        assertEquals(10.0, asks.get(0).volume);
+    }
+
+    @Test
     void testBidLimitOrder_HighestBidUpdated_WithMultiplePrices() {
         int positionLimit = 1000;
         String ticker = "AAPL";
@@ -1157,6 +1182,28 @@ public class MatchingEngineTest {
                 engine.askLimitOrder(
                         bot1, new Order(bot1, ticker, 15, 1000, Side.ASK, Status.ACTIVE));
         assertNotEquals(-1, orderId);
+    }
+
+    @Test
+    public void testBots_CanHaveNegativeCashBalance_InFiniteMode() {
+        String ticker = "A";
+        String seller = "seller";
+        String bot = "bot1";
+
+        // positionLimit=-1 => finite mode engine
+        MatchingEngine engine =
+                newEngine(-1, ticker, new String[] {seller}, new int[] {0}, new int[] {10});
+
+        engine.initializeBot(bot);
+
+        // Seed liquidity: seller posts an ask; bot buys via market order.
+        engine.askLimitOrderHandler(
+                seller, new Order(seller, ticker, 100, 5, Side.ASK, Status.ACTIVE));
+
+        Map<String, Object> message = engine.bidMarketOrderHandler(bot, ticker, 5);
+        assertEquals(0, (int) message.get("errorCode"));
+        assertEquals(5, (int) message.get("volumeFilled"));
+        assertEquals(-500, engine.getUserBalance(bot));
     }
 
     @Test

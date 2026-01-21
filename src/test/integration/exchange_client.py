@@ -71,7 +71,9 @@ class ExchangeClient:
             raise ApiError(f"HTTP {status}: {data}")
         return status, data
 
-    def _post(self, path: str, payload: dict[str, Any], timeout_s: float = 5.0) -> dict[str, Any]:
+    def _post(
+        self, path: str, payload: dict[str, Any], timeout_s: float = 5.0
+    ) -> dict[str, Any]:
         backoff_s = 0.05
         last_status = None
         last_text = None
@@ -306,30 +308,38 @@ class ExchangeClient:
     def remove(self, session: Session, order_id: int) -> None:
         data = self._post(
             "/remove",
-            {"username": session.username, "sessionToken": session.session_token, "orderId": int(order_id)},
+            {
+                "username": session.username,
+                "sessionToken": session.session_token,
+                "orderId": int(order_id),
+            },
         )
         _assert_success_message(data)
 
-    def limit_order(self, session: Session, ticker: str, volume: int, price: int, is_bid: bool) -> dict[str, Any]:
+    def limit_order(
+        self, session: Session, ticker: str, volume: int, price: int, is_bid: bool
+    ) -> dict[str, Any]:
         payload = {
             "username": session.username,
             "sessionToken": session.session_token,
             "ticker": ticker,
             "volume": volume,
             "price": price,
-            "isBid": is_bid,
+            "bid": is_bid,
         }
         data = self._post("/limit_order", payload)
         _assert_success_message(data)
         return data
 
-    def market_order(self, session: Session, ticker: str, volume: int, is_bid: bool) -> dict[str, Any]:
+    def market_order(
+        self, session: Session, ticker: str, volume: int, is_bid: bool
+    ) -> dict[str, Any]:
         payload = {
             "username": session.username,
             "sessionToken": session.session_token,
             "ticker": ticker,
             "volume": volume,
-            "isBid": is_bid,
+            "bid": is_bid,
         }
         data = self._post("/market_order", payload)
         _assert_success_message(data)
@@ -343,26 +353,30 @@ class ExchangeClient:
             raise ApiError(f"No sessionToken returned: {data}")
         return BotSession(username=username, session_token=str(token))
 
-    def bot_limit_order(self, session: BotSession, ticker: str, volume: int, price: int, is_bid: bool) -> dict[str, Any]:
+    def bot_limit_order(
+        self, session: BotSession, ticker: str, volume: int, price: int, is_bid: bool
+    ) -> dict[str, Any]:
         payload = {
             "username": session.username,
             "sessionToken": session.session_token,
             "ticker": ticker,
             "volume": volume,
             "price": price,
-            "isBid": is_bid,
+            "bid": is_bid,
         }
         data = self._post("/bot_limit_order", payload)
         _assert_success_message(data)
         return data
 
-    def bot_market_order(self, session: BotSession, ticker: str, volume: int, is_bid: bool) -> dict[str, Any]:
+    def bot_market_order(
+        self, session: BotSession, ticker: str, volume: int, is_bid: bool
+    ) -> dict[str, Any]:
         payload = {
             "username": session.username,
             "sessionToken": session.session_token,
             "ticker": ticker,
             "volume": volume,
-            "isBid": is_bid,
+            "bid": is_bid,
         }
         data = self._post("/bot_market_order", payload)
         _assert_success_message(data)
@@ -378,14 +392,22 @@ class ExchangeClient:
     def bot_remove(self, session: BotSession, order_id: int) -> None:
         data = self._post(
             "/bot_remove",
-            {"username": session.username, "sessionToken": session.session_token, "orderId": int(order_id)},
+            {
+                "username": session.username,
+                "sessionToken": session.session_token,
+                "orderId": int(order_id),
+            },
         )
         _assert_success_message(data)
 
     def bid_auction(self, session: Session, bid: int) -> dict[str, Any]:
         data = self._post(
             "/bid_auction",
-            {"username": session.username, "sessionToken": session.session_token, "bid": int(bid)},
+            {
+                "username": session.username,
+                "sessionToken": session.session_token,
+                "bid": int(bid),
+            },
         )
         _assert_success_message(data)
         return data
@@ -408,10 +430,16 @@ class ExchangeClient:
         _assert_success_message(data)
         return data
 
-    def batch(self, bot_session: BotSession, operations: list[dict[str, Any]]) -> dict[str, Any]:
+    def batch(
+        self, bot_session: BotSession, operations: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         data = self._post(
             "/batch",
-            {"username": bot_session.username, "sessionToken": bot_session.session_token, "operations": operations},
+            {
+                "username": bot_session.username,
+                "sessionToken": bot_session.session_token,
+                "operations": operations,
+            },
             timeout_s=10.0,
         )
         # BatchResponse does not use AbstractMessageResponse. Expect: {status, results}

@@ -9,6 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * In-memory aggregation of recent order book changes.
+ *
+ * <p>This is intentionally lightweight: it stores the latest volume for each (ticker, price, side)
+ * key and can be drained to produce a sorted list of {@link PriceChange} entries.
+ */
 public class RecentTrades {
 
     private static final Map<TradeKey, Integer> tradeMap = new ConcurrentHashMap<>();

@@ -5,7 +5,9 @@ import time
 from exchange_client import ExchangeClient
 
 
-def test_batch_endpoint_processes_operations(client: ExchangeClient, unique_username) -> None:
+def test_batch_endpoint_processes_operations(
+    client: ExchangeClient, unique_username
+) -> None:
     client.admin_set_state(1)
 
     bot_name = unique_username("batch")
