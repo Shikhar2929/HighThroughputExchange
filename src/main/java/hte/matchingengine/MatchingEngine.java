@@ -137,9 +137,10 @@ public class MatchingEngine {
     }
 
     /**
-     * Initializes/overwrites a user's cash balance.
+     * Initializes a user's cash balance.
      *
-     * @return true if initialization succeeded.
+     * <p>Note: in finite mode this is a one-time initialization; subsequent calls for the same
+     * username return {@code false} and do not modify the existing balance.
      */
     public boolean initializeUserBalance(String username, int balance) {
         logger.info("Initializing user balance: username={} balance={}", username, balance);
@@ -400,9 +401,8 @@ public class MatchingEngine {
 
     private ValidationResult validateBidOrder(String user, Order order) {
         // Validates request shape + that the user can afford/reserve the bid.
-        if (bots.containsKey(user)) {
-            return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
-        }
+        // Bots bypass balance/position limits, but still must pass basic sanity checks.
+        boolean isBot = bots.containsKey(user);
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
             logger.debug("Bad bid parameters: user={} order={}", user, order);
             if (order.volume <= 0.0) {
@@ -437,6 +437,9 @@ public class MatchingEngine {
                     Message.USER_NOT_INITIALIZED,
                     "User not initialized in matching engine yet. Retry shortly.");
         }
+        if (isBot) {
+            return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
+        }
         if (!userList.validBidParameters(user, order)) {
             logger.debug(
                     "Bid order rejected: invalid volume parameters user={} order={}", user, order);
@@ -462,9 +465,8 @@ public class MatchingEngine {
 
     private ValidationResult validateAskOrder(String user, Order order) {
         // Validates request shape + that the user can reserve enough inventory to sell.
-        if (bots.containsKey(user)) {
-            return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
-        }
+        // Bots bypass inventory/position limits, but still must pass basic sanity checks.
+        boolean isBot = bots.containsKey(user);
         if (order.volume <= 0.0 || order.price <= 0.0 || order.status != Status.ACTIVE) {
             logger.debug("Bad ask parameters: user={} order={}", user, order);
             if (order.volume <= 0.0) {
@@ -498,6 +500,9 @@ public class MatchingEngine {
             return new ValidationResult(
                     Message.USER_NOT_INITIALIZED,
                     "User not initialized in matching engine yet. Retry shortly.");
+        }
+        if (isBot) {
+            return new ValidationResult(Message.SUCCESS, Message.SUCCESS.getErrorMessage());
         }
         if (!userList.validAskQuantity(user, order.ticker, order.volume)) {
             logger.debug(

@@ -182,3 +182,91 @@ mvn checkstyle:check
 #### Recovery note
 
 `/updates` is intentionally **single-update**: clients should request the exact missing sequence number with `/updates?seq=<n>` and apply it once. This avoids corrupting the frontend orderbook when the same update is fetched multiple times.
+
+---
+
+## Order placement rules (finite vs infinite, users vs bots)
+
+This section documents the *effective* rules enforced by the Java API + matching engine.
+
+### Terminology
+
+- **Bid** = buy order (`bid: true` / `Side.BID`)
+- **Ask** = sell order (`bid: false` / `Side.ASK`)
+- **Finite mode**: cash balance constrains buying power; users cannot short or oversell.
+- **Infinite mode**: cash is not the limiter; a per-ticker **position limit** constrains exposure.
+
+Engine mode comes from `config.json`:
+
+- `mode: "finite"` or `mode: "infinite"`
+- If infinite: `defaults.positionLimit` is enforced.
+
+### API-level requirements (before the engine)
+
+**Users (human teams)**
+
+- Must have a session token from `/buildup`.
+- Requests to `/limit_order` and `/market_order` are rate-limited.
+- Trading must not be locked (`state != STOP`).
+
+**Bots**
+
+- Must be created via `/add_bot` and have a session token from `/bot_buildup`.
+- `/bot_limit_order` and `/bot_market_order` are *not* rate-limited (bot remove endpoints are).
+- Trading must not be locked (`state != STOP`).
+
+### Input normalization (DTO preprocessing)
+
+These are API DTO clamps applied before reaching the matching engine:
+
+- **Price** is clamped to `[0, 3000]`.
+- **User volume** is clamped to `[0, 1000]`.
+- **Bot volume** is clamped to `>= 0` (no max clamp).
+
+The matching engine additionally requires:
+
+- `price > 0` and `volume > 0` for limit orders.
+- `volume > 0` for market orders.
+
+### Engine-level rules (what is accepted / rejected)
+
+These rules apply to the core `MatchingEngine` placement handlers.
+
+**Shared sanity checks (users and bots)**
+
+- Ticker must exist (order book initialized).
+- The placing principal must be initialized in the engine (user/bot exists).
+- Limit orders must be `Status.ACTIVE` and have `price > 0` and `volume > 0`.
+
+#### Finite mode rules
+
+**Users (finite)**
+
+- **Bid (limit)**: must have sufficient cash for the full order notional: `cash >= price * volume`.
+- **Bid (market)**: must be able to afford at least 1 unit at the current best ask price; execution stops when the next unit is unaffordable.
+- **Ask (limit)**: must have sufficient inventory *after accounting for existing resting asks*.
+    - Available-to-sell is `inventory - reservedAsks`.
+- **Ask (market)**: must have sufficient available inventory (same rule as above).
+
+Guarantee: in finite mode, a user’s per-ticker position cannot go negative via order placement.
+
+**Bots (finite)**
+
+- Bots bypass finite-mode **cash** and **inventory** constraints.
+    - Bots may buy without cash and may sell without inventory (can short).
+- Bots still must satisfy shared sanity checks (valid ticker, positive price/volume, ACTIVE status).
+
+#### Infinite mode rules
+
+**Users (infinite)**
+
+- Cash does not constrain order placement.
+- A per-ticker **position limit** constrains exposure, including existing resting orders:
+    - **Bid capacity**: `positionLimit - currentPosition - reservedBids`
+    - **Ask capacity** (short capacity): `positionLimit + currentPosition - reservedAsks`
+- Users can short (negative position) within `±positionLimit`.
+
+**Bots (infinite)**
+
+- Bots bypass position-limit, cash, and inventory constraints.
+- Bots still must satisfy shared sanity checks.
