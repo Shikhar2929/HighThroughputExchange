@@ -8,20 +8,20 @@ import hte.database.exceptions.NotFoundException;
 import hte.database.localdb.LocalDBClient;
 import hte.database.localdb.LocalDBTable;
 import java.util.HashMap;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class LocalDBConfig {
-
     @Bean
-    public LocalDBClient localDBClient() {
+    LocalDBClient localDBClient(@Value("${hte.db.path}") String dbPath) {
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
         mapping.put("users", User.class);
         mapping.put("sessions", Session.class);
         mapping.put("bots", User.class);
         mapping.put("botSessions", Session.class);
-        return new LocalDBClient("data.json", mapping);
+        return new LocalDBClient(dbPath, mapping);
     }
 
     private <T extends DBEntry> LocalDBTable<T> ensureTable(LocalDBClient client, String name) {
@@ -38,22 +38,22 @@ public class LocalDBConfig {
     }
 
     @Bean
-    public LocalDBTable<User> usersTable(LocalDBClient client) {
+    LocalDBTable<User> usersTable(LocalDBClient client) {
         return ensureTable(client, "users");
     }
 
     @Bean
-    public LocalDBTable<User> botsTable(LocalDBClient client) {
+    LocalDBTable<User> botsTable(LocalDBClient client) {
         return ensureTable(client, "bots");
     }
 
     @Bean
-    public LocalDBTable<Session> sessionsTable(LocalDBClient client) {
+    LocalDBTable<Session> sessionsTable(LocalDBClient client) {
         return ensureTable(client, "sessions");
     }
 
     @Bean
-    public LocalDBTable<Session> botSessionsTable(LocalDBClient client) {
+    LocalDBTable<Session> botSessionsTable(LocalDBClient client) {
         return ensureTable(client, "botSessions");
     }
 }

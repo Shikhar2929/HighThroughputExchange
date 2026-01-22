@@ -5,6 +5,7 @@ import hte.common.ChartTrackerSingleton;
 import hte.common.Message;
 import hte.common.TaskFuture;
 import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -38,6 +39,13 @@ import org.slf4j.LoggerFactory;
 public class MatchingEngine {
     private static final Logger logger = LoggerFactory.getLogger(MatchingEngine.class);
 
+    private static final String DEFAULT_CONFIG_LOCATION = "assets/config.infinite.json";
+
+    /**
+     * Config location for engine initialization JSON (filesystem path or {@code classpath:...}).
+     */
+    private final String configLocation;
+
     // Ticker -> per-ticker order book (bids/asks + aggregated volumes).
     private Map<String, OrderBook> orderBooks = new HashMap<>();
 
@@ -60,13 +68,32 @@ public class MatchingEngine {
     private long orderID = 0;
 
     public MatchingEngine() {
-        // Default engine runs in finite mode unless configured otherwise.
-        userList.setInfinite(false);
+        this(false, DEFAULT_CONFIG_LOCATION);
     }
 
-    /** Creates a matching engine and optionally initializes game mode from {@code config.json}. */
+    /** Creates a matching engine and optionally initializes game mode from the configured JSON. */
     public MatchingEngine(boolean initialize) {
-        if (initialize) initializeGameMode();
+        this(initialize, DEFAULT_CONFIG_LOCATION);
+    }
+
+    /**
+     * Creates a matching engine and optionally initializes game mode from {@code configLocation}.
+     *
+     * <p>{@code configLocation} supports filesystem paths (e.g. {@code config.json}) and classpath
+     * resources via {@code classpath:config.json}.
+     */
+    public MatchingEngine(boolean initialize, String configLocation) {
+        this.configLocation =
+                (configLocation == null || configLocation.isBlank())
+                        ? DEFAULT_CONFIG_LOCATION
+                        : configLocation;
+
+        // Default engine runs in finite mode unless configured otherwise.
+        userList.setInfinite(false);
+
+        if (initialize) {
+            initializeGameMode();
+        }
     }
 
     /**
@@ -76,6 +103,7 @@ public class MatchingEngine {
      * limited by {@code positionLimit}.
      */
     public MatchingEngine(int positionLimit) {
+        this(false, DEFAULT_CONFIG_LOCATION);
         userList.setInfinite(true);
         userList.setPositionLimit(positionLimit);
     }
@@ -100,18 +128,9 @@ public class MatchingEngine {
     }
 
     private void initializeGameMode() {
-        // Reads config.json and sets finite vs infinite mode (+ limits in infinite mode).
+        // Reads config JSON and sets finite vs infinite mode (+ limits in infinite mode).
         try {
-            FileReader reader = new FileReader("config.json");
-            StringBuilder content = new StringBuilder();
-            int i;
-            while ((i = reader.read()) != -1) {
-                content.append((char) i);
-            }
-            reader.close();
-
-            // Parse JSON content
-            JSONObject configData = new JSONObject(content.toString());
+            JSONObject configData = readConfigJson();
             String mode = configData.getString("mode");
             if (mode.equals("finite")) userList.setInfinite(false);
             else {
@@ -121,7 +140,19 @@ public class MatchingEngine {
                 userList.setPositionLimit(positionLimit);
             }
         } catch (Exception e) {
-            logger.error("Failed to initialize game mode from config.json", e);
+            logger.error("Failed to initialize game mode from config: {}", configLocation, e);
+        }
+    }
+
+    private JSONObject readConfigJson() throws IOException {
+        try (FileReader reader = new FileReader(configLocation)) {
+            StringBuilder content = new StringBuilder();
+            char[] buf = new char[4096];
+            int n;
+            while ((n = reader.read(buf)) != -1) {
+                content.append(buf, 0, n);
+            }
+            return new JSONObject(content.toString());
         }
     }
 
@@ -211,22 +242,14 @@ public class MatchingEngine {
     }
 
     /**
-     * Initializes all tickers from {@code config.json} under {@code defaults.tickers}.
+     * Initializes all tickers from the configured engine JSON under {@code defaults.tickers}.
      *
      * @return true if tickers were loaded and initialized.
      */
     public boolean initializeAllTickers() {
         try {
-            // Read the JSON file
             logger.debug("Current Working Directory: {}", Paths.get("").toAbsolutePath());
-            FileReader reader = new FileReader("config.json");
-            StringBuilder content = new StringBuilder();
-            int i;
-            while ((i = reader.read()) != -1) {
-                content.append((char) i);
-            }
-            reader.close();
-            JSONObject configData = new JSONObject(content.toString());
+            JSONObject configData = readConfigJson();
             JSONArray tickersArray = configData.getJSONObject("defaults").getJSONArray("tickers");
             for (int j = 0; j < tickersArray.length(); j++) {
                 String ticker = (String) tickersArray.getString(j);
@@ -234,14 +257,14 @@ public class MatchingEngine {
                 initializeTicker(ticker);
             }
         } catch (Exception e) {
-            logger.error("Failed to initialize tickers from config.json", e);
+            logger.error("Failed to initialize tickers from config: {}", configLocation, e);
             return false;
         }
         return true;
     }
 
     /**
-     * Initializes a user from {@code config.json}.
+     * Initializes a user from the configured engine JSON.
      *
      * <p>Finite mode:
      *
@@ -255,17 +278,7 @@ public class MatchingEngine {
      */
     public boolean initializeUser(String user) {
         try {
-            // Read the JSON file
-            FileReader reader = new FileReader("config.json");
-            StringBuilder content = new StringBuilder();
-            int i;
-            while ((i = reader.read()) != -1) {
-                content.append((char) i);
-            }
-            reader.close();
-
-            // Parse JSON content
-            JSONObject configData = new JSONObject(content.toString());
+            JSONObject configData = readConfigJson();
             if (!userList.getMode()) {
                 // Extract and process balances
                 JSONObject defaults = configData.getJSONObject("defaults");
@@ -302,7 +315,11 @@ public class MatchingEngine {
                 }
             }
         } catch (Exception e) {
-            logger.error("Failed to initialize user from config.json: user={}", user, e);
+            logger.error(
+                    "Failed to initialize user from config: user={} config={}",
+                    user,
+                    configLocation,
+                    e);
             return false;
         }
         return true;
@@ -429,7 +446,10 @@ public class MatchingEngine {
             if (orderBooks.isEmpty()) {
                 return new ValidationResult(
                         Message.SERVER_MISCONFIGURED,
-                        "Order books are not initialized (check server startup/config.json)");
+                        String.format(
+                                "Order books are not initialized (check server startup;"
+                                        + " hte.config.path=%s)",
+                                configLocation));
             }
             return new ValidationResult(
                     Message.UNKNOWN_TICKER,
@@ -493,7 +513,10 @@ public class MatchingEngine {
             if (orderBooks.isEmpty()) {
                 return new ValidationResult(
                         Message.SERVER_MISCONFIGURED,
-                        "Order books are not initialized (check server startup/config.json)");
+                        String.format(
+                                "Order books are not initialized (check server startup;"
+                                        + " hte.config.path=%s)",
+                                configLocation));
             }
             return new ValidationResult(
                     Message.UNKNOWN_TICKER,

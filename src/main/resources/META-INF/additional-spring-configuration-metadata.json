@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "hte.config.path",
+    "type": "java.lang.String",
+    "description": "Path to the engine initialization JSON"
+  },
+  {
+    "name": "hte.db.path",
+    "type": "java.lang.String",
+    "description": "Local DB file used to persist users, sessions, and bots"
+  }
+]}

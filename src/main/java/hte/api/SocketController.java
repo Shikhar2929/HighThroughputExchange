@@ -5,7 +5,6 @@ import hte.api.auth.AdminPageAuthenticator;
 import hte.api.dtos.requests.StartSocketRequest;
 import hte.api.dtos.responses.SocketResponse;
 import hte.common.ChartTrackerSingleton;
-import hte.common.MatchingEngineSingleton;
 import hte.common.OHLCData;
 import hte.common.OrderbookSeqLog;
 import hte.common.SeqGenerator;
@@ -35,7 +34,8 @@ public class SocketController {
     @Autowired private SeqGenerator seqGenerator;
     @Autowired private OrderbookSeqLog orderbookSeqLog;
 
-    private MatchingEngine matchingEngine = MatchingEngineSingleton.getMatchingEngine();
+    @Autowired private MatchingEngine matchingEngine;
+
     private ChartTrackerSingleton chartTrackerSingleton = ChartTrackerSingleton.getInstance();
 
     public void sendMessage(SocketResponse resp) {
