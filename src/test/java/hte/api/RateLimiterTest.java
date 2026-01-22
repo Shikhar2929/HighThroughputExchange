@@ -1,6 +1,7 @@
 package hte.api;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hte.api.auth.RateLimiter;
 import hte.api.dtos.requests.BasePrivateRequest;

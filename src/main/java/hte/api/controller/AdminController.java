@@ -1,8 +1,17 @@
 package hte.api.controller;
 
 import hte.api.State;
-import hte.api.dtos.requests.*;
-import hte.api.dtos.responses.*;
+import hte.api.dtos.requests.AddBotRequest;
+import hte.api.dtos.requests.AddUserRequest;
+import hte.api.dtos.requests.LeaderboardRequest;
+import hte.api.dtos.requests.SetPriceRequest;
+import hte.api.dtos.requests.SetStateRequest;
+import hte.api.dtos.requests.ShutdownRequest;
+import hte.api.dtos.responses.AddUserResponse;
+import hte.api.dtos.responses.LeaderboardResponse;
+import hte.api.dtos.responses.SetPriceResponse;
+import hte.api.dtos.responses.SetStateResponse;
+import hte.api.dtos.responses.ShutdownResponse;
 import hte.api.entities.User;
 import hte.api.service.AdminService;
 import hte.api.service.AuthService;
