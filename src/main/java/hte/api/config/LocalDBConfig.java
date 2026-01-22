@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LocalDBConfig {
     @Bean
-    LocalDBClient localDBClient(@Value("${hte.db.path:assets/data.json}") String dbPath) {
+    LocalDBClient localDBClient(@Value("${hte.db.path}") String dbPath) {
         HashMap<String, Class<? extends DBEntry>> mapping = new HashMap<>();
         mapping.put("users", User.class);
         mapping.put("sessions", Session.class);

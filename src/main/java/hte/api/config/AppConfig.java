@@ -9,8 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AppConfig {
     @Bean
-    MatchingEngine matchingEngine(
-            @Value("${hte.config.path:assets/config.json}") String configLocation) {
+    MatchingEngine matchingEngine(@Value("${hte.config.path}") String configLocation) {
         MatchingEngine engine = new MatchingEngine(true, configLocation);
         engine.initializeAllTickers();
         return engine;
