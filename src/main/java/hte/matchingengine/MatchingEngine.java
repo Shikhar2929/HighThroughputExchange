@@ -4,14 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hte.common.ChartTrackerSingleton;
 import hte.common.Message;
 import hte.common.TaskFuture;
-import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -150,28 +144,8 @@ public class MatchingEngine {
         }
     }
 
-    private Reader openConfigReader() throws IOException {
-        if (configLocation.startsWith("classpath:")) {
-            String resourceName = configLocation.substring("classpath:".length());
-            if (resourceName.startsWith("/")) {
-                resourceName = resourceName.substring(1);
-            }
-            InputStream is =
-                    MatchingEngine.class.getClassLoader().getResourceAsStream(resourceName);
-            if (is == null) {
-                throw new FileNotFoundException(
-                        String.format("Classpath resource not found: %s", resourceName));
-            }
-            return new InputStreamReader(is, StandardCharsets.UTF_8);
-        }
-
-        Path path = Paths.get(configLocation);
-        logger.info("Reading config from: {}", configLocation);
-        return Files.newBufferedReader(path, StandardCharsets.UTF_8);
-    }
-
     private JSONObject readConfigJson() throws IOException {
-        try (Reader reader = openConfigReader()) {
+        try (FileReader reader = new FileReader(configLocation)) {
             StringBuilder content = new StringBuilder();
             char[] buf = new char[4096];
             int n;
