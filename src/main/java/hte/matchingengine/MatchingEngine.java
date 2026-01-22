@@ -1,11 +1,18 @@
 package hte.matchingengine;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import hte.common.ChartTrackerSingleton;
 import hte.common.Message;
 import hte.common.TaskFuture;
-import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -14,9 +21,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,13 +136,14 @@ public class MatchingEngine {
     private void initializeGameMode() {
         // Reads config JSON and sets finite vs infinite mode (+ limits in infinite mode).
         try {
-            JSONObject configData = readConfigJson();
-            String mode = configData.getString("mode");
-            if (mode.equals("finite")) userList.setInfinite(false);
-            else {
+            JsonNode configData = readConfigJson();
+            String mode = configData.path("mode").asText("");
+            if (mode.equals("finite")) {
+                userList.setInfinite(false);
+            } else {
                 userList.setInfinite(true);
-                JSONObject defaults = configData.getJSONObject("defaults");
-                int positionLimit = defaults.getInt("positionLimit");
+                JsonNode defaults = configData.path("defaults");
+                int positionLimit = defaults.path("positionLimit").asInt();
                 userList.setPositionLimit(positionLimit);
             }
         } catch (Exception e) {
@@ -144,15 +151,16 @@ public class MatchingEngine {
         }
     }
 
-    private JSONObject readConfigJson() throws IOException {
-        try (FileReader reader = new FileReader(configLocation)) {
+    private JsonNode readConfigJson() throws IOException {
+        try (BufferedReader reader =
+                Files.newBufferedReader(Path.of(configLocation), StandardCharsets.UTF_8)) {
             StringBuilder content = new StringBuilder();
             char[] buf = new char[4096];
             int n;
             while ((n = reader.read(buf)) != -1) {
                 content.append(buf, 0, n);
             }
-            return new JSONObject(content.toString());
+            return new ObjectMapper().readTree(content.toString());
         }
     }
 
@@ -249,10 +257,10 @@ public class MatchingEngine {
     public boolean initializeAllTickers() {
         try {
             logger.debug("Current Working Directory: {}", Paths.get("").toAbsolutePath());
-            JSONObject configData = readConfigJson();
-            JSONArray tickersArray = configData.getJSONObject("defaults").getJSONArray("tickers");
-            for (int j = 0; j < tickersArray.length(); j++) {
-                String ticker = (String) tickersArray.getString(j);
+            JsonNode configData = readConfigJson();
+            JsonNode tickersArray = configData.path("defaults").path("tickers");
+            for (JsonNode tickerNode : tickersArray) {
+                String ticker = tickerNode.asText();
                 logger.info("Initializing ticker: {}", ticker);
                 initializeTicker(ticker);
             }
@@ -278,18 +286,19 @@ public class MatchingEngine {
      */
     public boolean initializeUser(String user) {
         try {
-            JSONObject configData = readConfigJson();
+            JsonNode configData = readConfigJson();
             if (!userList.getMode()) {
                 // Extract and process balances
-                JSONObject defaults = configData.getJSONObject("defaults");
-                int defaultBalance = defaults.getInt("defaultBalance");
-                JSONObject balances = defaults.getJSONObject("balances");
+                JsonNode defaults = configData.path("defaults");
+                int defaultBalance = defaults.path("defaultBalance").asInt();
+                JsonNode balances = defaults.path("balances");
                 logger.info("Default balance: {}", defaultBalance);
                 initializeUserBalance(user, defaultBalance);
-                Iterator<String> keys = balances.keys();
-                while (keys.hasNext()) {
-                    String ticker = keys.next();
-                    int balance = balances.getInt(ticker);
+                Iterator<Entry<String, JsonNode>> fields = balances.fields();
+                while (fields.hasNext()) {
+                    Entry<String, JsonNode> entry = fields.next();
+                    String ticker = entry.getKey();
+                    int balance = entry.getValue().asInt();
                     logger.info(
                             "Initializing user ticker: user={} ticker={} balance={}",
                             user,
@@ -298,14 +307,15 @@ public class MatchingEngine {
                     initializeUserTickerVolume(user, ticker, balance);
                 }
             } else {
-                JSONObject defaults = configData.getJSONObject("defaults");
-                JSONObject balances = defaults.getJSONObject("balances");
-                Iterator<String> keys = balances.keys();
+                JsonNode defaults = configData.path("defaults");
+                JsonNode balances = defaults.path("balances");
+                Iterator<Entry<String, JsonNode>> fields = balances.fields();
                 logger.info("Initializing user in infinite mode: user={}", user);
                 userList.initializeUser(user);
-                while (keys.hasNext()) {
-                    String ticker = keys.next();
-                    int balance = balances.getInt(ticker);
+                while (fields.hasNext()) {
+                    Entry<String, JsonNode> entry = fields.next();
+                    String ticker = entry.getKey();
+                    int balance = entry.getValue().asInt();
                     logger.info(
                             "Initializing user ticker: user={} ticker={} balance={}",
                             user,
@@ -1448,10 +1458,10 @@ public class MatchingEngine {
      */
     public String getUserDetails(String username) {
         // Combines UserList details with ACTIVE orders grouped by ticker.
-        JSONObject userListDetails = userList.getUserDetailsAsJson(username, latestPrice);
+        ObjectNode userListDetails = userList.getUserDetailsAsJson(username, latestPrice);
 
         // Organize active orders by ticker
-        JSONObject ordersByTicker = new JSONObject();
+        ObjectNode ordersByTicker = JsonNodeFactory.instance.objectNode();
 
         if (userOrders.containsKey(username)) {
             Map<Long, Order> orders = userOrders.get(username);
@@ -1460,25 +1470,24 @@ public class MatchingEngine {
                 Order order = entry.getValue();
 
                 if (order.status == Status.ACTIVE) {
-                    JSONObject orderDetails = new JSONObject();
+                    ObjectNode orderDetails = JsonNodeFactory.instance.objectNode();
                     orderDetails.put("orderId", entry.getKey());
                     orderDetails.put("price", order.price);
                     orderDetails.put("volume", order.volume);
                     orderDetails.put("side", order.side.toString());
 
-                    // If ticker key does not exist, initialize it with a new JSONArray
-                    if (!ordersByTicker.has(order.ticker)) {
-                        ordersByTicker.put(order.ticker, new JSONArray());
+                    ArrayNode tickerOrders = (ArrayNode) ordersByTicker.get(order.ticker);
+                    if (tickerOrders == null) {
+                        tickerOrders = JsonNodeFactory.instance.arrayNode();
+                        ordersByTicker.set(order.ticker, tickerOrders);
                     }
-
-                    // Add the order details to the appropriate ticker array
-                    ordersByTicker.getJSONArray(order.ticker).put(orderDetails);
+                    tickerOrders.add(orderDetails);
                 }
             }
         }
 
         // Ensure ordersByTicker is added even if empty
-        userListDetails.put("Orders", ordersByTicker);
+        userListDetails.set("Orders", ordersByTicker);
         return userListDetails.toString();
     }
 
