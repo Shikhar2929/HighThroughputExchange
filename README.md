@@ -196,7 +196,7 @@ This section documents the *effective* rules enforced by the Java API + matching
 - **Finite mode**: cash balance constrains buying power; users cannot short or oversell.
 - **Infinite mode**: cash is not the limiter; a per-ticker **position limit** constrains exposure.
 
-Engine mode comes from the engine config JSON pointed to by `hte.config.path` (defaults to `config.json`):
+Engine mode comes from the engine config JSON pointed to by `hte.config.path` (defaults to `config.infinite.json`):
 
 - `mode: "finite"` or `mode: "infinite"`
 - If infinite: `defaults.positionLimit` is enforced.
