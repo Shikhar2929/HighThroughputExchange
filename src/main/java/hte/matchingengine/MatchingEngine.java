@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 public class MatchingEngine {
     private static final Logger logger = LoggerFactory.getLogger(MatchingEngine.class);
 
-    private static final String DEFAULT_CONFIG_LOCATION = "config.json";
+    private static final String DEFAULT_CONFIG_LOCATION = "assets/config.json";
 
     /**
      * Config location for engine initialization JSON (filesystem path or {@code classpath:...}).
@@ -166,6 +166,7 @@ public class MatchingEngine {
         }
 
         Path path = Paths.get(configLocation);
+        logger.info("Reading config from: {}", configLocation);
         return Files.newBufferedReader(path, StandardCharsets.UTF_8);
     }
 
