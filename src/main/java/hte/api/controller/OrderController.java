@@ -5,14 +5,25 @@ import hte.api.State;
 import hte.api.auth.BotAuthenticator;
 import hte.api.auth.PrivatePageAuthenticator;
 import hte.api.auth.RateLimiter;
-import hte.api.dtos.requests.*;
-import hte.api.dtos.responses.*;
+import hte.api.dtos.requests.BasePrivateRequest;
+import hte.api.dtos.requests.BotLimitOrderRequest;
+import hte.api.dtos.requests.BotMarketOrderRequest;
+import hte.api.dtos.requests.LimitOrderRequest;
+import hte.api.dtos.requests.MarketOrderRequest;
+import hte.api.dtos.requests.RemoveAllRequest;
+import hte.api.dtos.requests.RemoveRequest;
+import hte.api.dtos.responses.LimitOrderResponse;
+import hte.api.dtos.responses.MarketOrderResponse;
+import hte.api.dtos.responses.RemoveAllResponse;
 import hte.api.service.OrderService;
 import hte.common.Message;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class OrderController {

@@ -1,6 +1,7 @@
 package hte.matchingengine;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hte.common.Message;
 import java.util.Map;
