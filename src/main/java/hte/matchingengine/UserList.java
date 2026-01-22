@@ -1,12 +1,13 @@
 package hte.matchingengine;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -214,8 +215,8 @@ public class UserList {
         return infinite;
     }
 
-    public JSONObject getUserDetailsAsJson(String username, Map<String, Integer> prices) {
-        JSONObject userJson = new JSONObject();
+    public ObjectNode getUserDetailsAsJson(String username, Map<String, Integer> prices) {
+        ObjectNode userJson = JsonNodeFactory.instance.objectNode();
 
         // Check if the user exists
         if (!validUser(username)) {
@@ -228,24 +229,22 @@ public class UserList {
         userJson.put("username", username);
         userJson.put("balance", balance);
         userJson.put("pnl", getUnrealizedPnl(username, prices));
+
         // Add positions to JSON
-        // Map<String, Integer> userPositions = quantities.getOrDefault(username, new
-        // HashMap<>());
-        JSONObject positionsJson = new JSONObject();
+        ObjectNode positionsJson = JsonNodeFactory.instance.objectNode();
         for (String ticker : quantities.getOrDefault(username, new HashMap<>()).keySet()) {
             int quantity = quantities.get(username).getOrDefault(ticker, 0);
             double sumPrice =
                     sumPrices.getOrDefault(username, new HashMap<>()).getOrDefault(ticker, 0.0);
             double avgPrice = quantity != 0.0 ? (double) sumPrice / (double) quantity : 0.0;
 
-            JSONObject tickerDetails = new JSONObject();
+            ObjectNode tickerDetails = JsonNodeFactory.instance.objectNode();
             tickerDetails.put("quantity", quantity);
             tickerDetails.put("averagePrice", avgPrice);
 
-            positionsJson.put(ticker, tickerDetails);
+            positionsJson.set(ticker, tickerDetails);
         }
-        userJson.put("positions", positionsJson);
-        userJson.put("positions", positionsJson);
+        userJson.set("positions", positionsJson);
 
         return userJson;
     }
