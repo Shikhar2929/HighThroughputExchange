@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 public class MatchingEngine {
     private static final Logger logger = LoggerFactory.getLogger(MatchingEngine.class);
 
-    private static final String DEFAULT_CONFIG_LOCATION = "assets/config.json";
+    private static final String DEFAULT_CONFIG_LOCATION = "assets/config.infinite.json";
 
     /**
      * Config location for engine initialization JSON (filesystem path or {@code classpath:...}).

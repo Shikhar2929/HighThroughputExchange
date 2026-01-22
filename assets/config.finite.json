@@ -1,0 +1,13 @@
+{
+  "mode": "finite",
+  "defaults": {
+    "defaultBalance": 10000,
+    "tickers": ["GOOG", "NVDA", "APPL"],
+    "balances": {
+      "GOOG": 100,
+      "NVDA": 100,
+      "APPL": 100
+    },
+    "positionLimit": 1000
+  }
+}
