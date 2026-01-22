@@ -1,7 +1,7 @@
 package hte.matchingengine;
 
 /**
- * Jackson-mappable config root for reading {@code config.json} into POJOs.
+ * Jackson-mappable config root for reading the engine config JSON.
  *
  * <p>Used by "alternative*" initialization methods.
  */

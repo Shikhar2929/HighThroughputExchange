@@ -3,7 +3,7 @@ package hte.matchingengine;
 import java.util.HashMap;
 
 /**
- * Jackson-mappable defaults section from {@code config.json}.
+ * Jackson-mappable defaults section from the engine config JSON.
  *
  * <p>Expected keys include: {@code tickers}: list of tradable instruments {@code balances}: initial
  * per-ticker inventory {@code defaultBalance}: initial cash balance (finite mode)
