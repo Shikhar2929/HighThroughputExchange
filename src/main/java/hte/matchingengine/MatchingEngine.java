@@ -664,6 +664,8 @@ public class MatchingEngine {
      * @return response map suitable for JSON serialization
      */
     public Map<String, Object> bidLimitOrderHandler(String name, Order order) {
+        final boolean isBot = bots.containsKey(name);
+        final int requestedVolume = order.volume;
         ValidationResult validation = validateBidOrder(name, order);
         if (validation.code != Message.SUCCESS) {
             logger.debug(
@@ -712,11 +714,35 @@ public class MatchingEngine {
                 userOrders.put(order.name, new HashMap<>());
                 userOrders.get(order.name).put(orderID, order);
             }
+            logger.info(
+                    "Order placed successfully: actorType={} user={} side=BID type=LIMIT ticker={}"
+                            + " limitPrice={} requestedVolume={} filledVolume={} remainingVolume={}"
+                            + " vwapPrice={} orderId={}",
+                    isBot ? "BOT" : "USER",
+                    name,
+                    order.ticker,
+                    order.price,
+                    requestedVolume,
+                    (int) orderData.volume,
+                    order.volume,
+                    orderData.price,
+                    orderID);
             return createLimitOrderResponse(
                     orderData.price, (int) orderData.volume, Message.SUCCESS, msg, orderID);
         } else {
             order.status = Status.FILLED;
         }
+        logger.info(
+                "Order placed successfully: actorType={} user={} side=BID type=LIMIT ticker={}"
+                        + " limitPrice={} requestedVolume={} filledVolume={} remainingVolume=0"
+                        + " vwapPrice={} orderId=0",
+                isBot ? "BOT" : "USER",
+                name,
+                order.ticker,
+                order.price,
+                requestedVolume,
+                (int) orderData.volume,
+                orderData.price);
         return createLimitOrderResponse(
                 orderData.price, (int) orderData.volume, Message.SUCCESS, msg, 0);
     }
@@ -748,6 +774,8 @@ public class MatchingEngine {
      * the order is fully filled or it can no longer match.
      */
     public Map<String, Object> askLimitOrderHandler(String name, Order order) {
+        final boolean isBot = bots.containsKey(name);
+        final int requestedVolume = order.volume;
         ValidationResult validation = validateAskOrder(name, order);
         if (validation.code != Message.SUCCESS) {
             return createLimitOrderResponse(0, 0, validation.code, validation.detail, -1);
@@ -791,11 +819,35 @@ public class MatchingEngine {
                 userOrders.put(order.name, new HashMap<>());
                 userOrders.get(order.name).put(orderID, order);
             }
+            logger.info(
+                    "Order placed successfully: actorType={} user={} side=ASK type=LIMIT ticker={}"
+                            + " limitPrice={} requestedVolume={} filledVolume={} remainingVolume={}"
+                            + " vwapPrice={} orderId={}",
+                    isBot ? "BOT" : "USER",
+                    name,
+                    order.ticker,
+                    order.price,
+                    requestedVolume,
+                    (int) orderData.volume,
+                    order.volume,
+                    orderData.price,
+                    orderID);
             return createLimitOrderResponse(
                     orderData.price, (int) orderData.volume, Message.SUCCESS, msg, orderID);
         } else {
             order.status = Status.FILLED;
         }
+        logger.info(
+                "Order placed successfully: actorType={} user={} side=ASK type=LIMIT ticker={}"
+                        + " limitPrice={} requestedVolume={} filledVolume={} remainingVolume=0"
+                        + " vwapPrice={} orderId=0",
+                isBot ? "BOT" : "USER",
+                name,
+                order.ticker,
+                order.price,
+                requestedVolume,
+                (int) orderData.volume,
+                orderData.price);
         return createLimitOrderResponse(
                 orderData.price, (int) orderData.volume, Message.SUCCESS, msg, 0);
     }
@@ -1196,10 +1248,31 @@ public class MatchingEngine {
         }
 
         if ((int) orderData.volume < requestedVolume) {
+            logger.info(
+                    "Order placed successfully: actorType={} user={} side=BID type=MARKET ticker={}"
+                            + " requestedVolume={} filledVolume={} remainingVolume={} vwapPrice={}"
+                            + " status=PARTIAL_FILL",
+                    bots.containsKey(name) ? "BOT" : "USER",
+                    name,
+                    ticker,
+                    requestedVolume,
+                    (int) orderData.volume,
+                    requestedVolume - (int) orderData.volume,
+                    orderData.price);
             return createMarketOrderResponse(
                     orderData.price, (int) orderData.volume, Message.PARTIAL_FILL);
         }
 
+        logger.info(
+                "Order placed successfully: actorType={} user={} side=BID type=MARKET ticker={}"
+                        + " requestedVolume={} filledVolume={} remainingVolume=0 vwapPrice={}"
+                        + " status=SUCCESS",
+                bots.containsKey(name) ? "BOT" : "USER",
+                name,
+                ticker,
+                requestedVolume,
+                (int) orderData.volume,
+                orderData.price);
         return createMarketOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS);
     }
 
@@ -1297,10 +1370,31 @@ public class MatchingEngine {
         }
 
         if ((int) orderData.volume < requestedVolume) {
+            logger.info(
+                    "Order placed successfully: actorType={} user={} side=ASK type=MARKET ticker={}"
+                            + " requestedVolume={} filledVolume={} remainingVolume={} vwapPrice={}"
+                            + " status=PARTIAL_FILL",
+                    bots.containsKey(name) ? "BOT" : "USER",
+                    name,
+                    ticker,
+                    requestedVolume,
+                    (int) orderData.volume,
+                    requestedVolume - (int) orderData.volume,
+                    orderData.price);
             return createMarketOrderResponse(
                     orderData.price, (int) orderData.volume, Message.PARTIAL_FILL);
         }
 
+        logger.info(
+                "Order placed successfully: actorType={} user={} side=ASK type=MARKET ticker={}"
+                        + " requestedVolume={} filledVolume={} remainingVolume=0 vwapPrice={}"
+                        + " status=SUCCESS",
+                bots.containsKey(name) ? "BOT" : "USER",
+                name,
+                ticker,
+                requestedVolume,
+                (int) orderData.volume,
+                orderData.price);
         return createMarketOrderResponse(orderData.price, (int) orderData.volume, Message.SUCCESS);
     }
 
