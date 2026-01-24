@@ -75,10 +75,8 @@ jobs:
       - name: Run pytest integration suite
         env:
           HTTP_URL: http://localhost:8080
-          # These default creds are already present in public.env.
-          # CI sets them explicitly so tests don't depend on dotenv parsing.
-          ADMIN_USERNAME: trading_club_admin
-          ADMIN_PASSWORD: ZY3yoQL5v8MahcmcWBnG
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: pytest
 
       - name: Dump server log on failure
