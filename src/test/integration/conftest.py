@@ -30,7 +30,7 @@ if str(_INTEGRATION_DIR) not in sys.path:
 def _load_env_once() -> None:
     # Reuse existing env loading logic, but allow CI to override via env vars.
     try:
-        from env_loader import load_env  # type: ignore
+        from utilities.env_loader import load_env  # type: ignore
 
         # Prefer a local `.env` (often gitignored, may contain real creds),
         # then fall back to the committed `public.env` template.
