@@ -28,6 +28,9 @@ jobs:
           cache: maven
 
       - name: Run tests
+        env: 
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: mvn -B -ntp test
 
       - name: Upload test reports (on failure)
