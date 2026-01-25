@@ -37,6 +37,8 @@ jobs:
         env:
           # Keep server config consistent across CI.
           SERVER_PORT: '8080'
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: |
           JAR="$(ls -1 target/*.jar | grep -v '\.original$' | head -n 1)"
           if [ -z "$JAR" ]; then
@@ -51,6 +53,8 @@ jobs:
       - name: Wait for server
         env:
           HTTP_URL: http://localhost:8080
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: |
           python - <<'PY'
           import time
