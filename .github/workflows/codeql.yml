@@ -45,7 +45,7 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          build-mode: 'auto'
+          build-mode: none
 
       - name: Build (Java)
         if: matrix.language == 'java-kotlin'
