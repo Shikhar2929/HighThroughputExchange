@@ -5,7 +5,7 @@ from typing import Optional
 _loaded = False
 
 
-def _find_env_file(filename: str = "public.env") -> Optional[Path]:
+def _find_env_file(filename: str = ".env.example") -> Optional[Path]:
     """
     Walk up from this file's directory to the repo root to find the env file.
     """
@@ -37,7 +37,7 @@ def _fallback_parse_and_load(env_path: Path) -> None:
                 os.environ[key] = val
 
 
-def load_env(filename: str = "public.env") -> None:
+def load_env(filename: str = ".env.example") -> None:
     """
     Load key=value pairs from the given env file into os.environ (without overriding existing keys).
     """

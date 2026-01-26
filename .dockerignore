@@ -1,0 +1,20 @@
+.git
+.github
+.idea
+.vscode
+.DS_Store
+
+# Java/Maven
+**/target
+**/*.iml
+
+# Python caches
+**/__pycache__
+**/.pytest_cache
+
+# Local env files
+*.env
+
+# Test artifacts
+server.log
+server.pid
