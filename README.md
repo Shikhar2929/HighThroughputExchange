@@ -50,19 +50,33 @@ Uses `pytest.ini` (default suite is under `src/test/integration`). If you run `p
 pytest
 ```
 
-### Format Java code (Spotless)
+### Configure pre-commit
+
+To get fast pre-commit checks locally (formatting, basic checks, and Java Spotless), follow these steps:
+
+1. Install `pre-commit` (Python/pip) on your machine:
+
 ```sh
-mvn spotless:apply
+python -m pip install --user pre-commit
 ```
 
-### Verify formatting (Spotless)
+2. Install the git hooks for this repo (run once per clone):
+
 ```sh
-mvn spotless:check
+pre-commit install
 ```
 
-### Lint Java code (Checkstyle)
+3. Run the hooks against all files (first-time setup):
+
 ```sh
-mvn checkstyle:check
+pre-commit run --all-files
+```
+
+### Formatting
+```sh
+mvn spotless:apply # apply
+mvn spotless:check # verify
+mvn checkstyle:check # lint
 ```
 
 <h3>API Design</h3>

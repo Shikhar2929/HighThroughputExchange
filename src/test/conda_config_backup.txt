@@ -15,7 +15,7 @@ anaconda_upload: None
 auto_activate_base: True
 auto_stack: 0
 auto_update_conda: True
-bld_path: 
+bld_path:
 changeps1: True
 channel_alias: https://conda.anaconda.org
 channel_priority: flexible
@@ -33,11 +33,11 @@ custom_channels:
   pkgs/msys2: https://repo.anaconda.com
   pkgs/pro: https://repo.anaconda.com
 custom_multichannels:
-  defaults: 
+  defaults:
     - https://repo.anaconda.com/pkgs/main
     - https://repo.anaconda.com/pkgs/r
     - https://repo.anaconda.com/pkgs/msys2
-  local: 
+  local:
 debug: False
 default_channels:
   - https://repo.anaconda.com/pkgs/main
@@ -51,7 +51,7 @@ disallowed_packages: []
 download_only: False
 dry_run: False
 enable_private_envs: False
-env_prompt: ({default_env}) 
+env_prompt: ({default_env})
 envs_dirs:
   - C:\Users\family\anaconda3\envs
   - C:\Users\family\.conda\envs
@@ -105,7 +105,7 @@ subdir: win-64
 subdirs:
   - win-64
   - noarch
-target_prefix_override: 
+target_prefix_override:
 track_features: []
 unsatisfiable_hints: True
 unsatisfiable_hints_check_depth: 2
