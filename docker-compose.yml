@@ -1,0 +1,15 @@
+services:
+  hte:
+    build:
+      context: .
+    image: hte:compose
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      # Defaults for convenience; override in .env
+      SERVER_PORT: "8080"
+      HTE_CONFIG_PATH: "assets/config.infinite.json"
+      HTE_DB_PATH: "assets/data.json"
+    restart: "no"

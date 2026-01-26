@@ -18,6 +18,27 @@ Runs the API locally (defaults to port 8080 unless overridden).
 mvn spring-boot:run
 ```
 
+### Run the server (Docker)
+Builds the Docker image and starts the API on port 8080.
+
+Note: `ADMIN_USERNAME` and `ADMIN_PASSWORD` are required; if you omit them the app will fail to start.
+
+```sh
+docker build -t hte:local .
+docker run --rm -p 8080:8080 \
+    -e ADMIN_USERNAME=admin \
+    -e ADMIN_PASSWORD=admin \
+    hte:local
+```
+
+### Run the server (Docker Compose)
+This is the easiest way to manage required env vars.
+
+```sh
+cp .env.example .env
+docker compose up --build
+```
+
 ### Run Java tests (JUnit/Surefire)
 ```sh
 mvn test
