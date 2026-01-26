@@ -28,7 +28,7 @@ jobs:
           cache: maven
 
       - name: Run tests
-        env: 
+        env:
           ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: mvn -B -ntp test
@@ -53,7 +53,7 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      
+
       - name: Verify formatting
         run: mvn -B -ntp spotless:check
 
