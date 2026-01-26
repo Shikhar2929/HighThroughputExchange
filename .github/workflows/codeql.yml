@@ -43,17 +43,15 @@ jobs:
           cache: maven
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          # For Java, we do a deterministic Maven build (instead of relying on autobuild).
-          build-mode: ${{ matrix.language == 'java-kotlin' && 'manual' || 'none' }}
 
       - name: Build (Java)
         if: matrix.language == 'java-kotlin'
         run: mvn -B -ntp -DskipTests package
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
