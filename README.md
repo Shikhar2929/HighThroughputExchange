@@ -1,6 +1,11 @@
 # HighThroughputExchange
 
----
+
+## Purpose
+
+HighThroughputExchange is an **exchange** used for **Georgia Tech Trading Competition** made using Java Spring-Boot. This project is the core infrastrcture behind the trading competition that is designed to handle large amounts of requests while being reliable and fault-proof.
+
+Below you can find details about how to run and test the exchange, the Matching Engine logic, available API endpoints and their access level (admin, user, public), and general details about the codebase.
 
 ## Usage
 
