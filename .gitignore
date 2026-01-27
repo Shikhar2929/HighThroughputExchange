@@ -1,20 +1,27 @@
-.vscode/
-*.exe
-*.o
-.idea
-*.iml
-*.index
-*.class
-target
+# macos
 .DS_Store
-pom.xml
-*.pyc
-ec2
-temp/data.json
+
+# ide/editor specific
+.vscode/
+.idea/
+*.iml
+
+# java/mvn outputs
+/target/
+*.class
 hte-1.0-SNAPSHOT.jar
-__pycache__/
-.ruff_cache/
-.env
-docs/
+spotless-index
+generated-sources/
+generated-test-sources/
+maven-status/
+
+# python and envs
 .venv/
+.env
+__pycache__/
+*.pyc
 .pytest_cache/
+.ruff_cache/
+
+# misc
+docs/
