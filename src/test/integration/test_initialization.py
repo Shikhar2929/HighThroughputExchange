@@ -11,6 +11,8 @@ import time
 
 from exchange_client import ExchangeClient
 
+# Import pytest for the ApiError test
+import pytest
 
 def test_user_creation_and_buildup(client: ExchangeClient, unique_username) -> None:
     """Test creating a user and establishing a session."""
@@ -276,7 +278,3 @@ def test_concurrent_user_initialization(
         )
         assert result is not None
         time.sleep(0.05)
-
-
-# Import pytest for the ApiError test
-import pytest
