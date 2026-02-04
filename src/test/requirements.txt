@@ -1,2 +1,3 @@
 pytest>=8.0.0
 requests>=2.31.0
+websocket>=11.0.0

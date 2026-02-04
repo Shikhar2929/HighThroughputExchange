@@ -1,6 +1,6 @@
 import json
 import urllib.request
-from env_loader import load_env, getenv
+from ..utilities.env_loader import load_env, getenv
 
 load_env()
 URL = getenv("HTTP_URL", "http://localhost:8080")
