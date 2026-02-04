@@ -15,9 +15,7 @@ import pytest
 from exchange_client import ExchangeClient
 
 
-def test_batch_multiple_limit_orders(
-    client: ExchangeClient, unique_username
-) -> None:
+def test_batch_multiple_limit_orders(client: ExchangeClient, unique_username) -> None:
     """Test batch processing of multiple limit orders across different tickers."""
     client.admin_set_state(1)  # Set to TRADING state
 
@@ -57,9 +55,7 @@ def test_batch_multiple_limit_orders(
     assert len(result["results"]) == 3
 
 
-def test_batch_mixed_operation_types(
-    client: ExchangeClient, unique_username
-) -> None:
+def test_batch_mixed_operation_types(client: ExchangeClient, unique_username) -> None:
     """Test batch with mixed operation types: limit orders, market orders, and removes."""
     client.admin_set_state(1)
 
