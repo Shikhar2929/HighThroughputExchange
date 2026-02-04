@@ -191,7 +191,7 @@ def test_bot_concurrent_trading_simulation(
 
     for i in range(num_bots):
         bot_name = unique_username(f"concurrent_bot_{i}")
-        api_key = client.admin_add_bot(username=bot_name, name=f"Trading Bot {i+1}")
+        api_key = client.admin_add_bot(username=bot_name, name=f"Trading Bot {i + 1}")
         bot_session = client.bot_buildup(bot_name, api_key)
         bots.append((bot_name, bot_session))
 
@@ -257,7 +257,11 @@ def test_bot_market_order(client: ExchangeClient, unique_username) -> None:
 
     # Place a limit ask order
     client.bot_limit_order(
-        maker_session, ticker="A", volume=10, price=100, is_bid=False  # Ask
+        maker_session,
+        ticker="A",
+        volume=10,
+        price=100,
+        is_bid=False,  # Ask
     )
 
     time.sleep(0.1)
@@ -270,9 +274,7 @@ def test_bot_market_order(client: ExchangeClient, unique_username) -> None:
     time.sleep(0.05)
 
     # Place a market bid order
-    result = client.bot_market_order(
-        taker_session, ticker="A", volume=5, is_bid=True
-    )
+    result = client.bot_market_order(taker_session, ticker="A", volume=5, is_bid=True)
 
     assert result is not None
 

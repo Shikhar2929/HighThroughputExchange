@@ -66,9 +66,7 @@ def test_market_maker_bot_bid_ask_spread(
     assert ask_result is not None
 
 
-def test_multiple_large_volume_orders(
-    client: ExchangeClient, unique_username
-) -> None:
+def test_multiple_large_volume_orders(client: ExchangeClient, unique_username) -> None:
     """Test placing multiple large volume orders sequentially."""
     client.admin_set_state(1)
 
@@ -97,9 +95,7 @@ def test_multiple_large_volume_orders(
     assert orders_placed == num_orders
 
 
-def test_market_maker_multiple_tickers(
-    client: ExchangeClient, unique_username
-) -> None:
+def test_market_maker_multiple_tickers(client: ExchangeClient, unique_username) -> None:
     """Test market making across multiple tickers."""
     client.admin_set_state(1)
 
@@ -132,9 +128,7 @@ def test_market_maker_multiple_tickers(
         time.sleep(0.05)
 
 
-def test_large_volume_market_order(
-    client: ExchangeClient, unique_username
-) -> None:
+def test_large_volume_market_order(client: ExchangeClient, unique_username) -> None:
     """Test placing large volume market orders."""
     client.admin_set_state(1)
 
@@ -166,9 +160,7 @@ def test_large_volume_market_order(
     assert result is not None
 
 
-def test_market_maker_dynamic_spread(
-    client: ExchangeClient, unique_username
-) -> None:
+def test_market_maker_dynamic_spread(client: ExchangeClient, unique_username) -> None:
     """Test market maker with dynamically changing spread."""
     client.admin_set_state(1)
 
@@ -295,7 +287,11 @@ def test_large_volume_edge_cases(client: ExchangeClient, unique_username) -> Non
 
     # Test with very large volume
     result = client.bot_limit_order(
-        bot_session, ticker="A", volume=100000000, price=200, is_bid=True  # 100 million
+        bot_session,
+        ticker="A",
+        volume=100000000,
+        price=200,
+        is_bid=True,  # 100 million
     )
 
     assert result is not None
