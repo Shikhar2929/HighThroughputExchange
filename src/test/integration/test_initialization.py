@@ -14,6 +14,7 @@ from exchange_client import ExchangeClient
 # Import pytest for the ApiError test
 import pytest
 
+
 def test_user_creation_and_buildup(client: ExchangeClient, unique_username) -> None:
     """Test creating a user and establishing a session."""
     client.admin_set_state(1)
@@ -49,9 +50,7 @@ def test_user_can_trade_after_initialization(
     time.sleep(0.05)
 
     # Place a trade
-    result = client.limit_order(
-        session, ticker="A", volume=10, price=100, is_bid=True
-    )
+    result = client.limit_order(session, ticker="A", volume=10, price=100, is_bid=True)
 
     assert result is not None
 
@@ -265,7 +264,9 @@ def test_concurrent_user_initialization(
     for i in range(num_users):
         user_name = unique_username(f"concurrent_{i}")
         api_key = client.admin_add_user(
-            username=user_name, name=f"Concurrent User {i}", email=f"{user_name}@example.com"
+            username=user_name,
+            name=f"Concurrent User {i}",
+            email=f"{user_name}@example.com",
         )
         session = client.buildup(user_name, api_key)
         users.append((user_name, session))

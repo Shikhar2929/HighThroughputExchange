@@ -36,9 +36,7 @@ def test_remove_all_orders(client: ExchangeClient, unique_username) -> None:
     # Success if no exception is raised
 
 
-def test_remove_all_after_single_order(
-    client: ExchangeClient, unique_username
-) -> None:
+def test_remove_all_after_single_order(client: ExchangeClient, unique_username) -> None:
     """Test removing all orders after placing a single order (like original test)."""
     client.admin_set_state(1)
 
@@ -285,9 +283,9 @@ def test_remove_specific_order_then_remove_all(
     time.sleep(0.05)
 
     # Place multiple orders
-    order1 = client.limit_order(session, ticker="A", volume=10, price=100, is_bid=True)
+    client.limit_order(session, ticker="A", volume=10, price=100, is_bid=True)
     time.sleep(0.05)
-    order2 = client.limit_order(session, ticker="A", volume=5, price=105, is_bid=True)
+    client.limit_order(session, ticker="A", volume=5, price=105, is_bid=True)
     time.sleep(0.05)
 
     # Try to remove a specific order if order IDs are available
