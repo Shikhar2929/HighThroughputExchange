@@ -1,6 +1,14 @@
 # HighThroughputExchange
 
----
+
+## Purpose
+
+HighThroughputExchange is an **exchange** used for **Georgia Tech Trading Competition** made using Java Spring-Boot.
+This project is the core infrastructure behind the trading competition that is designed to handle large amounts of requests while being reliable and fault-proof.
+The exchange handles API requests and verification, order matching, and market data distribution.
+The exchange can be ran in several modes, with optional bot only APIs.
+
+Below you can find details about how to run and test the exchange, the Matching Engine logic, available API endpoints and their access level (admin, user, public), and general details about the codebase.
 
 ## Usage
 
@@ -8,6 +16,27 @@
 Runs the API locally (defaults to port 8080 unless overridden).
 ```sh
 mvn spring-boot:run
+```
+
+### Run the server (Docker)
+Builds the Docker image and starts the API on port 8080.
+
+Note: `ADMIN_USERNAME` and `ADMIN_PASSWORD` are required; if you omit them the app will fail to start.
+
+```sh
+docker build -t hte:local .
+docker run --rm -p 8080:8080 \
+    -e ADMIN_USERNAME=admin \
+    -e ADMIN_PASSWORD=admin \
+    hte:local
+```
+
+### Run the server (Docker Compose)
+This is the easiest way to manage required env vars.
+
+```sh
+cp .env.example .env
+docker compose up --build
 ```
 
 ### Run Java tests (JUnit/Surefire)
@@ -21,24 +50,36 @@ Uses `pytest.ini` (default suite is under `src/test/integration`). If you run `p
 pytest
 ```
 
-### Format Java code (Spotless)
+### Configure pre-commit
+
+To get fast pre-commit checks locally (formatting, basic checks, and Java Spotless), follow these steps:
+
+1. Install `pre-commit` (Python/pip) on your machine:
+
 ```sh
-mvn spotless:apply
+python -m pip install --user pre-commit
 ```
 
-### Verify formatting (Spotless)
+2. Install the git hooks for this repo (run once per clone):
+
 ```sh
-mvn spotless:check
+pre-commit install
 ```
 
-### Lint Java code (Checkstyle)
+3. Run the hooks against all files (first-time setup):
+
 ```sh
-mvn checkstyle:check
+pre-commit run --all-files
+```
+
+### Formatting
+```sh
+mvn spotless:apply # apply
+mvn spotless:check # verify
+mvn checkstyle:check # lint
 ```
 
 <h3>API Design</h3>
-
-[//]: # (Todo: stopping mechanism; action endpoint; show auction results; frontend orderbook; individual order cancelation)
 
 <table>
     <tr>

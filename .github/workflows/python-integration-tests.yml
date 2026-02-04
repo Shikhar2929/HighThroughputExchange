@@ -37,6 +37,8 @@ jobs:
         env:
           # Keep server config consistent across CI.
           SERVER_PORT: '8080'
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: |
           JAR="$(ls -1 target/*.jar | grep -v '\.original$' | head -n 1)"
           if [ -z "$JAR" ]; then
@@ -51,6 +53,8 @@ jobs:
       - name: Wait for server
         env:
           HTTP_URL: http://localhost:8080
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: |
           python - <<'PY'
           import time
@@ -75,10 +79,8 @@ jobs:
       - name: Run pytest integration suite
         env:
           HTTP_URL: http://localhost:8080
-          # These default creds are already present in public.env.
-          # CI sets them explicitly so tests don't depend on dotenv parsing.
-          ADMIN_USERNAME: trading_club_admin
-          ADMIN_PASSWORD: ZY3yoQL5v8MahcmcWBnG
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: pytest
 
       - name: Dump server log on failure

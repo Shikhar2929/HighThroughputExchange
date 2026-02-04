@@ -32,7 +32,10 @@ def _load_env_once() -> None:
     try:
         from utilities.env_loader import load_env  # type: ignore
 
-        load_env()
+        # Prefer a local `.env` (often gitignored, may contain real creds),
+        # then fall back to the committed `.env.example` template.
+        load_env(".env")
+        load_env(".env.example")
     except Exception:
         # Don't hard-fail if dotenv isn't installed; env_loader already has fallback.
         pass
