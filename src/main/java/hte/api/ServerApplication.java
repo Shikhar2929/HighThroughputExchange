@@ -1,7 +1,10 @@
 package hte.api;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication(scanBasePackages = "hte")
@@ -18,7 +21,8 @@ public class ServerApplication {
         this.state = newState;
     }
 
-    // public static void main(String[] args) {
-    // SpringApplication.run(ServerApplication.class, args);
-    // }
+    @GetMapping("/")
+    public ResponseEntity<String> home() {
+        return new ResponseEntity<>("HTE API Server is running.", HttpStatus.OK);
+    }
 }
