@@ -20,4 +20,3 @@ def create_bot(username, name, email):
     return json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
 
 
-print(create_bot("makerbot", "makerbot", "")["apiKey"])
