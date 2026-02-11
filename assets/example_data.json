@@ -1,0 +1,114 @@
+{
+  "bots": {
+    "name": "bots",
+    "backing": {
+      "tradingbot1": {
+        "username": "tradingbot1",
+        "name": "",
+        "apiKey": "AGRBDBPRFDJLZUCZ",
+        "apiKey2": "EZZLLULPLZUZHNHL",
+        "email": ""
+      }
+    },
+    "allKeys": [
+      "tradingbot1"
+    ]
+  },
+  "sessions": {
+    "name": "sessions",
+    "backing": {},
+    "allKeys": []
+  },
+  "botSessions": {
+    "name": "botSessions",
+    "backing": {},
+    "allKeys": []
+  },
+  "users": {
+    "name": "users",
+    "backing": {
+      "team0": {
+        "username": "team0",
+        "name": "Team 0",
+        "apiKey": "DQZXGLAKCALHMJTC",
+        "apiKey2": "XWDZXAGVCEEIJDAU",
+        "email": "team@team.team"
+      },
+      "team1": {
+        "username": "team1",
+        "name": "Team 1",
+        "apiKey": "DYLUIERICYEHQWPZ",
+        "apiKey2": "KQUFRNBLVHUKNANI",
+        "email": "team@team.team"
+      },
+      "team2": {
+        "username": "team2",
+        "name": "Team 2",
+        "apiKey": "VLXVNRKEVCGPULWC",
+        "apiKey2": "HMIXMRODXNGYZBZJ",
+        "email": "team@team.team"
+      },
+      "team3": {
+        "username": "team3",
+        "name": "Team 3",
+        "apiKey": "BBZYHSIGCMLWUHTA",
+        "apiKey2": "DLCVMTWYPISRQIJJ",
+        "email": "team@team.team"
+      },
+      "team4": {
+        "username": "team4",
+        "name": "Team 4",
+        "apiKey": "WDXFMCLXDZLXCYGM",
+        "apiKey2": "CJZUOKDMQDIQTIOL",
+        "email": "team@team.team"
+      },
+      "team5": {
+        "username": "team5",
+        "name": "Team 5",
+        "apiKey": "TQKOZNPBXVBEYQEP",
+        "apiKey2": "BRSQFBMQLMDFXSOC",
+        "email": "team@team.team"
+      },
+      "team6": {
+        "username": "team6",
+        "name": "Team 6",
+        "apiKey": "SNSZJHUHUIHKZIEB",
+        "apiKey2": "ZEKSWJOCDSLWYKGK",
+        "email": "team@team.team"
+      },
+      "team7": {
+        "username": "team7",
+        "name": "Team 7",
+        "apiKey": "HKOFYDAAQCMHPBYX",
+        "apiKey2": "JKVIXUUGHGOCUMXU",
+        "email": "team@team.team"
+      },
+      "team8": {
+        "username": "team8",
+        "name": "Team 8",
+        "apiKey": "NKPABWNPZUDBIUCD",
+        "apiKey2": "YXXCQMKPXRRZYEUD",
+        "email": "team@team.team"
+      },
+      "team9": {
+        "username": "team9",
+        "name": "Team 9",
+        "apiKey": "KCXJKANODXLTNLJA",
+        "apiKey2": "HERISQSSFYSUMBUF",
+        "email": "team@team.team"
+      }
+    },
+    "allKeys": [
+      "team0",
+      "team1",
+      "team2",
+      "team3",
+      "team4",
+      "team5",
+      "team6",
+      "team7",
+      "team8",
+      "team9"
+    ]
+  }
+}

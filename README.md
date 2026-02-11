@@ -12,6 +12,13 @@ Below you can find details about how to run and test the exchange, the Matching 
 
 ## Usage
 
+### Generate `assets/data.json`
+The server uses a JSON-backed local DB file (defaults to `assets/data.json`). This repo ignores `assets/data.json`, so you typically need to generate it before first run.
+
+```sh
+python3 src/test/utilities/generate_data_json.py --out assets/data.json
+```
+
 ### Run the server (Spring Boot)
 Runs the API locally (defaults to port 8080 unless overridden).
 ```sh
