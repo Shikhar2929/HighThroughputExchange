@@ -1,7 +1,6 @@
 package hte.auction;
 
 import hte.matchingengine.MatchingEngine;
-
 import java.util.HashMap;
 import java.util.Map;
 
