@@ -34,7 +34,7 @@ public class Auction {
         return true;
     }
 
-    public String getBestUser() {
+    public AuctionResult getAuctionResult() {
         String bestUser = "";
         int bestBid = 0;
         for (Map.Entry<String, Integer> entry : userBids.entrySet()) {
@@ -43,20 +43,11 @@ public class Auction {
                 bestUser = entry.getKey();
             }
         }
-        return bestUser;
-    }
-
-    public int getBestBid() {
-        int bestBid = 0;
-        for (int bid : userBids.values()) {
-            if (bid > bestBid) {
-                bestBid = bid;
-            }
-        }
-        return bestBid;
+        return new AuctionResult(bestUser, bestBid);
     }
 
     public void executeAuction() {
-        matchingEngine.executeAuction(getBestUser(), getBestBid());
+        AuctionResult result = getAuctionResult();
+        matchingEngine.executeAuction(result.getUser(), result.getBid());
     }
 }

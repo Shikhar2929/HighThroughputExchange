@@ -21,8 +21,9 @@ class AuctionTest {
     @Test
     void placeBid_singleUser_tracksBid() {
         auction.placeBid("alice", 500);
-        assertEquals(500, auction.getBestBid());
-        assertEquals("alice", auction.getBestUser());
+        AuctionResult result = auction.getAuctionResult();
+        assertEquals(500, result.getBid());
+        assertEquals("alice", result.getUser());
     }
 
     @Test
@@ -31,8 +32,9 @@ class AuctionTest {
         auction.placeBid("bob", 500);
         auction.placeBid("charlie", 400);
 
-        assertEquals(500, auction.getBestBid());
-        assertEquals("bob", auction.getBestUser());
+        AuctionResult result = auction.getAuctionResult();
+        assertEquals(500, result.getBid());
+        assertEquals("bob", result.getUser());
     }
 
     @Test
@@ -40,8 +42,9 @@ class AuctionTest {
         auction.placeBid("alice", 900);
         auction.placeBid("alice", 100);
 
-        assertEquals(100, auction.getBestBid());
-        assertEquals("alice", auction.getBestUser());
+        AuctionResult result = auction.getAuctionResult();
+        assertEquals(100, result.getBid());
+        assertEquals("alice", result.getUser());
     }
 
     @Test
@@ -50,8 +53,9 @@ class AuctionTest {
         auction.placeBid("bob", 300);
         auction.placeBid("alice", 200);
 
-        assertEquals(300, auction.getBestBid());
-        assertEquals("bob", auction.getBestUser());
+        AuctionResult result = auction.getAuctionResult();
+        assertEquals(300, result.getBid());
+        assertEquals("bob", result.getUser());
     }
 
     @Test
@@ -59,14 +63,16 @@ class AuctionTest {
         auction.placeBid("alice", 100);
         auction.placeBid("alice", 800);
 
-        assertEquals(800, auction.getBestBid());
-        assertEquals("alice", auction.getBestUser());
+        AuctionResult result = auction.getAuctionResult();
+        assertEquals(800, result.getBid());
+        assertEquals("alice", result.getUser());
     }
 
     @Test
-    void getBestBid_noBids_returnsZero() {
-        assertEquals(0, auction.getBestBid());
-        assertEquals("", auction.getBestUser());
+    void getAuctionResult_noBids_returnsDefaults() {
+        AuctionResult result = auction.getAuctionResult();
+        assertEquals(0, result.getBid());
+        assertEquals("", result.getUser());
     }
 
     @Test
@@ -75,8 +81,9 @@ class AuctionTest {
         auction.placeBid("bob", 300);
         auction.reset();
 
-        assertEquals(0, auction.getBestBid());
-        assertEquals("", auction.getBestUser());
+        AuctionResult result = auction.getAuctionResult();
+        assertEquals(0, result.getBid());
+        assertEquals("", result.getUser());
     }
 
     @Test
