@@ -4,6 +4,7 @@ import hte.api.dtos.requests.BidAuctionRequest;
 import hte.api.dtos.responses.BidAuctionResponse;
 import hte.api.dtos.responses.GetLeadingAuctionBidResponse;
 import hte.auction.Auction;
+import hte.auction.AuctionResult;
 import hte.common.Message;
 import hte.common.TaskFuture;
 import hte.common.TaskQueue;
@@ -22,8 +23,9 @@ public class AuctionService {
         future.setData(new GetLeadingAuctionBidResponse(Message.SUCCESS.toString()));
         TaskQueue.addTask(
                 () -> {
-                    future.getData().setUser(this.getBestUser());
-                    future.getData().setBid(this.getBestBid());
+                    AuctionResult result = this.getAuctionResult();
+                    future.getData().setUser(result.getUser());
+                    future.getData().setBid(result.getBid());
                     future.markAsComplete();
                 });
         future.waitForCompletion();
@@ -36,8 +38,9 @@ public class AuctionService {
 
         TaskQueue.addTask(
                 () -> {
-                    future.getData().setUser(this.getBestUser());
-                    future.getData().setBid(this.getBestBid());
+                    AuctionResult result = this.getAuctionResult();
+                    future.getData().setUser(result.getUser());
+                    future.getData().setBid(result.getBid());
                     this.executeAuction();
                     this.resetAuction();
                     future.markAsComplete();
@@ -69,12 +72,8 @@ public class AuctionService {
         return auction.isValid(user, bid);
     }
 
-    private String getBestUser() {
-        return auction.getBestUser();
-    }
-
-    private int getBestBid() {
-        return auction.getBestBid();
+    private AuctionResult getAuctionResult() {
+        return auction.getAuctionResult();
     }
 
     private void executeAuction() {

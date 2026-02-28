@@ -1,10 +1,11 @@
 package hte.auction;
 
 import hte.matchingengine.MatchingEngine;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Auction {
-    private int bestBid;
-    private String bestUser;
+    private final Map<String, Integer> userBids;
     private MatchingEngine matchingEngine;
     private final int MAX_BID = 100000;
 
@@ -13,14 +14,12 @@ public class Auction {
     }
 
     public Auction(MatchingEngine matchingEngine) {
-        bestBid = 0;
-        bestUser = "";
+        userBids = new HashMap<>();
         this.matchingEngine = matchingEngine;
     }
 
     public void reset() {
-        bestBid = 0;
-        bestUser = "";
+        userBids.clear();
     }
 
     public boolean isValid(String user, int bid) {
@@ -31,22 +30,24 @@ public class Auction {
     }
 
     public boolean placeBid(String user, int bid) {
-        if (bid > bestBid) {
-            bestBid = bid;
-            bestUser = user;
-        }
+        userBids.put(user, bid);
         return true;
     }
 
-    public String getBestUser() {
-        return bestUser;
-    }
-
-    public int getBestBid() {
-        return bestBid;
+    public AuctionResult getAuctionResult() {
+        String bestUser = "";
+        int bestBid = 0;
+        for (Map.Entry<String, Integer> entry : userBids.entrySet()) {
+            if (entry.getValue() > bestBid) {
+                bestBid = entry.getValue();
+                bestUser = entry.getKey();
+            }
+        }
+        return new AuctionResult(bestUser, bestBid);
     }
 
     public void executeAuction() {
-        matchingEngine.executeAuction(bestUser, bestBid);
+        AuctionResult result = getAuctionResult();
+        matchingEngine.executeAuction(result.getUser(), result.getBid());
     }
 }
