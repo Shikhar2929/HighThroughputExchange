@@ -377,6 +377,54 @@ public class MatchingEngine {
     }
 
     /**
+     * Replaces the entire set of known tickers.
+     *
+     * <p>This erases all old tickers, clears all order books and users' active orders, and
+     * initializes fresh empty order books for the provided tickers. The provided map values are
+     * treated as the initial marked price for each ticker.
+     *
+     * @param tickers map of ticker -> initial price
+     * @param future future whose data will be set to the canonical ticker map on success, or null
+     *     on failure.
+     */
+    public void replaceTickersClearOrderBooks(
+            Map<String, Integer> tickers, TaskFuture<Map<String, Integer>> future) {
+        if (tickers == null || tickers.isEmpty()) {
+            future.setData(null);
+            return;
+        }
+
+        for (Map.Entry<String, Integer> entry : tickers.entrySet()) {
+            String ticker = entry.getKey();
+            Integer price = entry.getValue();
+            if (ticker == null || ticker.isBlank() || price == null || price < 0) {
+                future.setData(null);
+                return;
+            }
+        }
+
+        // Erase old tickers and all per-ticker order books.
+        orderBooks = new HashMap<>();
+
+        // Reset per-ticker prices to match the new universe.
+        latestPrice = new HashMap<>();
+
+        // Clear all active orders (they are tied to old books/tickers).
+        userOrders = new HashMap<>();
+        orderID = 0;
+
+        // Initialize new tickers (fresh empty books) and seed their mark price.
+        for (Map.Entry<String, Integer> entry : tickers.entrySet()) {
+            String ticker = entry.getKey();
+            int price = entry.getValue();
+            initializeTicker(ticker);
+            setPrice(ticker, price);
+        }
+
+        future.setData(Map.copyOf(tickers));
+    }
+
+    /**
      * @return highest bid price for {@code ticker}, or 0 if no bids or unknown ticker.
      */
     public int getHighestBid(String ticker) {

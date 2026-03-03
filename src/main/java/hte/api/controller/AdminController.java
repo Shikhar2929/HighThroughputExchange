@@ -6,11 +6,13 @@ import hte.api.dtos.requests.AddUserRequest;
 import hte.api.dtos.requests.LeaderboardRequest;
 import hte.api.dtos.requests.SetPriceRequest;
 import hte.api.dtos.requests.SetStateRequest;
+import hte.api.dtos.requests.SetTickersRequest;
 import hte.api.dtos.requests.ShutdownRequest;
 import hte.api.dtos.responses.AddUserResponse;
 import hte.api.dtos.responses.LeaderboardResponse;
 import hte.api.dtos.responses.SetPriceResponse;
 import hte.api.dtos.responses.SetStateResponse;
+import hte.api.dtos.responses.SetTickersResponse;
 import hte.api.dtos.responses.ShutdownResponse;
 import hte.api.entities.User;
 import hte.api.service.AdminService;
@@ -19,6 +21,7 @@ import hte.common.Message;
 import hte.matchingengine.LeaderboardEntry;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -133,5 +136,26 @@ public class AdminController {
         }
         String message = adminService.setPrice(form.getPrices());
         return new ResponseEntity<>(new SetPriceResponse(message), HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/set_tickers")
+    public ResponseEntity<SetTickersResponse> setTickers(
+            @Valid @RequestBody SetTickersRequest form) {
+        if (!authService.authenticateAdmin(form)) {
+            return new ResponseEntity<>(
+                    new SetTickersResponse(Message.AUTHENTICATION_FAILED.toString(), null),
+                    HttpStatus.UNAUTHORIZED);
+        }
+
+        Map<String, Integer> tickers = adminService.setTickers(form.getTickers());
+        if (tickers == null) {
+            return new ResponseEntity<>(
+                    new SetTickersResponse(Message.BAD_INPUT.toString(), null),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(
+                new SetTickersResponse(Message.SUCCESS.toString(), tickers), HttpStatus.OK);
     }
 }

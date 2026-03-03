@@ -13,6 +13,7 @@ import hte.matchingengine.LeaderboardEntry;
 import hte.matchingengine.MatchingEngine;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -88,6 +89,38 @@ public class AdminService {
         TaskQueue.addTask(
                 () -> {
                     matchingEngine.setPriceClearOrderBook(prices, future);
+                    future.markAsComplete();
+                });
+        future.waitForCompletion();
+        return future.getData();
+    }
+
+    /**
+     * Replaces the entire ticker universe with {@code tickers}.
+     *
+     * <p>This clears all existing order books and active orders.
+     *
+     * @return the canonical new ticker map (or {@code null} if input is invalid).
+     */
+    public Map<String, Integer> setTickers(Map<String, Integer> tickers) {
+        if (tickers == null) {
+            return null;
+        }
+
+        // Defensive copy + basic null checks to avoid NPEs inside the engine task.
+        for (Map.Entry<String, Integer> e : tickers.entrySet()) {
+            if (e.getKey() == null || e.getKey().isBlank()) {
+                return null;
+            }
+            if (Objects.isNull(e.getValue())) {
+                return null;
+            }
+        }
+
+        TaskFuture<Map<String, Integer>> future = new TaskFuture<>();
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.replaceTickersClearOrderBooks(tickers, future);
                     future.markAsComplete();
                 });
         future.waitForCompletion();

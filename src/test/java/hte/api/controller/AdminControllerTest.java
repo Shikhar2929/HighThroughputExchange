@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import hte.api.entities.User;
 import hte.api.service.AdminService;
 import hte.api.service.AuthService;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +107,46 @@ class AdminControllerTest {
         mockMvc.perform(post("/set_price").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    void setTickers_success() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(true);
+        when(adminService.setTickers(Mockito.anyMap()))
+                .thenReturn(Map.of("AAPL", 100, "GOOG", 200));
+
+        String body =
+                """
+        {
+          "adminUsername": "root",
+          "adminPassword": "pw",
+          "tickers": { "AAPL": 100, "GOOG": 200 }
+        }
+        """;
+
+        mockMvc.perform(post("/set_tickers").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message.errorCode").value(0))
+                .andExpect(jsonPath("$.tickers.AAPL").value(100))
+                .andExpect(jsonPath("$.tickers.GOOG").value(200));
+    }
+
+    @Test
+    void setTickers_unauthorized() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(false);
+
+        String body =
+                """
+        {
+          "adminUsername": "root",
+          "adminPassword": "bad",
+          "tickers": { "AAPL": 100 }
+        }
+        """;
+
+        mockMvc.perform(post("/set_tickers").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message.errorCode").value(1));
     }
 
     @Test
