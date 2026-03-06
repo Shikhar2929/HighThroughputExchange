@@ -56,6 +56,6 @@ public class Auction {
     /** Dutch auction: the winner pays the second-highest bid (0 if sole bidder). */
     public void executeAuction() {
         AuctionResult result = getAuctionResult();
-        matchingEngine.executeAuction(result.getUser(), result.getSecondBid());
+        matchingEngine.executeAuction(result.getFirstUser(), result.getSecondBid());
     }
 }

@@ -71,8 +71,8 @@ public class AuctionService {
     }
 
     private void applyResultToResponse(AuctionResult result, GetLeadingAuctionBidResponse resp) {
-        resp.setUser(result.getUser());
-        resp.setBid(result.getBid());
+        resp.setFirstUser(result.getFirstUser());
+        resp.setFirstBid(result.getFirstBid());
         resp.setSecondUser(result.getSecondUser());
         resp.setSecondBid(result.getSecondBid());
     }

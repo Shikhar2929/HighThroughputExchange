@@ -1,8 +1,8 @@
 package hte.api.dtos.responses;
 
 public class GetLeadingAuctionBidResponse extends AbstractMessageResponse {
-    private String user;
-    private double bid;
+    private String firstUser;
+    private double firstBid;
     private String secondUser;
     private double secondBid;
 
@@ -11,28 +11,32 @@ public class GetLeadingAuctionBidResponse extends AbstractMessageResponse {
     }
 
     public GetLeadingAuctionBidResponse(
-            String message, String user, double bid, String secondUser, double secondBid) {
+            String message,
+            String firstUser,
+            double firstBid,
+            String secondUser,
+            double secondBid) {
         super(message);
-        this.user = user;
-        this.bid = bid;
+        this.firstUser = firstUser;
+        this.firstBid = firstBid;
         this.secondUser = secondUser;
         this.secondBid = secondBid;
     }
 
-    public String getUser() {
-        return user;
+    public String getFirstUser() {
+        return firstUser;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setFirstUser(String firstUser) {
+        this.firstUser = firstUser;
     }
 
-    public double getBid() {
-        return bid;
+    public double getFirstBid() {
+        return firstBid;
     }
 
-    public void setBid(double bid) {
-        this.bid = bid;
+    public void setFirstBid(double firstBid) {
+        this.firstBid = firstBid;
     }
 
     public String getSecondUser() {
