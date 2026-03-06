@@ -16,10 +16,10 @@ def test_auction_endpoints_flow(client: ExchangeClient, unique_username) -> None
     try:
         client.bid_auction(session, bid=1)
         lead = client.get_leading_auction_bid()
-        assert "user" in lead and "bid" in lead
+        assert "firstUser" in lead and "firstBid" in lead
 
         term = client.terminate_auction()
-        assert "user" in term and "bid" in term
+        assert "firstUser" in term and "firstBid" in term
     finally:
         client.teardown(session)
         # Put server back into trade mode for any other tests.
