@@ -24,6 +24,8 @@ class AuctionTest {
         AuctionResult result = auction.getAuctionResult();
         assertEquals(500, result.getBid());
         assertEquals("alice", result.getUser());
+        assertEquals(0, result.getSecondBid());
+        assertEquals("", result.getSecondUser());
     }
 
     @Test
@@ -35,6 +37,8 @@ class AuctionTest {
         AuctionResult result = auction.getAuctionResult();
         assertEquals(500, result.getBid());
         assertEquals("bob", result.getUser());
+        assertEquals(400, result.getSecondBid());
+        assertEquals("charlie", result.getSecondUser());
     }
 
     @Test
@@ -45,6 +49,8 @@ class AuctionTest {
         AuctionResult result = auction.getAuctionResult();
         assertEquals(100, result.getBid());
         assertEquals("alice", result.getUser());
+        assertEquals(0, result.getSecondBid());
+        assertEquals("", result.getSecondUser());
     }
 
     @Test
@@ -56,6 +62,8 @@ class AuctionTest {
         AuctionResult result = auction.getAuctionResult();
         assertEquals(300, result.getBid());
         assertEquals("bob", result.getUser());
+        assertEquals(200, result.getSecondBid());
+        assertEquals("alice", result.getSecondUser());
     }
 
     @Test
@@ -66,6 +74,20 @@ class AuctionTest {
         AuctionResult result = auction.getAuctionResult();
         assertEquals(800, result.getBid());
         assertEquals("alice", result.getUser());
+        assertEquals(0, result.getSecondBid());
+        assertEquals("", result.getSecondUser());
+    }
+
+    @Test
+    void placeBid_twoUsers_secondPlaceTracked() {
+        auction.placeBid("alice", 500);
+        auction.placeBid("bob", 300);
+
+        AuctionResult result = auction.getAuctionResult();
+        assertEquals(500, result.getBid());
+        assertEquals("alice", result.getUser());
+        assertEquals(300, result.getSecondBid());
+        assertEquals("bob", result.getSecondUser());
     }
 
     @Test
@@ -73,6 +95,8 @@ class AuctionTest {
         AuctionResult result = auction.getAuctionResult();
         assertEquals(0, result.getBid());
         assertEquals("", result.getUser());
+        assertEquals(0, result.getSecondBid());
+        assertEquals("", result.getSecondUser());
     }
 
     @Test
@@ -84,6 +108,8 @@ class AuctionTest {
         AuctionResult result = auction.getAuctionResult();
         assertEquals(0, result.getBid());
         assertEquals("", result.getUser());
+        assertEquals(0, result.getSecondBid());
+        assertEquals("", result.getSecondUser());
     }
 
     @Test
@@ -97,13 +123,26 @@ class AuctionTest {
     }
 
     @Test
-    void executeAuction_adjustsWinnerBalance() {
+    void executeAuction_soleBidder_paysZero() {
         matchingEngine.initializeUser("alice");
         assertEquals(0, matchingEngine.getUserBalance("alice"));
 
         auction.placeBid("alice", 750);
         auction.executeAuction();
 
-        assertEquals(-750, matchingEngine.getUserBalance("alice"));
+        assertEquals(0, matchingEngine.getUserBalance("alice"));
+    }
+
+    @Test
+    void executeAuction_twoBidders_winnerPaysSecondBid() {
+        matchingEngine.initializeUser("alice");
+        matchingEngine.initializeUser("bob");
+
+        auction.placeBid("alice", 750);
+        auction.placeBid("bob", 400);
+        auction.executeAuction();
+
+        assertEquals(-400, matchingEngine.getUserBalance("alice"));
+        assertEquals(0, matchingEngine.getUserBalance("bob"));
     }
 }
