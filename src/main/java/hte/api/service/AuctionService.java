@@ -24,8 +24,7 @@ public class AuctionService {
         TaskQueue.addTask(
                 () -> {
                     AuctionResult result = this.getAuctionResult();
-                    future.getData().setUser(result.getUser());
-                    future.getData().setBid(result.getBid());
+                    applyResultToResponse(result, future.getData());
                     future.markAsComplete();
                 });
         future.waitForCompletion();
@@ -39,8 +38,7 @@ public class AuctionService {
         TaskQueue.addTask(
                 () -> {
                     AuctionResult result = this.getAuctionResult();
-                    future.getData().setUser(result.getUser());
-                    future.getData().setBid(result.getBid());
+                    applyResultToResponse(result, future.getData());
                     this.executeAuction();
                     this.resetAuction();
                     future.markAsComplete();
@@ -70,6 +68,13 @@ public class AuctionService {
 
     public boolean isValid(String user, int bid) {
         return auction.isValid(user, bid);
+    }
+
+    private void applyResultToResponse(AuctionResult result, GetLeadingAuctionBidResponse resp) {
+        resp.setFirstUser(result.getFirstUser());
+        resp.setFirstBid(result.getFirstBid());
+        resp.setSecondUser(result.getSecondUser());
+        resp.setSecondBid(result.getSecondBid());
     }
 
     private AuctionResult getAuctionResult() {

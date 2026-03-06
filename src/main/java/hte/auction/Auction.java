@@ -37,17 +37,25 @@ public class Auction {
     public AuctionResult getAuctionResult() {
         String bestUser = "";
         int bestBid = 0;
+        String secondUser = "";
+        int secondBid = 0;
         for (Map.Entry<String, Integer> entry : userBids.entrySet()) {
             if (entry.getValue() > bestBid) {
+                secondBid = bestBid;
+                secondUser = bestUser;
                 bestBid = entry.getValue();
                 bestUser = entry.getKey();
+            } else if (entry.getValue() > secondBid) {
+                secondBid = entry.getValue();
+                secondUser = entry.getKey();
             }
         }
-        return new AuctionResult(bestUser, bestBid);
+        return new AuctionResult(bestUser, bestBid, secondUser, secondBid);
     }
 
+    /** Dutch auction: the winner pays the second-highest bid (0 if sole bidder). */
     public void executeAuction() {
         AuctionResult result = getAuctionResult();
-        matchingEngine.executeAuction(result.getUser(), result.getBid());
+        matchingEngine.executeAuction(result.getFirstUser(), result.getSecondBid());
     }
 }

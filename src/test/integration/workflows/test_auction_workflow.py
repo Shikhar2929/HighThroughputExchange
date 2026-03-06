@@ -18,10 +18,10 @@ def test_auction_full_flow_bid_lead_terminate(
     try:
         client.bid_auction(session, bid=1)
         lead = client.get_leading_auction_bid()
-        assert "user" in lead and "bid" in lead
+        assert "firstUser" in lead and "firstBid" in lead
 
         term = client.terminate_auction()
-        assert "user" in term and "bid" in term
+        assert "firstUser" in term and "firstBid" in term
     finally:
         client.teardown(session)
         client.admin_set_state(1)
