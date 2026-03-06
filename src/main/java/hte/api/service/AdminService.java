@@ -13,7 +13,6 @@ import hte.matchingengine.LeaderboardEntry;
 import hte.matchingengine.MatchingEngine;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -103,16 +102,15 @@ public class AdminService {
      * @return the canonical new ticker map (or {@code null} if input is invalid).
      */
     public Map<String, Integer> setTickers(Map<String, Integer> tickers) {
-        if (tickers == null) {
+        if (tickers == null || tickers.isEmpty()) {
             return null;
         }
 
-        // Defensive copy + basic null checks to avoid NPEs inside the engine task.
         for (Map.Entry<String, Integer> e : tickers.entrySet()) {
             if (e.getKey() == null || e.getKey().isBlank()) {
                 return null;
             }
-            if (Objects.isNull(e.getValue())) {
+            if (e.getValue() == null || e.getValue() < 0) {
                 return null;
             }
         }

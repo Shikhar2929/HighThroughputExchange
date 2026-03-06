@@ -413,6 +413,9 @@ public class MatchingEngine {
         userOrders = new HashMap<>();
         orderID = 0;
 
+        // Remove all old chart history so stale tickers don't persist in chart responses.
+        chartTrackerSingleton.clearAll();
+
         // Prune per-user per-ticker state so deleted tickers disappear from user details.
         // Also reset reserved balances because active orders were cleared above.
         userList.replaceTickers(tickers.keySet());
