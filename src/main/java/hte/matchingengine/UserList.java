@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -237,6 +238,67 @@ public class UserList {
 
     public boolean getMode() {
         return infinite;
+    }
+
+    /**
+     * Prunes per-ticker user state to the provided ticker universe.
+     *
+     * <p>Used by administrative ticker resets (e.g., {@code set_tickers}) to ensure that deleted
+     * tickers disappear from the user's "current positions" view. This also resets reserved bid/ask
+     * quantities to 0 because active orders are cleared when tickers are replaced.
+     */
+    public void replaceTickers(Set<String> allowedTickers) {
+        if (allowedTickers == null) {
+            return;
+        }
+
+        for (String username : userBalances.keySet()) {
+            Map<String, Integer> userQty =
+                    quantities.computeIfAbsent(username, k -> new HashMap<>());
+            Map<String, Double> userSum = sumPrices.computeIfAbsent(username, k -> new HashMap<>());
+            Map<String, Integer> userAsk = askSize.computeIfAbsent(username, k -> new HashMap<>());
+            Map<String, Integer> userBid = bidSize.computeIfAbsent(username, k -> new HashMap<>());
+
+            Iterator<String> qtyIt = userQty.keySet().iterator();
+            while (qtyIt.hasNext()) {
+                String ticker = qtyIt.next();
+                if (!allowedTickers.contains(ticker)) {
+                    qtyIt.remove();
+                }
+            }
+
+            Iterator<String> sumIt = userSum.keySet().iterator();
+            while (sumIt.hasNext()) {
+                String ticker = sumIt.next();
+                if (!allowedTickers.contains(ticker)) {
+                    sumIt.remove();
+                }
+            }
+
+            Iterator<String> askIt = userAsk.keySet().iterator();
+            while (askIt.hasNext()) {
+                String ticker = askIt.next();
+                if (!allowedTickers.contains(ticker)) {
+                    askIt.remove();
+                }
+            }
+
+            Iterator<String> bidIt = userBid.keySet().iterator();
+            while (bidIt.hasNext()) {
+                String ticker = bidIt.next();
+                if (!allowedTickers.contains(ticker)) {
+                    bidIt.remove();
+                }
+            }
+
+            // Ensure every allowed ticker exists for every user and reset reserved sizes.
+            for (String ticker : allowedTickers) {
+                userQty.putIfAbsent(ticker, 0);
+                userSum.putIfAbsent(ticker, 0.0);
+                userAsk.put(ticker, 0);
+                userBid.put(ticker, 0);
+            }
+        }
     }
 
     public ObjectNode getUserDetailsAsJson(String username, Map<String, Integer> prices) {

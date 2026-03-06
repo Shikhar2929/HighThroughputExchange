@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hte.common.TaskFuture;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,51 @@ public class MatchingEngineTest {
     void resetRecentTrades() {
         // clear any trades left from previous tests
         RecentTrades.clearRecentTrades();
+    }
+
+    @Test
+    void replaceTickers_prunesDeletedTickersFromUserPositions() throws Exception {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeTicker("AAPL");
+        engine.initializeTicker("OLD");
+
+        String user = "trader";
+        engine.initializeUserBalance(user, 0);
+        engine.initializeUserTickerVolume(user, "AAPL", 5);
+        engine.initializeUserTickerVolume(user, "OLD", 7);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode before = mapper.readTree(engine.getUserDetails(user));
+        assertTrue(before.get("positions").has("AAPL"));
+        assertTrue(before.get("positions").has("OLD"));
+
+        TaskFuture<Map<String, Integer>> future = new TaskFuture<>();
+        engine.replaceTickersClearOrderBooks(Map.of("AAPL", 100), future);
+        assertNotNull(future.getData());
+
+        JsonNode after = mapper.readTree(engine.getUserDetails(user));
+        assertTrue(after.get("positions").has("AAPL"));
+        assertFalse(after.get("positions").has("OLD"));
+    }
+
+    @Test
+    void replaceTickers_initializesNewTickersInUserPositionsToZero() throws Exception {
+        MatchingEngine engine = new MatchingEngine();
+        engine.initializeTicker("AAPL");
+
+        String user = "trader";
+        engine.initializeUserBalance(user, 0);
+        engine.initializeUserTickerVolume(user, "AAPL", 5);
+
+        TaskFuture<Map<String, Integer>> future = new TaskFuture<>();
+        engine.replaceTickersClearOrderBooks(Map.of("AAPL", 100, "NEW", 42), future);
+        assertNotNull(future.getData());
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode after = mapper.readTree(engine.getUserDetails(user));
+        assertTrue(after.get("positions").has("AAPL"));
+        assertTrue(after.get("positions").has("NEW"));
+        assertEquals(0, after.get("positions").get("NEW").get("quantity").asInt());
     }
 
     @Test

@@ -413,6 +413,10 @@ public class MatchingEngine {
         userOrders = new HashMap<>();
         orderID = 0;
 
+        // Prune per-user per-ticker state so deleted tickers disappear from user details.
+        // Also reset reserved balances because active orders were cleared above.
+        userList.replaceTickers(tickers.keySet());
+
         // Initialize new tickers (fresh empty books) and seed their mark price.
         for (Map.Entry<String, Integer> entry : tickers.entrySet()) {
             String ticker = entry.getKey();
