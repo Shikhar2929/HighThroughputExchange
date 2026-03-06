@@ -841,10 +841,23 @@ public class MatchingEngine {
             future.setData(jsonResponse);
         } catch (Exception e) {
             logger.error(
-                    "Failed to serialize bid limit order response: user={} order={}",
+                    "Failed to process/serialize bid limit order response: user={} order={} ",
                     name,
                     order,
                     e);
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                future.setData(
+                        objectMapper.writeValueAsString(
+                                createLimitOrderResponse(
+                                        0.0,
+                                        0,
+                                        Message.INTERNAL_ERROR,
+                                        Message.INTERNAL_ERROR.getErrorMessage(),
+                                        -1)));
+            } catch (Exception ignored) {
+                future.setData(Message.INTERNAL_ERROR.toString());
+            }
         }
     }
 
@@ -946,10 +959,23 @@ public class MatchingEngine {
             future.setData(jsonResponse);
         } catch (Exception e) {
             logger.error(
-                    "Failed to serialize ask limit order response: user={} order={}",
+                    "Failed to process/serialize ask limit order response: user={} order={} ",
                     name,
                     order,
                     e);
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                future.setData(
+                        objectMapper.writeValueAsString(
+                                createLimitOrderResponse(
+                                        0.0,
+                                        0,
+                                        Message.INTERNAL_ERROR,
+                                        Message.INTERNAL_ERROR.getErrorMessage(),
+                                        -1)));
+            } catch (Exception ignored) {
+                future.setData(Message.INTERNAL_ERROR.toString());
+            }
         }
     }
 

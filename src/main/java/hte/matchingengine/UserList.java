@@ -72,6 +72,10 @@ public class UserList {
         logger.debug("Initializing user (infinite mode): username={}", username);
         if (userBalances.containsKey(username) || !infinite) return false;
         userBalances.put(username, (long) 0);
+        quantities.putIfAbsent(username, new HashMap<>());
+        sumPrices.putIfAbsent(username, new HashMap<>());
+        askSize.putIfAbsent(username, new HashMap<>());
+        bidSize.putIfAbsent(username, new HashMap<>());
         return true;
     }
 
@@ -82,6 +86,10 @@ public class UserList {
         if (infinite) return initializeUser(username);
         if (userBalances.containsKey(username)) return false;
         userBalances.put(username, (long) balance);
+        quantities.putIfAbsent(username, new HashMap<>());
+        sumPrices.putIfAbsent(username, new HashMap<>());
+        askSize.putIfAbsent(username, new HashMap<>());
+        bidSize.putIfAbsent(username, new HashMap<>());
         return true;
     }
 
@@ -156,12 +164,28 @@ public class UserList {
     }
 
     public boolean adjustUserTickerBalance(String username, String ticker, int delta, int price) {
+        if (!quantities.containsKey(username)) {
+            quantities.put(username, new HashMap<>());
+        }
+        if (!sumPrices.containsKey(username)) {
+            sumPrices.put(username, new HashMap<>());
+        }
+        if (!askSize.containsKey(username)) {
+            askSize.put(username, new HashMap<>());
+        }
+        if (!bidSize.containsKey(username)) {
+            bidSize.put(username, new HashMap<>());
+        }
+        quantities.get(username).putIfAbsent(ticker, 0);
+        sumPrices.get(username).putIfAbsent(ticker, 0.0);
+        askSize.get(username).putIfAbsent(ticker, 0);
+        bidSize.get(username).putIfAbsent(ticker, 0);
+
         int currentBalance = getUserVolume(username, ticker);
         int newBalance = currentBalance + delta;
         // System.out.printf("%s: %d %d\n", username, delta, price);
-        double currSum = sumPrices.get(username).get(ticker);
+        double currSum = sumPrices.get(username).getOrDefault(ticker, 0.0);
         // System.out.println(currSum);
-        if (!quantities.containsKey(username)) return false;
         if (delta < 0 && currentBalance > 0 && Math.abs(currentBalance) > Math.abs(delta)) {
             double oldPrice = currSum / currentBalance;
             // System.out.println(oldPrice);
