@@ -29,6 +29,11 @@ public class ChartTrackerSingleton {
         }
     }
 
+    /** Removes all ticker entries entirely. Used when the ticker universe is replaced. */
+    public synchronized void clearAll() {
+        tickerDataMap.clear();
+    }
+
     public synchronized Map<String, List<OHLCData>> getAllHistoricalData() {
         Map<String, List<OHLCData>> historicalData = new HashMap<>();
         for (Map.Entry<String, TickerData> entry : tickerDataMap.entrySet()) {

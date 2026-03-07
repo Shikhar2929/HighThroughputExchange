@@ -18,5 +18,3 @@ def create_bot(username, name, email):
     )
     req.add_header("Content-Type", "application/json")
     return json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
-
-

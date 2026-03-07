@@ -253,6 +253,16 @@ class ExchangeClient:
 
         _assert_success_message(data)
 
+    def admin_set_tickers(self, tickers: dict[str, int]) -> dict[str, Any]:
+        payload = {
+            "adminUsername": _require_env("ADMIN_USERNAME"),
+            "adminPassword": _require_env("ADMIN_PASSWORD"),
+            "tickers": tickers,
+        }
+        data = self._post("/set_tickers", payload)
+        _assert_success_message(data)
+        return data
+
     def wait_for_updates_with_ticker(
         self,
         *,

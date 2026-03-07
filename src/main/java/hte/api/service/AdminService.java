@@ -94,6 +94,34 @@ public class AdminService {
         return future.getData();
     }
 
+    /**
+     * Replaces the entire ticker universe with {@code tickers}.
+     *
+     * <p>This clears all existing order books and active orders.
+     *
+     * @return the canonical new ticker map (or {@code null} if input is invalid).
+     */
+    public String[] setTickers(String[] tickers) {
+        if (tickers == null || tickers.length == 0) {
+            return null;
+        }
+
+        for (String ticker : tickers) {
+            if (ticker == null || ticker.isBlank()) {
+                return null;
+            }
+        }
+
+        TaskFuture<String[]> future = new TaskFuture<>();
+        TaskQueue.addTask(
+                () -> {
+                    matchingEngine.replaceTickersClearOrderBooks(tickers, future);
+                    future.markAsComplete();
+                });
+        future.waitForCompletion();
+        return future.getData();
+    }
+
     public int applyState(int targetState) {
         State newState = State.values()[targetState];
         app.setStateInternal(newState);

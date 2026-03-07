@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import hte.api.entities.User;
 import hte.api.service.AdminService;
 import hte.api.service.AuthService;
+import hte.common.SeqGenerator;
+import hte.matchingengine.MatchingEngine;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = AdminController.class)
@@ -26,6 +29,12 @@ class AdminControllerTest {
     @MockBean private AdminService adminService;
 
     @MockBean private AuthService authService;
+
+    @MockBean private SimpMessagingTemplate messagingTemplate;
+
+    @MockBean private SeqGenerator seqGenerator;
+
+    @MockBean private MatchingEngine matchingEngine;
 
     @Test
     void addUser_success() throws Exception {
@@ -106,6 +115,45 @@ class AdminControllerTest {
         mockMvc.perform(post("/set_price").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("OK"));
+    }
+
+    @Test
+    void setTickers_success() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(true);
+        when(adminService.setTickers(Mockito.any())).thenReturn(new String[] {"AAPL", "GOOG"});
+
+        String body =
+                """
+        {
+          "adminUsername": "root",
+          "adminPassword": "pw",
+          "tickers": ["AAPL", "GOOG"]
+        }
+        """;
+
+        mockMvc.perform(post("/set_tickers").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message.errorCode").value(0))
+                .andExpect(jsonPath("$.tickers[0]").value("AAPL"))
+                .andExpect(jsonPath("$.tickers[1]").value("GOOG"));
+    }
+
+    @Test
+    void setTickers_unauthorized() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(false);
+
+        String body =
+                """
+        {
+          "adminUsername": "root",
+          "adminPassword": "bad",
+          "tickers": ["AAPL"]
+        }
+        """;
+
+        mockMvc.perform(post("/set_tickers").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message.errorCode").value(1));
     }
 
     @Test

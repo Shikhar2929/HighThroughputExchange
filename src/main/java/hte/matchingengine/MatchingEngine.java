@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -374,6 +376,57 @@ public class MatchingEngine {
             userOrders.get(user).clear();
         }
         future.setData("SUCCESS ALL CLEARED");
+    }
+
+    /**
+     * Replaces the entire set of known tickers.
+     *
+     * <p>This erases all old tickers, clears all order books and users' active orders, and
+     * initializes fresh empty order books for the provided tickers. The provided map values are
+     * treated as the initial marked price for each ticker.
+     *
+     * @param tickers map of ticker -> initial price
+     * @param future future whose data will be set to the canonical ticker map on success, or null
+     *     on failure.
+     */
+    public void replaceTickersClearOrderBooks(String[] tickers, TaskFuture<String[]> future) {
+        if (tickers == null || tickers.length == 0) {
+            future.setData(null);
+            return;
+        }
+
+        for (String ticker : tickers) {
+            if (ticker == null || ticker.isBlank()) {
+                future.setData(null);
+                return;
+            }
+        }
+
+        // Erase old tickers and all per-ticker order books.
+        orderBooks = new HashMap<>();
+
+        // Reset per-ticker prices to match the new universe.
+        latestPrice = new HashMap<>();
+
+        // Clear all active orders (they are tied to old books/tickers).
+        userOrders = new HashMap<>();
+        orderID = 0;
+
+        // Remove all old chart history so stale tickers don't persist in chart responses.
+        chartTrackerSingleton.clearAll();
+
+        // Prune per-user per-ticker state so deleted tickers disappear from user details.
+        // Also reset reserved balances because active orders were cleared above.
+        Set<String> tickerSet = Set.of(tickers);
+        userList.replaceTickers(tickerSet);
+
+        // Initialize new tickers (fresh empty books) and seed their mark price.
+        for (String ticker : tickers) {
+            initializeTicker(ticker);
+            setPrice(ticker, 0);
+        }
+
+        future.setData(Arrays.copyOf(tickers, tickers.length));
     }
 
     /**
@@ -793,10 +846,23 @@ public class MatchingEngine {
             future.setData(jsonResponse);
         } catch (Exception e) {
             logger.error(
-                    "Failed to serialize bid limit order response: user={} order={}",
+                    "Failed to process/serialize bid limit order response: user={} order={} ",
                     name,
                     order,
                     e);
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                future.setData(
+                        objectMapper.writeValueAsString(
+                                createLimitOrderResponse(
+                                        0.0,
+                                        0,
+                                        Message.INTERNAL_ERROR,
+                                        Message.INTERNAL_ERROR.getErrorMessage(),
+                                        -1)));
+            } catch (Exception ignored) {
+                future.setData(Message.INTERNAL_ERROR.toString());
+            }
         }
     }
 
@@ -898,10 +964,23 @@ public class MatchingEngine {
             future.setData(jsonResponse);
         } catch (Exception e) {
             logger.error(
-                    "Failed to serialize ask limit order response: user={} order={}",
+                    "Failed to process/serialize ask limit order response: user={} order={} ",
                     name,
                     order,
                     e);
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                future.setData(
+                        objectMapper.writeValueAsString(
+                                createLimitOrderResponse(
+                                        0.0,
+                                        0,
+                                        Message.INTERNAL_ERROR,
+                                        Message.INTERNAL_ERROR.getErrorMessage(),
+                                        -1)));
+            } catch (Exception ignored) {
+                future.setData(Message.INTERNAL_ERROR.toString());
+            }
         }
     }
 
