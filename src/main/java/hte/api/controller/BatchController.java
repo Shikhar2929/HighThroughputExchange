@@ -1,7 +1,6 @@
 package hte.api.controller;
 
 import hte.api.ServerApplication;
-import hte.api.State;
 import hte.api.dtos.operations.Operation;
 import hte.api.dtos.requests.BatchRequest;
 import hte.api.dtos.responses.BatchResponse;
@@ -40,7 +39,7 @@ public class BatchController {
                     new BatchResponse(Message.AUTHENTICATION_FAILED.toString(), null),
                     HttpStatus.UNAUTHORIZED);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new BatchResponse(Message.TRADE_LOCKED.toString(), null), HttpStatus.LOCKED);
         }

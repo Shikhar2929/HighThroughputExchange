@@ -51,11 +51,6 @@ public class AuctionController {
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
-    /*
-     * Method with the following behavior: 1. sets state to STOP, stopping the
-     * auctioning phase 2. gets best bid by best user 3. executes auction 4. resets
-     * auction object 5. returns who won auction and at what amount
-     */
     @CrossOrigin(origins = "*")
     @PostMapping("/terminate_auction")
     public ResponseEntity<GetLeadingAuctionBidResponse> terminateAuction(
@@ -66,13 +61,14 @@ public class AuctionController {
                     HttpStatus.UNAUTHORIZED);
         }
 
-        if (app.getState() != State.TRADE_WITH_AUCTION) {
+        if (!app.getState().isAuctionAllowed()) {
             return new ResponseEntity<>(
                     new GetLeadingAuctionBidResponse(Message.AUTHENTICATION_FAILED.toString()),
                     HttpStatus.LOCKED);
         }
 
-        app.setStateInternal(State.STOP);
+        State nextState = app.getState() == State.TRADE_WITH_AUCTION ? State.TRADE : State.STOP;
+        app.setStateInternal(nextState);
         GetLeadingAuctionBidResponse message = auctionService.terminateAuction();
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
@@ -91,7 +87,7 @@ public class AuctionController {
                     new BidAuctionResponse(Message.RATE_LIMITED.toString()),
                     HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (app.getState() != State.TRADE_WITH_AUCTION) {
+        if (!app.getState().isAuctionAllowed()) {
             return new ResponseEntity<>(
                     new BidAuctionResponse(Message.AUCTION_LOCKED.toString()), HttpStatus.LOCKED);
         }

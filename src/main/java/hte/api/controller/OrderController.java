@@ -1,7 +1,6 @@
 package hte.api.controller;
 
 import hte.api.ServerApplication;
-import hte.api.State;
 import hte.api.auth.BotAuthenticator;
 import hte.api.auth.PrivatePageAuthenticator;
 import hte.api.auth.RateLimiter;
@@ -65,7 +64,7 @@ public class OrderController {
                     new LimitOrderResponse(Message.RATE_LIMITED.toString()),
                     HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
@@ -88,7 +87,7 @@ public class OrderController {
                     new LimitOrderResponse(Message.AUTHENTICATION_FAILED.toString()),
                     HttpStatus.UNAUTHORIZED);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new LimitOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
@@ -115,7 +114,7 @@ public class OrderController {
                     new RemoveAllResponse(Message.RATE_LIMITED.toString()),
                     HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
@@ -140,7 +139,7 @@ public class OrderController {
                     new RemoveAllResponse(Message.RATE_LIMITED.toString()),
                     HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
@@ -165,7 +164,7 @@ public class OrderController {
                     new RemoveAllResponse(Message.RATE_LIMITED.toString()),
                     HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
@@ -185,7 +184,7 @@ public class OrderController {
                     new RemoveAllResponse(Message.AUTHENTICATION_FAILED.toString()),
                     HttpStatus.UNAUTHORIZED);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new RemoveAllResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
@@ -211,7 +210,7 @@ public class OrderController {
                     new MarketOrderResponse(Message.RATE_LIMITED.toString()),
                     HttpStatus.TOO_MANY_REQUESTS);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
@@ -230,7 +229,7 @@ public class OrderController {
                     new MarketOrderResponse(Message.AUTHENTICATION_FAILED.toString()),
                     HttpStatus.UNAUTHORIZED);
         }
-        if (app.getState() == State.STOP) {
+        if (!app.getState().isTradingAllowed()) {
             return new ResponseEntity<>(
                     new MarketOrderResponse(Message.TRADE_LOCKED.toString()), HttpStatus.LOCKED);
         }
