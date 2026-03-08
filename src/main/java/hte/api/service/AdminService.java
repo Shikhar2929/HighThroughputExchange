@@ -2,6 +2,7 @@ package hte.api.service;
 
 import hte.api.ServerApplication;
 import hte.api.State;
+import hte.api.dtos.requests.Preprocessing;
 import hte.api.entities.User;
 import hte.api.repository.BotsRepository;
 import hte.api.repository.DbLifecycleRepository;
@@ -126,6 +127,11 @@ public class AdminService {
         State newState = State.values()[targetState];
         app.setStateInternal(newState);
         return newState.ordinal();
+    }
+
+    public int setMaxOrderPrice(int maxPrice) {
+        Preprocessing.setMaxPrice(maxPrice);
+        return Preprocessing.getMaxPrice();
     }
 
     private static char randomChar() {

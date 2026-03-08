@@ -15,6 +15,6 @@ public class SetStateRequest extends BaseAdminRequest {
     }
 
     public void setTargetState(int state) {
-        this.targetState = targetState;
+        this.targetState = state;
     }
 }

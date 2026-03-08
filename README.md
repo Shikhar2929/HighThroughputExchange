@@ -46,6 +46,17 @@ cp .env.example .env
 docker compose up --build
 ```
 
+### Required/Optional `.env` settings
+
+- **Required**: `ADMIN_USERNAME`, `ADMIN_PASSWORD` (the app will fail to start if missing)
+- **Optional** (defaults shown): order preprocessing bounds used to clamp incoming order payloads
+    - `ORDER_MAX_PRICE` (default `1000`)
+    - `ORDER_MIN_PRICE` (default `0`)
+    - `ORDER_MAX_VOLUME` (default `1000`)
+    - `ORDER_MIN_VOLUME` (default `0`)
+
+These are read from `.env` via Spring config (see `hte.order.*` in `application.properties`).
+
 ### Run Java tests (JUnit/Surefire)
 ```sh
 mvn test

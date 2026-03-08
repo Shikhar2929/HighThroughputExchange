@@ -4,12 +4,14 @@ import hte.api.State;
 import hte.api.dtos.requests.AddBotRequest;
 import hte.api.dtos.requests.AddUserRequest;
 import hte.api.dtos.requests.LeaderboardRequest;
+import hte.api.dtos.requests.SetMaxOrderPriceRequest;
 import hte.api.dtos.requests.SetPriceRequest;
 import hte.api.dtos.requests.SetStateRequest;
 import hte.api.dtos.requests.SetTickersRequest;
 import hte.api.dtos.requests.ShutdownRequest;
 import hte.api.dtos.responses.AddUserResponse;
 import hte.api.dtos.responses.LeaderboardResponse;
+import hte.api.dtos.responses.SetMaxOrderPriceResponse;
 import hte.api.dtos.responses.SetPriceResponse;
 import hte.api.dtos.responses.SetStateResponse;
 import hte.api.dtos.responses.SetTickersResponse;
@@ -154,6 +156,28 @@ public class AdminController {
         }
         String message = adminService.setPrice(form.getPrices());
         return new ResponseEntity<>(new SetPriceResponse(message), HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/set_max_order_price")
+    public ResponseEntity<SetMaxOrderPriceResponse> setMaxOrderPrice(
+            @Valid @RequestBody SetMaxOrderPriceRequest form) {
+        if (!authService.authenticateAdmin(form)) {
+            return new ResponseEntity<>(
+                    new SetMaxOrderPriceResponse(Message.AUTHENTICATION_FAILED.toString(), 0),
+                    HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            int applied = adminService.setMaxOrderPrice(form.getMaxPrice());
+            return new ResponseEntity<>(
+                    new SetMaxOrderPriceResponse(Message.SUCCESS.toString(), applied),
+                    HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(
+                    new SetMaxOrderPriceResponse(Message.BAD_INPUT.toString(), 0),
+                    HttpStatus.BAD_REQUEST);
+        }
     }
 
     @CrossOrigin(origins = "*")

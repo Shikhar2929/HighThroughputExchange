@@ -12,21 +12,41 @@
   {
     "name": "hte.http.url",
     "type": "java.lang.String",
-    "description": "A description for 'hte.http.url'"
+    "description": "Base HTTP URL of this exchange instance (used when constructing links in responses/payloads and for test/client configuration)"
   },
   {
     "name": "hte.ws.url",
     "type": "java.lang.String",
-    "description": "A description for 'hte.ws.url'"
+    "description": "WebSocket URL clients should use to connect to the exchange socket endpoint"
   },
   {
     "name": "hte.admin.username",
     "type": "java.lang.String",
-    "description": "A description for 'hte.admin.username'"
+    "description": "Admin username required to access admin-only HTTP endpoints"
   },
   {
     "name": "hte.admin.password",
     "type": "java.lang.String",
-    "description": "A description for 'hte.admin.password'"
+    "description": "Admin password required to access admin-only HTTP endpoints"
+  },
+  {
+    "name": "hte.order.max.price",
+    "type": "java.lang.Integer",
+    "description": "Upper bound for incoming limit order prices (values above are clamped)"
+  },
+  {
+    "name": "hte.order.min.price",
+    "type": "java.lang.Integer",
+    "description": "Lower bound for incoming limit order prices (values below are clamped)"
+  },
+  {
+    "name": "hte.order.max.volume",
+    "type": "java.lang.Integer",
+    "description": "Upper bound for incoming order volumes (values above are clamped)"
+  },
+  {
+    "name": "hte.order.min.volume",
+    "type": "java.lang.Integer",
+    "description": "Lower bound for incoming order volumes (values below are clamped)"
   }
 ]}
