@@ -170,7 +170,7 @@ class ExchangeClient:
         return int(latest)
 
     def snapshot(self) -> dict[str, Any]:
-        r = self._request("POST", "/snapshot", timeout_s=5.0)
+        r = self._request("GET", "/snapshot", timeout_s=5.0)
         try:
             data = r.json()
         except Exception as e:

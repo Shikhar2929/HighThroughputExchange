@@ -225,7 +225,7 @@ mvn checkstyle:check # lint
         <td>/snapshot</td>
         <td>public</td>
         <td>Full orderbook snapshot for recovery.</td>
-        <td>N/A - HTTP POST</td>
+        <td>N/A - HTTP GET</td>
         <td>{"message": {"errorCode": int, "errorMessage": string}, "snapshot": object, "latestSeq": long}</td>
     </tr>
 </table>

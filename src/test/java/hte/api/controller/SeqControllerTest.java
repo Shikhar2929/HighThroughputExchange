@@ -2,7 +2,6 @@ package hte.api.controller;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -84,7 +83,7 @@ class SeqControllerTest {
         when(matchingEngine.serializeOrderBooks())
                 .thenReturn("{\"ticker\":\"ABC\",\"bids\":[],\"asks\":[]}");
 
-        mockMvc.perform(post("/snapshot"))
+        mockMvc.perform(get("/snapshot"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.latestSeq").value(777))
                 .andExpect(jsonPath("$.snapshot.ticker").value("ABC"))
