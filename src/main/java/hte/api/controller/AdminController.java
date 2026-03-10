@@ -4,6 +4,7 @@ import hte.api.State;
 import hte.api.dtos.requests.AddBotRequest;
 import hte.api.dtos.requests.AddUserRequest;
 import hte.api.dtos.requests.LeaderboardRequest;
+import hte.api.dtos.requests.SendUserWsMessageRequest;
 import hte.api.dtos.requests.SetMaxOrderPriceRequest;
 import hte.api.dtos.requests.SetPriceRequest;
 import hte.api.dtos.requests.SetStateRequest;
@@ -11,6 +12,7 @@ import hte.api.dtos.requests.SetTickersRequest;
 import hte.api.dtos.requests.ShutdownRequest;
 import hte.api.dtos.responses.AddUserResponse;
 import hte.api.dtos.responses.LeaderboardResponse;
+import hte.api.dtos.responses.SendUserWsMessageResponse;
 import hte.api.dtos.responses.SetMaxOrderPriceResponse;
 import hte.api.dtos.responses.SetPriceResponse;
 import hte.api.dtos.responses.SetStateResponse;
@@ -32,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.user.SimpUser;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,6 +48,7 @@ public class AdminController {
     private final AdminService adminService;
     private final AuthService authService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final SimpUserRegistry simpUserRegistry;
     private final SeqGenerator seqGenerator;
     private final MatchingEngine matchingEngine;
 
@@ -51,11 +56,13 @@ public class AdminController {
             AdminService adminService,
             AuthService authService,
             SimpMessagingTemplate messagingTemplate,
+            SimpUserRegistry simpUserRegistry,
             SeqGenerator seqGenerator,
             MatchingEngine matchingEngine) {
         this.adminService = adminService;
         this.authService = authService;
         this.messagingTemplate = messagingTemplate;
+        this.simpUserRegistry = simpUserRegistry;
         this.seqGenerator = seqGenerator;
         this.matchingEngine = matchingEngine;
     }
@@ -217,5 +224,34 @@ public class AdminController {
 
         return new ResponseEntity<>(
                 new SetTickersResponse(Message.SUCCESS.toString(), tickers), HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/send_user_ws_message")
+    public ResponseEntity<SendUserWsMessageResponse> sendUserWsMessage(
+            @Valid @RequestBody SendUserWsMessageRequest form) {
+        if (!authService.authenticateAdmin(form)) {
+            return new ResponseEntity<>(
+                    new SendUserWsMessageResponse(Message.AUTHENTICATION_FAILED.toString()),
+                    HttpStatus.UNAUTHORIZED);
+        }
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("type", "admin_message");
+        payload.put("message", form.getMessage());
+
+        // If targetUsername is "*", broadcast to all currently connected websocket users.
+        if ("*".equals(form.getTargetUsername())) {
+            for (SimpUser user : simpUserRegistry.getUsers()) {
+                if (user == null || user.getName() == null) continue;
+                messagingTemplate.convertAndSendToUser(user.getName(), "/queue/admin", payload);
+            }
+        } else {
+            messagingTemplate.convertAndSendToUser(
+                    form.getTargetUsername(), "/queue/admin", payload);
+        }
+
+        return new ResponseEntity<>(
+                new SendUserWsMessageResponse(Message.SUCCESS.toString()), HttpStatus.OK);
     }
 }

@@ -1,6 +1,8 @@
 package hte.api.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -12,6 +14,7 @@ import hte.api.service.AuthService;
 import hte.common.SeqGenerator;
 import hte.matchingengine.MatchingEngine;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,6 +22,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.user.SimpUser;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = AdminController.class)
@@ -31,6 +36,8 @@ class AdminControllerTest {
     @MockBean private AuthService authService;
 
     @MockBean private SimpMessagingTemplate messagingTemplate;
+
+    @MockBean private SimpUserRegistry simpUserRegistry;
 
     @MockBean private SeqGenerator seqGenerator;
 
@@ -190,5 +197,73 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.apiKey").value("BOTKEY"))
                 .andExpect(jsonPath("$.message.errorCode").value(0));
+    }
+
+    @Test
+    void sendUserWsMessage_success() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(true);
+
+        String body =
+                """
+        {
+          \"adminUsername\": \"root\",
+          \"adminPassword\": \"pw\",
+          \"targetUsername\": \"trader\",
+          \"message\": \"hello from admin\"
+        }
+        """;
+
+        mockMvc.perform(
+                        post("/send_user_ws_message")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message.errorCode").value(0));
+
+        ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(messagingTemplate)
+                .convertAndSendToUser(eq("trader"), eq("/queue/admin"), payloadCaptor.capture());
+
+        Object payloadObj = payloadCaptor.getValue();
+        org.junit.jupiter.api.Assertions.assertTrue(payloadObj instanceof java.util.Map);
+
+        java.util.Map<?, ?> payload = (java.util.Map<?, ?>) payloadObj;
+        org.junit.jupiter.api.Assertions.assertEquals("admin_message", payload.get("type"));
+        org.junit.jupiter.api.Assertions.assertEquals("hello from admin", payload.get("message"));
+    }
+
+    @Test
+    void sendUserWsMessage_broadcast_sendsToEachConnectedUser() throws Exception {
+        when(authService.authenticateAdmin(any())).thenReturn(true);
+
+        SimpUser u1 = Mockito.mock(SimpUser.class);
+        when(u1.getName()).thenReturn("alice");
+        SimpUser u2 = Mockito.mock(SimpUser.class);
+        when(u2.getName()).thenReturn("bob");
+
+        java.util.Set<SimpUser> users = new java.util.HashSet<>();
+        users.add(u1);
+        users.add(u2);
+        when(simpUserRegistry.getUsers()).thenReturn(users);
+
+        String body =
+                """
+        {
+          \"adminUsername\": \"root\",
+          \"adminPassword\": \"pw\",
+          \"targetUsername\": \"*\",
+          \"message\": \"announcement\"
+        }
+        """;
+
+        mockMvc.perform(
+                        post("/send_user_ws_message")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message.errorCode").value(0));
+
+        verify(messagingTemplate).convertAndSendToUser(eq("alice"), eq("/queue/admin"), any());
+        verify(messagingTemplate).convertAndSendToUser(eq("bob"), eq("/queue/admin"), any());
     }
 }
