@@ -37,14 +37,30 @@ public class LeaderboardHistoryService {
         return history;
     }
 
-    public synchronized RoundResult saveRound(String roundName) {
+    /**
+     * Utility score U(x) for one round: U(x) = ln(1 + 35*x/C) if x>=0, else 35*x/C. C is the round
+     * constant (free money / taker bot loss). Encourages risk-averse behavior.
+     */
+    private static double utilityScore(long pnl, double c) {
+        double safeC = Math.min(c, 1000.0);
+        double x = (double) pnl;
+        if (x >= 0) {
+            return Math.log(1.0 + 35.0 * x / safeC);
+        } else {
+            return 35.0 * x / safeC;
+        }
+    }
+
+    public synchronized RoundResult saveRound(String roundName, double c) {
         ArrayList<LeaderboardEntry> entries = adminService.getLeaderboard();
         List<TeamPnl> results = new ArrayList<>();
         for (LeaderboardEntry entry : entries) {
-            results.add(new TeamPnl(entry.getUsername(), (long) entry.getBalance()));
+            long pnl = (long) entry.getBalance();
+            double score = utilityScore(pnl, c);
+            results.add(new TeamPnl(entry.getUsername(), pnl, score));
         }
 
-        RoundResult round = new RoundResult(roundName, System.currentTimeMillis(), results);
+        RoundResult round = new RoundResult(roundName, System.currentTimeMillis(), results, c);
         history.getRounds().add(round);
         saveToDisk();
         return round;
@@ -68,20 +84,24 @@ public class LeaderboardHistoryService {
         }
 
         List<RoundResult> rounds = new ArrayList<>();
+        double sampleC = 10000.0;
 
         List<TeamPnl> round1 = new ArrayList<>();
         for (String team : teamNames) {
             long pnl = (rng.nextInt(40001) - 10000);
-            round1.add(new TeamPnl(team, pnl));
+            double score = utilityScore(pnl, sampleC);
+            round1.add(new TeamPnl(team, pnl, score));
         }
-        rounds.add(new RoundResult("Round 1", System.currentTimeMillis() - 86400000, round1));
+        rounds.add(
+                new RoundResult("Round 1", System.currentTimeMillis() - 86400000, round1, sampleC));
 
         List<TeamPnl> round2 = new ArrayList<>();
         for (String team : teamNames) {
             long pnl = (rng.nextInt(40001) - 10000);
-            round2.add(new TeamPnl(team, pnl));
+            double score = utilityScore(pnl, sampleC);
+            round2.add(new TeamPnl(team, pnl, score));
         }
-        rounds.add(new RoundResult("Round 2", System.currentTimeMillis(), round2));
+        rounds.add(new RoundResult("Round 2", System.currentTimeMillis(), round2, sampleC));
 
         history = new LeaderboardHistory(rounds);
         saveToDisk();

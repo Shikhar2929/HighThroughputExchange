@@ -42,7 +42,8 @@ public class LeaderboardHistoryController {
                     HttpStatus.UNAUTHORIZED);
         }
 
-        RoundResult round = historyService.saveRound(form.getRoundName());
+        double c = form.getC() != null ? form.getC() : 1.0;
+        RoundResult round = historyService.saveRound(form.getRoundName(), c);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("message", Message.SUCCESS.toString());
         body.put("round", round);

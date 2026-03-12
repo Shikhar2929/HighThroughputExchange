@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotNull;
 public class SaveRoundRequest extends BaseAdminRequest {
     @NotNull private String roundName;
 
+    /** Round constant C (free money / taker bot loss). If null, 1.0 is used for scoring. */
+    private Double c;
+
     public SaveRoundRequest() {
         super(null, null);
     }
@@ -21,5 +24,13 @@ public class SaveRoundRequest extends BaseAdminRequest {
 
     public void setRoundName(String roundName) {
         this.roundName = roundName;
+    }
+
+    public Double getC() {
+        return c;
+    }
+
+    public void setC(Double c) {
+        this.c = c;
     }
 }
